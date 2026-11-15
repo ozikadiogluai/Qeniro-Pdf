@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qeniro PDF Önizleme</title>
+<style>
+:root{
+  --bg:#F5F6F8; --win:#FFFFFF; --side:#F3F4F7; --card:#FFFFFF; --border:#E5E7EB;
+  --text:#1D1F24; --muted:#6B7280; --accent:#E5322D; --blue:#2D6BE4; --blueSoft:#E6EEFC;
+  --paper:#FFFFFF; --canvas:#E9EBEF; --chrome:#ECEDF0; --purple:#6D4AE0;
+  --shadow:0 10px 30px rgba(15,20,30,.12);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16171A; --win:#1E1F23; --side:#24252A; --card:#2A2B30; --border:#3A3B41;
+    --text:#ECEDEF; --muted:#9A9DA6; --blueSoft:#24395F; --paper:#F7F7F7; --canvas:#141518; --chrome:#2A2B30;
+    --shadow:0 10px 30px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16171A; --win:#1E1F23; --side:#24252A; --card:#2A2B30; --border:#3A3B41;
+  --text:#ECEDEF; --muted:#9A9DA6; --blueSoft:#24395F; --paper:#F7F7F7; --canvas:#141518; --chrome:#2A2B30;
+  --shadow:0 10px 30px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:13px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;padding:16px;overflow-x:hidden}
+header.top{max-width:1000px;margin:0 auto 16px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+header.top h1{font-size:20px;margin:0}
+header.top p{margin:2px 0 0;color:var(--muted)}
+.seg{display:flex;background:var(--chrome);border-radius:8px;padding:2px}
+.seg button{border:0;background:transparent;color:var(--text);padding:6px 12px;border-radius:6px;font:inherit;cursor:pointer}
+.seg button.on{background:var(--win);box-shadow:0 1px 2px rgba(0,0,0,.15)}
+.shot{max-width:1000px;margin:0 auto 28px}
+.shot h2{font-size:14px;margin:0 0 8px;color:var(--muted);font-weight:600}
+.frame{width:100%;overflow:hidden;border-radius:12px}
+.win{width:1000px;height:620px;background:var(--win);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden;transform-origin:top left}
+.titlebar{height:38px;display:flex;align-items:center;gap:8px;padding:0 14px;background:var(--side);border-bottom:1px solid var(--border);flex:none}
+.lights{display:flex;gap:8px}
+.lights i{width:12px;height:12px;border-radius:50%;display:block}
+.lights i:nth-child(1){background:#FF5F57}.lights i:nth-child(2){background:#FEBC2E}.lights i:nth-child(3){background:#28C840}
+.titlebar .ttl{flex:1;text-align:center;font-weight:600;font-size:13px;margin-right:52px}
+.tabs{display:flex;gap:2px;margin-left:16px}
+.tabs span{padding:6px 14px;border-radius:7px;color:var(--muted)}
+.tabs span.on{background:var(--win);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.body{flex:1;display:flex;min-height:0}
+.sidebar{width:190px;background:var(--side);border-right:1px solid var(--border);padding:14px 10px;flex:none}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:17px;padding:2px 6px 16px}
+.logo{width:28px;height:28px;border-radius:7px;background:var(--accent);display:grid;place-items:center;color:#fff}
+.nav a{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:7px;color:var(--text);text-decoration:none;margin-bottom:2px}
+.nav a.on{background:var(--blueSoft);color:var(--blue);font-weight:600}
+.main{flex:1;padding:22px 26px;overflow:hidden;position:relative}
+.main h3{font-size:22px;margin:0;font-weight:600}
+.sub{color:var(--muted);margin:4px 0 18px}
+.icons{position:absolute;right:22px;top:20px;display:flex;gap:14px;color:var(--muted)}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px}
+.card b{display:block;font-size:13px;margin:8px 0 2px}
+.card small{color:var(--muted);font-size:11px;display:block}
+.recent{margin-top:20px}
+.recent h4{margin:0 0 8px;font-size:15px}
+.row{display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid var(--border)}
+.row .n{flex:1}.row .n small{display:block;color:var(--muted);font-size:11px}
+.grp{font-weight:600;font-size:14px;margin:14px 0 8px}
+.grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.tcard{background:var(--card);border:1px solid var(--border);border-radius:10px;height:78px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:12px;text-align:center}
+.toolbar{height:44px;display:flex;align-items:center;gap:14px;padding:0 14px;border-bottom:1px solid var(--border);color:var(--muted);flex:none;background:var(--win)}
+.toolbar .pg{color:var(--text)}
+.pill{border:1px solid var(--border);border-radius:6px;padding:3px 8px;color:var(--text)}
+.sp{flex:1}
+.btn{background:var(--purple);color:#fff;border-radius:7px;padding:5px 14px;font-weight:600}
+.canvas{flex:1;background:var(--canvas);display:flex;justify-content:center;padding:18px;overflow:hidden}
+.paper{width:540px;background:var(--paper);color:#111;box-shadow:0 2px 10px rgba(0,0,0,.15);padding:40px 48px;font-family:Georgia,serif}
+.paper h1{font-size:28px;margin:0 0 14px}
+.paper h5{font-size:16px;margin:18px 0 6px;font-family:-apple-system,Helvetica,Arial,sans-serif}
+.paper p{font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:13px;margin:4px 0}
+.sel{outline:1.5px solid var(--blue);background:rgba(45,107,228,.08);position:relative;display:inline-block;padding:2px 4px}
+.sel:before,.sel:after{content:"";position:absolute;width:7px;height:7px;background:#fff;border:1.5px solid var(--blue);border-radius:50%;top:-4px;left:-4px}
+.sel:after{left:auto;right:-4px;top:auto;bottom:-4px}
+.panel{width:230px;border-left:1px solid var(--border);padding:16px;flex:none;background:var(--win)}
+.panel .ph{display:flex;justify-content:space-between;font-weight:600;font-size:14px;margin-bottom:12px}
+.panel .lbl{font-weight:600;margin:12px 0 8px}
+.ctl{display:flex;gap:6px;margin-bottom:8px}
+.ctl .box{border:1px solid var(--border);border-radius:6px;padding:5px 8px;flex:1;display:flex;justify-content:space-between}
+.seg2{display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.seg2 span{padding:4px 9px;border-right:1px solid var(--border)}
+.seg2 span:last-child{border-right:0}.seg2 span.on{background:var(--blueSoft);color:var(--blue)}
+.item{display:flex;align-items:center;gap:10px;padding:6px 2px}
+.sig{border:1.5px solid var(--blue);border-radius:6px;height:54px;display:grid;place-items:center;color:#1E3A8A;font:italic 26px "Snell Roundhand","Brush Script MT",cursive}
+.paper .sigbox{border:1.5px solid var(--blue);width:150px;height:50px;display:grid;place-items:center;color:#1E3A8A;font:italic 28px "Snell Roundhand","Brush Script MT",cursive;margin-top:20px}
+.two{display:flex;justify-content:space-between;margin-top:28px}
+svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.c-red{color:var(--accent)}.c-blue{color:var(--blue)}.c-purple{color:#7C4DDB}.c-green{color:#1E8E3E}.c-orange{color:#E8710A}
+.note{max-width:1000px;margin:0 auto 24px;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<header class="top">
+  <div><h1>Qeniro PDF — macOS görsel önizleme</h1><p>Faz 0 · 4 ekran · açık ve koyu tema</p></div>
+  <div class="seg" id="seg"><button data-t="auto" class="on">Otomatik</button><button data-t="light">Açık</button><button data-t="dark">Koyu</button></div>
+</header>
+
+<section class="shot"><h2>1 · Ana Sayfa</h2><div class="frame"><div class="win">
+  <div class="titlebar"><div class="lights"><i></i><i></i><i></i></div><div class="ttl">Qeniro PDF</div></div>
+  <div class="body">
+    <aside class="sidebar" data-nav="0"></aside>
+    <div class="main">
+      <div class="icons" data-ic="help bell user"></div>
+      <h3>Hoş Geldiniz</h3><div class="sub">Qeniro PDF'lerinizle daha fazlasını yapın.</div>
+      <div class="grid4" id="home"></div>
+      <div class="recent"><h4>Son Dosyalar</h4>
+        <div class="row"><span class="c-red" data-ic="doc"></span><div class="n"><b>Sözleşme.pdf</b><small>3,2 MB · Bugün 14:20</small></div><span data-ic="more"></span></div>
+        <div class="row"><span class="c-red" data-ic="doc"></span><div class="n"><b>Rapor.pdf</b><small>5,8 MB · Dün 17:45</small></div><span data-ic="more"></span></div>
+        <div class="row"><span class="c-red" data-ic="doc"></span><div class="n"><b>Sunum.pdf</b><small>12,6 MB · 22 Oca 2025 10:11</small></div><span data-ic="more"></span></div>
+      </div>
+    </div>
+  </div>
+</div></div></section>
+
+<section class="shot"><h2>2 · Tüm Araçlar</h2><div class="frame"><div class="win">
+  <div class="titlebar"><div class="lights"><i></i><i></i><i></i></div><div class="ttl">Qeniro PDF</div></div>
+  <div class="body">
+    <aside class="sidebar" data-nav="1"></aside>
+    <div class="main">
+      <div class="icons" data-ic="help bell user"></div>
+      <h3>Tüm Araçlar</h3>
+      <div class="grp">Oluştur ve Dönüştür</div><div class="grid5" id="g1"></div>
+      <div class="grp">Düzenle ve Organize Et</div><div class="grid5" id="g2"></div>
+      <div class="grp">İmzala ve Koruyun</div><div class="grid5" id="g3"></div>
+    </div>
+  </div>
+</div></div></section>
+
+<section class="shot"><h2>3 · Düzenleyici (PDF Düzenle paneli)</h2><div class="frame"><div class="win">
+  <div class="titlebar"><div class="lights"><i></i><i></i><i></i></div><div class="tabs"><span>Ana Sayfa</span><span>Araçlar</span><span class="on">Sözleşme.pdf</span></div><div class="ttl">Sözleşme.pdf — Qeniro PDF</div></div>
+  <div class="toolbar"><span data-ic="save"></span><span data-ic="star"></span><span data-ic="print"></span><span data-ic="search"></span><span class="c-blue" data-ic="cursor"></span><span class="pg">1 / 5</span><span data-ic="hand"></span><span data-ic="zoomout"></span><span class="pill">100% ▾</span><span data-ic="zoomin"></span><span data-ic="rotate"></span><span class="sp"></span></div>
+  <div class="body">
+    <div class="canvas"><div class="paper">
+      <h1>Hizmet Sözleşmesi</h1>
+      <p>İşbu sözleşme, aşağıda bilgileri yer alan taraflar arasında, belirtilen şartlar çerçevesinde akdedilmiştir.</p>
+      <h5>Taraflar</h5>
+      <p><span class="sel"><b>Hizmet Veren:</b> ABC Teknoloji A.Ş.</span></p>
+      <p><b>Hizmet Alan:</b> XYZ Danışmanlık Ltd. Şti.</p>
+      <h5>Sözleşme Konusu</h5>
+      <p>Bu sözleşmenin konusu, Hizmet Veren'in, Hizmet Alan'a yazılım geliştirme ve teknik destek hizmetleri sunmasıdır.</p>
+    </div></div>
+    <aside class="panel">
+      <div class="ph">PDF Düzenle <span data-ic="x"></span></div>
+      <div class="lbl">Metin</div>
+      <div class="ctl"><div class="box">Arial <span>▾</span></div><div class="box" style="flex:.6">12 <span>▾</span></div></div>
+      <div class="ctl"><div class="seg2"><span><b>B</b></span><span><i>I</i></span><span><u>U</u></span></div><div class="box" style="flex:.6"><span style="width:14px;height:14px;background:#111;border-radius:3px;display:inline-block"></span><span>▾</span></div></div>
+      <div class="ctl"><div class="seg2"><span class="on">≡</span><span>≣</span><span>≡</span><span>☰</span></div></div>
+      <div class="lbl">Nesneler</div>
+      <div class="item"><span data-ic="text"></span>Metin ekle</div>
+      <div class="item"><span data-ic="image"></span>Görsel ekle</div>
+      <div class="item"><span data-ic="link"></span>Bağlantı ekle</div>
+    </aside>
+  </div>
+</div></div></section>
+
+<section class="shot"><h2>4 · İmzala ve Doldur</h2><div class="frame"><div class="win">
+  <div class="titlebar"><div class="lights"><i></i><i></i><i></i></div><div class="tabs"><span>Ana Sayfa</span><span>Araçlar</span><span class="on">Sözleşme.pdf</span></div><div class="ttl">Sözleşme.pdf — Qeniro PDF</div></div>
+  <div class="toolbar"><span data-ic="save"></span><span data-ic="star"></span><span data-ic="print"></span><span data-ic="search"></span><span class="c-blue" data-ic="cursor"></span><span class="pg">5 / 5</span><span data-ic="hand"></span><span data-ic="zoomout"></span><span class="pill">100% ▾</span><span data-ic="zoomin"></span><span data-ic="rotate"></span><span class="sp"></span><span class="btn">Uygula</span></div>
+  <div class="body">
+    <div class="canvas"><div class="paper">
+      <p>İşbu sözleşme, taraflarca okunmuş, anlaşılmış ve kabul edilerek iki nüsha olarak imzalanmıştır.</p>
+      <div class="two"><div><h5>Hizmet Veren</h5><p>ABC Teknoloji A.Ş.</p><div class="sigbox">Ozan K.</div></div>
+      <div><h5>Hizmet Alan</h5><p>XYZ Danışmanlık Ltd. Şti.</p><div style="margin-top:58px;border-bottom:1px solid #333;width:160px"></div></div></div>
+      <p style="margin-top:40px">Tarih: 22.01.2025</p>
+    </div></div>
+    <aside class="panel">
+      <div class="ph">İmzala ve Doldur <span data-ic="x"></span></div>
+      <div class="lbl">İmza Ekle</div>
+      <div class="sig">Ozan K.</div>
+      <div class="item c-blue" style="margin-top:10px"><span data-ic="plus"></span>Yeni İmza Oluştur</div>
+      <div style="border-top:1px solid var(--border);margin:10px 0"></div>
+      <div class="item"><span data-ic="text"></span>Metin Ekle</div>
+      <div class="item"><span data-ic="check"></span>Onay Kutusu</div>
+      <div class="item"><span data-ic="radio"></span>Radyo Düğmesi</div>
+      <div class="item"><span data-ic="cal"></span>Tarih Ekle</div>
+    </aside>
+  </div>
+</div></div></section>
+<p class="note">Bu yalnızca görsel önizlemedir. Gerçek uygulama SwiftUI + PDFKit ile yazılır; simgeler SF Symbols karşılıklarıdır, Acrobat'a ait logo veya simge kullanılmaz.</p>
+
+<script>
+const P={
+home:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+grid:'<rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/>',
+clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+star:'<path d="M12 3l2.8 5.8 6.2.9-4.5 4.4 1 6.2L12 17.4 6.5 20.3l1-6.2L3 9.7l6.2-.9z"/>',
+cloud:'<path d="M7 18h10a4 4 0 0 0 .6-8 6 6 0 0 0-11.4 1.6A3.3 3.3 0 0 0 7 18z"/>',
+help:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01"/>',
+bell:'<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20a2 2 0 0 0 4 0"/>',
+user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+doc:'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 14h6M9 17h4"/>',
+edit:'<path d="M5 4h10l4 4v12H5z"/><path d="M9 16l1-3 5-5 2 2-5 5z"/>',
+create:'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><circle cx="16" cy="17" r="3.2"/><path d="M16 15.5v3M14.5 17h3"/>',
+merge:'<rect x="4" y="3" width="10" height="12" rx="1.5"/><rect x="10" y="9" width="10" height="12" rx="1.5"/>',
+split:'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><circle cx="16" cy="17" r="3.2"/>',
+compress:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 7v4M10 9l2 2 2-2M12 17v-4M10 15l2-2 2 2"/>',
+convert:'<rect x="4" y="3" width="14" height="18" rx="2"/><path d="M8 9h7l-2-2M15 15H8l2 2"/>',
+pen:'<path d="M14 5l5 5-9 9H5v-5z"/><path d="M4 21h16"/>',
+shield:'<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/><path d="M12 9v6M9 12h6"/>',
+word:'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 9l1.5 6L12 10l2.5 5L16 9"/>',
+excel:'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 9l8 6M16 9l-8 6"/>',
+ppt:'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 16V8h3.5a2.5 2.5 0 0 1 0 5H9"/>',
+pages:'<rect x="4" y="3" width="14" height="18" rx="2"/><path d="M8 8h6M8 12h6M8 16h3"/><path d="M15 15l3 3 3-3"/>',
+cert:'<path d="M6 3h8l4 4v14H6z"/><circle cx="12" cy="13" r="3"/><path d="M10.5 15.5L10 20l2-1 2 1-.5-4.5"/>',
+redact:'<path d="M14 5l5 5-9 9H5v-5z"/><path d="M4 21h16"/><path d="M3 3l18 18"/>',
+erase:'<rect x="4" y="3" width="14" height="18" rx="2"/><circle cx="14" cy="15" r="4"/><path d="M12.5 13.5l3 3M15.5 13.5l-3 3"/>',
+save:'<path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/>',
+print:'<path d="M7 9V4h10v5"/><rect x="4" y="9" width="16" height="7" rx="2"/><path d="M7 14h10v6H7z"/>',
+search:'<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>',
+cursor:'<path d="M5 3l14 7-6 2-2 6z"/>',
+hand:'<path d="M8 13V6a1.5 1.5 0 0 1 3 0v5M11 11V4.5a1.5 1.5 0 0 1 3 0V11M14 11V6a1.5 1.5 0 0 1 3 0v8a6 6 0 0 1-6 6h-1a5 5 0 0 1-4-2l-3-4a1.5 1.5 0 0 1 2.3-2L8 14"/>',
+zoomout:'<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5M8.5 11h5"/>',
+zoomin:'<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5M8.5 11h5M11 8.5v5"/>',
+rotate:'<path d="M4 12a8 8 0 1 0 2.3-5.7"/><path d="M4 4v4h4"/>',
+text:'<path d="M5 6V4h14v2M12 4v16M9 20h6"/>',
+image:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/>',
+link:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+check:'<path d="M5 12l4 4 10-10"/>',
+radio:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5" fill="currentColor"/>',
+cal:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+plus:'<path d="M12 5v14M5 12h14"/>', x:'<path d="M6 6l12 12M18 6L6 18"/>',
+more:'<circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/>'
+};
+const ic=n=>`<svg viewBox="0 0 24 24">${P[n]||''}</svg>`;
+document.querySelectorAll('[data-ic]').forEach(el=>{el.innerHTML=el.dataset.ic.split(' ').map(ic).join('')+el.innerHTML});
+const nav=[['home','Ana Sayfa'],['grid','Araçlar'],['clock','Son Dosyalar'],['star','Yıldızlı'],['cloud','Bulut Depolama']];
+document.querySelectorAll('.sidebar').forEach(s=>{const a=+s.dataset.nav;s.innerHTML=`<div class="brand"><span class="logo">${ic('doc').replace('<svg','<svg style="stroke:#fff"')}</span>Qeniro PDF</div><nav class="nav">`+nav.map((n,i)=>`<a class="${i==a?'on':''}">${ic(n[0])}${n[1]}</a>`).join('')+'</nav>'});
+const home=[['edit','PDF Düzenle','Metin ve görselleri düzenleyin','c-red'],['create','PDF Oluştur','Dosyalardan PDF oluşturun','c-red'],['merge','PDF Birleştir',"Birden fazla PDF'yi tek dosyada toplayın",'c-purple'],['split','PDF Böl',"PDF'yi birden fazla dosyaya ayırın",'c-purple'],['compress','PDF Sıkıştır','Dosya boyutunu küçültün','c-red'],['convert','PDF Dönüştür',"PDF'yi Word, Excel, PowerPoint'e dönüştürün",'c-blue'],['pen','İmzala ve Doldur','Formları doldurun ve e-imza ekleyin','c-purple'],['shield','Koruma','Şifre ile koruyun ve izinleri yönetin','c-purple']];
+document.getElementById('home').innerHTML=home.map(h=>`<div class="card"><span class="${h[3]}">${ic(h[0])}</span><b>${h[1]}</b><small>${h[2]}</small></div>`).join('');
+const t=(id,a)=>document.getElementById(id).innerHTML=a.map(x=>`<div class="tcard"><span class="${x[2]}">${ic(x[0])}</span>${x[1]}</div>`).join('');
+t('g1',[['create','PDF Oluştur','c-red'],['convert','PDF Dönüştür','c-blue'],['word',"PDF'yi Word'e",'c-blue'],['excel',"PDF'yi Excel'e",'c-green'],['ppt',"PDF'yi PowerPoint'e",'c-orange']]);
+t('g2',[['edit','PDF Düzenle','c-purple'],['merge','PDF Birleştir','c-purple'],['split','PDF Böl','c-purple'],['pages','PDF Sayfaları Düzenle','c-purple'],['compress','PDF Sıkıştır','c-red']]);
+t('g3',[['pen','İmzala ve Doldur','c-purple'],['cert','Sertifika ile İmzala','c-purple'],['shield','Koruma','c-purple'],['redact',"PDF'de Sansürle",'c-red'],['erase','Hassas Bilgileri Kaldır','c-red']]);
+function fit(){document.querySelectorAll('.frame').forEach(f=>{const w=f.clientWidth,s=Math.min(1,w/1000),win=f.firstElementChild;win.style.transform=`scale(${s})`;f.style.height=(620*s)+'px'})}
+addEventListener('resize',fit);fit();
+const root=document.documentElement;
+function setT(v){if(v==='auto')root.removeAttribute('data-theme');else root.setAttribute('data-theme',v);document.querySelectorAll('#seg button').forEach(b=>b.classList.toggle('on',b.dataset.t===v));try{localStorage.setItem('qp-theme',v)}catch(e){}}
+document.querySelectorAll('#seg button').forEach(b=>b.onclick=()=>setT(b.dataset.t));
+try{const s=localStorage.getItem('qp-theme');if(s)setT(s)}catch(e){}
+</script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+name: QeniroPDF
+options:
+  bundleIdPrefix: com.qeniro
+  deploymentTarget:
+    macOS: "14.0"
+  developmentLanguage: tr
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    SWIFT_STRICT_CONCURRENCY: minimal
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+targets:
+  QeniroPDF:
+    type: application
+    platform: macOS
+    sources:
+      - path: QeniroPDF
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.qeniro.pdf
+        PRODUCT_NAME: Qeniro PDF
+        PRODUCT_MODULE_NAME: QeniroPDF
+        INFOPLIST_FILE: Config/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Config/QeniroPDF.entitlements
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGN_STYLE: Manual
+        DEVELOPMENT_TEAM: ""
+        ENABLE_HARDENED_RUNTIME: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        GENERATE_INFOPLIST_FILE: NO
+        COMBINE_HIDPI_IMAGES: YES
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
+        # PDFium (gerçek metin düzenleme). build.sh, Vendor/pdfium klasörünü indirir.
+        SWIFT_OBJC_BRIDGING_HEADER: QeniroPDF/PDFium/QeniroPDF-Bridging-Header.h
+        HEADER_SEARCH_PATHS: ["$(inherited)", "$(SRCROOT)/Vendor/pdfium/include"]
+        LIBRARY_SEARCH_PATHS: ["$(inherited)", "$(SRCROOT)/Vendor/pdfium/lib"]
+        LD_RUNPATH_SEARCH_PATHS: ["$(inherited)", "@executable_path/../Frameworks"]
+        OTHER_LDFLAGS: ["$(inherited)", "-lpdfium"]
+    dependencies:
+      - framework: Vendor/pdfium/lib/libpdfium.dylib
+        embed: true
+        codeSign: true
+  QeniroPDFTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: QeniroPDFTests
+    dependencies:
+      - target: QeniroPDF
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.qeniro.pdf.tests
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGN_STYLE: Manual
+        HEADER_SEARCH_PATHS: ["$(inherited)", "$(SRCROOT)/Vendor/pdfium/include"]
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Qeniro PDF.app/Contents/MacOS/Qeniro PDF"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+schemes:
+  QeniroPDF:
+    build:
+      targets:
+        QeniroPDF: all
+        QeniroPDFTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - QeniroPDFTests

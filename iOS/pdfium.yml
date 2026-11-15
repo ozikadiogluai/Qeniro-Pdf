@@ -1,0 +1,13 @@
+# PDFium eklentisi: project.yml tarafından QPDF_PDFIUM=true iken eklenir.
+# ../Vendor/pdfium-ios klasörünü build-ios.sh hazırlar (pdfium.xcframework + include/).
+targets:
+  QeniroPDFiOS:
+    settings:
+      base:
+        SWIFT_OBJC_BRIDGING_HEADER: QeniroPDFiOS/Support/QeniroPDFiOS-Bridging-Header.h
+        HEADER_SEARCH_PATHS: ["$(inherited)", "$(SRCROOT)/../Vendor/pdfium-ios/include"]
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: ["$(inherited)", "QPDF_PDFIUM"]
+    dependencies:
+      - framework: ../Vendor/pdfium-ios/pdfium.xcframework
+        embed: true
+        codeSign: true

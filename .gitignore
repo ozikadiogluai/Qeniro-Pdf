@@ -1,0 +1,8 @@
+# Xcode / XcodeGen çıktıları (build.sh yeniden üretir)
+*.xcodeproj/
+build/
+DerivedData/
+Vendor/
+*.dmg
+.DS_Store
+xcuserdata/

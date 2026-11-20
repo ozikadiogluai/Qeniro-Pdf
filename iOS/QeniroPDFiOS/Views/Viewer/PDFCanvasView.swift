@@ -105,6 +105,8 @@ final class PDFCanvasView: UIView, UIGestureRecognizerDelegate, UITextFieldDeleg
     private let overlay = CanvasOverlayView()
     private let inkView = InkCaptureView()
     private let field = UITextField()
+    /// Düzenleme kutusunun üstündeki koyu kapsül etiket ("Düzenleniyor · Yazı tipi boyut").
+    private let badge = UILabel()
     private var tap: UITapGestureRecognizer!
     private var pan: UIPanGestureRecognizer!
     private var displayLink: CADisplayLink?
@@ -150,17 +152,28 @@ final class PDFCanvasView: UIView, UIGestureRecognizerDelegate, UITextFieldDeleg
         field.isHidden = true
         field.delegate = self
         field.borderStyle = .none
-        field.backgroundColor = UIColor.white
+        field.backgroundColor = UIColor(hex: 0xF4F6F7)
         field.textColor = .black
-        field.layer.borderColor = UIColor(red: 0.176, green: 0.42, blue: 0.894, alpha: 1).cgColor
+        field.layer.borderColor = Theme.navyUI.cgColor
         field.layer.borderWidth = 1.5
-        field.layer.cornerRadius = 2
+        field.layer.cornerRadius = 6
+        field.clipsToBounds = true
         field.returnKeyType = .done
         field.autocorrectionType = .no
         field.spellCheckingType = .no
         field.overrideUserInterfaceStyle = .light
         field.addTarget(self, action: #selector(fieldChanged), for: .editingChanged)
         addSubview(field)
+
+        badge.isHidden = true
+        badge.font = UIFont.systemFont(ofSize: 11, weight: .medium)
+        badge.textColor = .white
+        badge.textAlignment = .center
+        badge.backgroundColor = UIColor(hex: 0x121A21)
+        badge.layer.cornerRadius = 11
+        badge.clipsToBounds = true
+        badge.isUserInteractionEnabled = false
+        addSubview(badge)
 
         tap = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
         tap.delegate = self
@@ -376,20 +389,20 @@ final class PDFCanvasView: UIView, UIGestureRecognizerDelegate, UITextFieldDeleg
     // MARK: - Katman çizimi
 
     func drawOverlay(in view: UIView) {
-        let blue = UIColor(red: 0.176, green: 0.42, blue: 0.894, alpha: 1)
-        let dashed = UIColor(red: 0.616, green: 0.722, blue: 0.933, alpha: 1)
+        let blue = Theme.navyUI
+        let dashed = Theme.navyUI.withAlphaComponent(0.45)
         if session.tool == .editText {
             for page in pdfView.visiblePages {
                 let idx = session.document.index(for: page)
                 guard idx >= 0, idx != NSNotFound else { continue }
                 for item in session.textItems(onPage: idx) {
-                    let r = viewRect(item.bounds, on: page).insetBy(dx: -2, dy: -2)
+                    let r = viewRect(item.bounds, on: page).insetBy(dx: -3, dy: -3)
                     if let sel = session.selectedTextItem, sel == item {
-                        drawSelection(r, color: blue)
+                        drawTextSelection(r.insetBy(dx: -1, dy: -1), color: blue)
                     } else {
-                        let path = UIBezierPath(rect: r)
+                        let path = UIBezierPath(roundedRect: r, cornerRadius: 3)
                         path.lineWidth = 1
-                        path.setLineDash([3, 2], count: 2, phase: 0)
+                        path.setLineDash([4, 3], count: 2, phase: 0)
                         dashed.setStroke()
                         path.stroke()
                     }
@@ -410,6 +423,16 @@ final class PDFCanvasView: UIView, UIGestureRecognizerDelegate, UITextFieldDeleg
             c.setStroke()
             path.stroke()
         }
+    }
+
+    /// Seçili metin satırı: 1.5 pt lacivert çerçeve, 6 pt köşe, %6 lacivert dolgu (tutamaçsız).
+    private func drawTextSelection(_ r: CGRect, color: UIColor) {
+        let path = UIBezierPath(roundedRect: r, cornerRadius: 6)
+        color.withAlphaComponent(0.06).setFill()
+        path.fill()
+        path.lineWidth = 1.5
+        color.setStroke()
+        path.stroke()
     }
 
     private func drawSelection(_ r: CGRect, color: UIColor) {
@@ -436,6 +459,7 @@ final class PDFCanvasView: UIView, UIGestureRecognizerDelegate, UITextFieldDeleg
         guard let target else {
             if !field.isHidden && !finishing {
                 field.isHidden = true
+                badge.isHidden = true
                 field.resignFirstResponder()
             }
             return
@@ -470,6 +494,14 @@ final class PDFCanvasView: UIView, UIGestureRecognizerDelegate, UITextFieldDeleg
             field.textColor = a.fontColor ?? .black
             field.font = f.withSize(f.pointSize * scale)
         }
+        var badgeFamily = session.textStyle.family
+        var badgeSize = fieldFontSize
+        if case .pdfText(let item) = target { badgeFamily = item.familyName; badgeSize = item.visualSize }
+        if case .annotation(let a) = target { badgeFamily = (a.font ?? UIFont.systemFont(ofSize: 12)).familyName }
+        let sizeText = badgeSize.rounded() == badgeSize ? "\(Int(badgeSize))" : String(format: "%.1f", Double(badgeSize))
+        badge.text = "Düzenleniyor · \(badgeFamily) \(sizeText)"
+        badge.accessibilityLabel = "Düzenleniyor: \(badgeFamily) \(sizeText) punto"
+        badge.isHidden = false
         field.isHidden = false
         finishing = false
         session.pendingInlineText = field.text
@@ -499,6 +531,8 @@ final class PDFCanvasView: UIView, UIGestureRecognizerDelegate, UITextFieldDeleg
         r.size.height = max(r.height, (field.font?.lineHeight ?? 14) + 8)
         if r.maxX > bounds.maxX - 8 { r.origin.x = max(8, bounds.maxX - 8 - r.width) }
         field.frame = r
+        let bw = min(badge.intrinsicContentSize.width + 18, bounds.width - 16)
+        badge.frame = CGRect(x: max(8, r.minX), y: max(0, r.minY - 26), width: bw, height: 22)
     }
 
     @objc private func fieldChanged() {
@@ -521,6 +555,7 @@ final class PDFCanvasView: UIView, UIGestureRecognizerDelegate, UITextFieldDeleg
         finishing = true
         let text = field.text ?? ""
         field.isHidden = true
+        badge.isHidden = true
         field.resignFirstResponder()
         session.finishInline(text)
         finishing = false

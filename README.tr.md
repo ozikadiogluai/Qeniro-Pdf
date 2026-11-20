@@ -213,3 +213,42 @@ dosyası olarak kurulup PDFium'a verilir.
   imza doğrulama yalnızca Mac sürümündedir. Sıkıştırma Quartz filtresi yerine PDFKit'in JPEG/ekran
   çözünürlüğü seçeneklerini veya "görüntüye çevir" seçeneğini kullanır.
 - Derleme bu oturumda (Linux, derleyicisiz) yapılamadı; Mac'te `iPhone Derle.command` ile doğrulanmalıdır.
+
+# Lacivert tema (macOS + iPhone)
+
+Her iki uygulamanın görünümü, Qeniro ana uygulamasının **Lacivert** paletine göre yeniden kodlandı (2026-11-20).
+İşlevler (PDFium metin düzenleme, araçlar, imza, dönüştürme, OCR…) değişmedi; yalnızca görünüm ve yerleşim değişti.
+
+- **Renkler** (`QeniroPDF/Theme/Theme.swift`, `iOS/QeniroPDFiOS/Theme/Theme.swift`): her renk açık + koyu tanımlı
+  (Mac'te `NSColor(name:dynamicProvider:)`, iPhone'da `UIColor { trait in }`). Açık: zemin #F2F2F0, kart #FFFFFF,
+  kart2 #F1F1EF, ayırıcı #EDEDEB, metin #111111 / #6E6E6E, koyu ikon #121A21, lacivert vurgu #2E4A5E, yeşil #178A4C,
+  kırmızı #D23B2B, turuncu #E07A1F, PDF rozeti #FBEAE7/#B42E22, sayfa arkası #E6E6E3. Koyu: zemin #0B1015,
+  kart #161D24, kart2 #1F2830, ayırıcı #222C35, metin #FFFFFF / #8A96A0, hap menü #1C252E, lacivert #9DB8CC;
+  birincil düğme koyuda beyaz zemin + #121A21 yazı. Eski renk adları (accent, selection…) yeni palete bağlı kaldı.
+- **Kahraman alanı:** radyal degrade (sağ-alt merkez) #5D7487 → #2B3B49 → #0D141B; iPhone'da alt köşeler 34 pt,
+  Mac'te 24 pt köşeli kart.
+- **Biçim kuralları:** kartlar 22 pt (Mac panel kartları 18 pt), sheet üstü 34 pt, tüm düğmeler kapsül. Sistem
+  yazı tipi ve metin stilleri (Dynamic Type), sayı ve boyutlarda `monospacedDigit`. Birincil eylem (Kaydet, Uygula,
+  Tara, Dönüştür) tek ve koyu kapsül; ikincil düğmeler beyaz / kart2 kapsül.
+- **Cam (Liquid Glass):** yalnızca kontrol katmanında — iPhone görüntüleyicinin üst düğmeleri ve yüzen hızlı araç
+  çubuğu, Mac'te kenar çubuğu, üst araç çubuğu, hızlı araç çubuğu ve sayfa/yakınlaştırma kapsülü.
+  macOS/iOS 26'da `glassEffect`, daha eski sürümlerde `.regularMaterial` / `.ultraThinMaterial` yedeği. Kartlar cam değil.
+- **iPhone:** alt sekme çubuğu yerine koyu **hap menü** (Ana Sayfa · Araçlar · turuncu **+** · Dosyalar · Yıldızlı).
+  Görüntüleyicide aynı hap: Araçlar · Düzenle · Dönüştür · E-imza. Düzenle / E-imza / Dönüştür / Tüm araçlar panelleri
+  #F2F2F0 zeminli sheet; üst satır Vazgeç · başlık · birincil eylem. Sağda dikey cam hızlı araç çubuğu.
+- **Mac:** 220 pt cam kenar çubuğu (seçili öğe koyu), Ana Sayfa'da lacivert kahraman kart + 8 araç dairesi + "PDF Aç",
+  altta Son Dosyalar tablosu ve Diğer araçlar kartı. Görüntüleyicide tek cam araç çubuğu (geri, dosya adı, ortada
+  Tüm araçlar · Düzenle · Dönüştür · E-imza kapsülü, sağda geri al / ara / yazdır / paylaş / ••• ve koyu Kaydet),
+  solda 290 pt panel içinde beyaz kartlar, sayfa altında sayfa / yakınlaştırma kapsülü. Yıldızla, yinele, el aracı,
+  döndür, küçük resimler ve Araçlar menüsü "•••" altına taşındı.
+- **Düzenlenen metin:** lacivert 1.5 pt çerçeve, 6 pt köşe, %6 lacivert dolgu ve üstünde koyu kapsül etiket
+  "Düzenleniyor · <yazı tipi> <boyut>"; diğer düzenlenebilir satırlar kesikli lacivert (%45) çerçeveyle görünür.
+- **Tema seçimi:** Mac'te Ayarlar > Genel > Görünüm ve kenar çubuğundaki Tema kartı; iPhone'da Ana Sayfa'daki zil
+  menüsü > Ayarlar > Görünüm. Seçenekler: Sistemle aynı (varsayılan), Açık, Koyu.
+- **Erişilebilirlik:** iPhone'da dokunma hedefleri ≥ 44 pt, simge düğmelerde `accessibilityLabel`, Hareketi Azalt
+  açıkken panel/sekme animasyonları sadeleşir.
+- **Uygulama simgesi:** lacivert kahraman degradesi üzerinde beyaz "Q" (düz, gölgesiz); macOS AppIcon seti ve
+  iOS 1024 simgesi yeniden üretildi. AccentColor lacivert (#2E4A5E / koyu #9DB8CC).
+- **Sınırlar:** iPhone panellerinde yerinde metin düzenlerken sayfanın görünmesi için `.medium/.large` yanında küçük
+  (220 pt) konum korunur. Mac'te standart pencere başlık çubuğu korunur (trafik ışıkları kenar çubuğunun içinde değil).
+  Bu tema derleyicisi olmayan bir Linux ortamında yazıldı; Mac'te derlenip denenmelidir.

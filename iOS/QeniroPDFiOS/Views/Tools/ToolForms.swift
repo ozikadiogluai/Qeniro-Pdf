@@ -32,30 +32,30 @@ final class ToolJob: ObservableObject {
     }
 }
 
-/// Mavi, tam genişlikte ana düğme (52 pt, kapsül).
+/// Tam genişlikte birincil düğme: koyu kapsül (koyu temada beyaz zemin + koyu yazı).
 struct PrimaryButton: View {
     let title: String
-    var color: Color = Theme.blue
+    var color: Color? = nil
     var busy = false
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             ZStack {
-                if busy { ProgressView().tint(.white) } else { Text(title) }
+                if busy { ProgressView().tint(color == nil ? Theme.onInk : Color.white) } else { Text(title) }
             }
-            .font(.system(size: 16, weight: .semibold))
-            .foregroundStyle(.white)
+            .font(.body.weight(.semibold))
+            .foregroundStyle(color == nil ? Theme.onInk : Color.white)
             .frame(maxWidth: .infinity)
-            .frame(height: 52)
-            .background(color, in: Capsule())
+            .frame(minHeight: 50)
+            .background(color ?? Theme.ink, in: Capsule())
         }
         .buttonStyle(.plain)
         .disabled(busy)
     }
 }
 
-/// İkincil, çerçeveli küçük düğme.
+/// İkincil kapsül düğme (beyaz kart zemin).
 struct OutlineButton: View {
     let title: String
     var icon: String?
@@ -65,19 +65,18 @@ struct OutlineButton: View {
         Button(action: action) {
             HStack(spacing: 6) {
                 if let icon { Image(systemName: icon).font(.system(size: 15)) }
-                Text(title).font(.system(size: 13.5)).lineLimit(1).minimumScaleFactor(0.8)
+                Text(title).font(.footnote).lineLimit(1).minimumScaleFactor(0.8)
             }
             .foregroundStyle(Theme.text)
             .frame(maxWidth: .infinity)
-            .frame(height: 44)
-            .background(Theme.card, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Theme.border, lineWidth: 1))
+            .frame(minHeight: 44)
+            .background(Theme.card, in: Capsule())
         }
         .buttonStyle(.plain)
     }
 }
 
-/// Dönüştür panelindeki gibi seçim satırı (mavi halka = seçili).
+/// Seçim satırı (koyu halka = seçili).
 struct RadioRow: View {
     let title: String
     var trailing: String?
@@ -88,24 +87,22 @@ struct RadioRow: View {
         Button(action: action) {
             HStack(spacing: 12) {
                 Circle()
-                    .strokeBorder(selected ? Theme.blue : Theme.chevron, lineWidth: selected ? 6 : 2)
+                    .strokeBorder(selected ? Theme.ink : Theme.chevron, lineWidth: selected ? 6 : 2)
                     .frame(width: 20, height: 20)
                 Text(title)
-                    .font(.system(size: 15.5))
+                    .font(.subheadline)
                     .foregroundStyle(Theme.text)
                 Spacer(minLength: 0)
                 if let trailing {
                     Text(trailing)
-                        .font(.system(size: 12.5, weight: .semibold))
+                        .font(.caption.weight(.semibold))
                         .tracking(0.5)
                         .foregroundStyle(Theme.secondary)
                 }
             }
             .padding(.horizontal, 14)
-            .frame(minHeight: 50)
-            .background(Theme.card, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(selected ? Theme.blue : Theme.border, lineWidth: selected ? 1.5 : 1))
+            .frame(minHeight: 48)
+            .background(selected ? Theme.card2 : Theme.card, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

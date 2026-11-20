@@ -89,3 +89,41 @@ Vendor/            downloaded by the build scripts (not committed)
 PDFium is licensed under BSD 3-Clause and Apache 2.0 (© The PDFium Authors); the prebuilt binaries come from
 bblanchon/pdfium-binaries (MIT). Third-party licence texts are downloaded with the binaries into `Vendor/pdfium/licenses/`
 and must be shipped with any distributed build.
+
+## Lacivert theme (macOS + iPhone)
+
+Both apps were restyled to the **Lacivert** (navy) palette of the main Qeniro app. Functionality is unchanged
+(PDFium text editing, tools, signatures, conversion, OCR); only look and layout changed.
+
+- **Colors** (`QeniroPDF/Theme/Theme.swift`, `iOS/QeniroPDFiOS/Theme/Theme.swift`): every color has a light and a dark
+  value (`NSColor(name:dynamicProvider:)` on macOS, `UIColor { trait in }` on iOS). Light: background #F2F2F0,
+  card #FFFFFF, card2 #F1F1EF, divider #EDEDEB, text #111111 / #6E6E6E, ink #121A21, navy accent #2E4A5E,
+  green #178A4C, red #D23B2B, orange #E07A1F, PDF badge #FBEAE7 / #B42E22, page backdrop #E6E6E3. Dark: background
+  #0B1015, card #161D24, card2 #1F2830, divider #222C35, text #FFFFFF / #8A96A0, pill #1C252E, navy #9DB8CC; the
+  primary button turns white with #121A21 text. Legacy color names stay mapped to the new palette.
+- **Hero:** radial gradient centered bottom-right, #5D7487 → #2B3B49 → #0D141B (34 pt bottom corners on iPhone,
+  24 pt card on Mac).
+- **Shape and type:** 22 pt cards (18 pt in Mac panels), 34 pt sheet top, capsule buttons everywhere, system font with
+  text styles (Dynamic Type), `monospacedDigit` for sizes and counts. One dark primary capsule per screen
+  (Save, Apply, Scan, Convert); secondary buttons are white / card2 capsules.
+- **Liquid Glass only on the control layer:** iPhone viewer top buttons and floating quick-tool rail; Mac sidebar,
+  top toolbar, quick-tool rail and page/zoom capsule. Uses `glassEffect` on macOS/iOS 26 with a
+  `.regularMaterial` / `.ultraThinMaterial` fallback. Cards are never glass.
+- **iPhone:** dark pill tab bar (Home · Tools · orange **+** · Files · Starred); the viewer uses the same pill for
+  All tools · Edit · Convert · E-sign. Edit / E-sign / Convert / All tools sheets have a #F2F2F0 background and a
+  Cancel · title · primary action row. Vertical glass quick-tool rail on the right.
+- **Mac:** 220 pt glass sidebar, navy hero card with 8 tool circles and "PDF Aç", Recent Files table card and
+  Other tools card. The viewer has a single glass toolbar (back, file name, centered tab capsule, undo / search /
+  print / share / more, dark Save), a 290 pt panel of white cards and a page/zoom capsule. Star, redo, hand tool,
+  rotate, thumbnails and the Tools menu moved under "•••".
+- **Text being edited:** 1.5 pt navy border, 6 pt corners, 6% navy fill and a dark capsule label
+  "Düzenleniyor · <font> <size>"; other editable lines show a dashed navy (45%) outline.
+- **Appearance setting:** Mac Settings > General > Appearance and the Theme card in the sidebar; iPhone home bell
+  menu > Settings > Appearance. Options: System (default), Light, Dark.
+- **Accessibility:** ≥ 44 pt touch targets on iPhone, `accessibilityLabel` on icon buttons, simplified animations
+  with Reduce Motion.
+- **App icon:** white "Q" on the navy hero gradient (flat, no shadow), regenerated for the macOS AppIcon set and the
+  iOS 1024 icon. AccentColor is navy (#2E4A5E / dark #9DB8CC).
+- **Notes:** iPhone sheets keep a small 220 pt detent next to `.medium/.large` so the page stays visible during inline
+  editing. The Mac keeps the standard window title bar. The theme was written without a compiler (Linux); build and
+  check it on a Mac.

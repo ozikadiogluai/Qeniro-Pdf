@@ -24,10 +24,10 @@ struct SignTabPanel: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 8) {
                 ToolPanelHeader(title: "E-imza", onClose: { session.panel = nil; session.tool = .select })
 
-                PanelCapsTitle("KENDİN DOLDUR VE İMZALA")
+                PanelCard(title: "Kendin doldur ve imzala", spacing: 2, padding: 8) {
                 if !signatures.signatures.isEmpty {
                     VStack(spacing: 6) {
                         ForEach(signatures.signatures) { sig in
@@ -45,7 +45,7 @@ struct SignTabPanel: View {
                         showCreator = true
                     }
                 }
-                ToolListRow(symbol: "plus", title: "Yeni imza oluştur", iconColor: Theme.selection) {
+                ToolListRow(symbol: "plus", title: "Yeni imza oluştur") {
                     creatorText = nil
                     showCreator = true
                 }
@@ -65,8 +65,9 @@ struct SignTabPanel: View {
                         .font(.system(size: 12))
                         .frame(height: 70)
                         .focused($contentFocused)
-                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Theme.border))
-                        .padding(.horizontal, 4)
+                        .scrollContentBackground(.hidden)
+                        .padding(4)
+                        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Theme.card2))
                 }
 
                 Text("Öğeleri sürükleyerek taşıyın, köşelerden boyutlandırın, ⌫ ile silin. Bitirince **Uygula** ile sayfaya kalıcı olarak gömün.")
@@ -79,17 +80,18 @@ struct SignTabPanel: View {
                         Button(role: .destructive) { session.deleteSelected() } label: {
                             Label("Seçili öğeyi sil", systemImage: "trash")
                         }
+                        .buttonStyle(QSecondaryButtonStyle(foreground: Theme.red))
                     }
                     Spacer()
                     Button("Uygula") { session.applyAnnotations() }
-                        .buttonStyle(.borderedProminent)
-                        .tint(Theme.applyPurple)
+                        .buttonStyle(QSecondaryButtonStyle(filled: Theme.card2))
                         .help("Eklenen imza, metin ve form öğelerini sayfaya kalıcı olarak göm")
                 }
                 .padding(.horizontal, 8)
                 .padding(.top, 6)
 
-                PanelCapsTitle("E-İMZA İSTE")
+                }
+                PanelCard(title: "E-imza iste", spacing: 2, padding: 8) {
                 ToolListRow(symbol: "rectangle.and.pencil.and.ellipsis", title: "İmza alanı ekle", active: session.tool == .addSignatureField) {
                     session.tool = .addSignatureField
                 }
@@ -98,14 +100,16 @@ struct SignTabPanel: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 8)
 
-                PanelCapsTitle("SERTİFİKA")
+                }
+                PanelCard(title: "Sertifika", spacing: 2, padding: 8) {
                 ToolListRow(symbol: "checkmark.seal", title: "Sertifika ile İmzala") { app.perform(.certificateSign) }
                 ToolListRow(symbol: "checkmark.shield", title: "İmzaları doğrula",
                             trailing: session.signatureInfos.isEmpty ? nil : "\(session.signatureInfos.count)") {
                     session.panel = .verifySignatures
                 }
+                }
             }
-            .padding(16)
+            .padding(12)
         }
         .onChange(of: session.focusTextRequest) { _, _ in
             Task { @MainActor in contentFocused = true }
@@ -135,8 +139,8 @@ struct SignTabPanel: View {
             .frame(maxWidth: .infinity)
             .frame(height: 50)
             .padding(6)
-            .background(RoundedRectangle(cornerRadius: 6).fill(Color.white))
-            .overlay(RoundedRectangle(cornerRadius: 6).stroke(active ? Theme.selection : Theme.border, lineWidth: active ? 2 : 1))
+            .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.white))
+            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(active ? Theme.hexColor(0x121A21) : Theme.divider, lineWidth: active ? 1.5 : 1))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -157,6 +161,7 @@ struct VerifySignaturesPanel: View {
                 ToolPanelHeader(title: "İmzaları doğrula",
                                 onBack: { session.panel = .tab },
                                 onClose: { session.panel = nil })
+                PanelCard(spacing: 10) {
                 if !session.signaturesChecked {
                     ProgressView("Denetleniyor…")
                 } else if session.signatureInfos.isEmpty {
@@ -187,8 +192,9 @@ struct VerifySignaturesPanel: View {
                 Text("Doğrulama, imzanın kapsadığı baytları ve imzalayan sertifikasını macOS güven ayarlarına göre denetler.")
                     .font(.caption).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+                }
             }
-            .padding(16)
+            .padding(12)
         }
     }
 
@@ -225,6 +231,6 @@ struct VerifySignaturesPanel: View {
         }
         .padding(10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.border))
+        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Theme.card2))
     }
 }

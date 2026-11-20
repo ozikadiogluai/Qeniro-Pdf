@@ -4,7 +4,7 @@ import PDFKit
 
 // MARK: - Ortak bileşenler
 
-/// Sol panel başlığı: büyük başlık, isteğe bağlı geri düğmesi ve ✕.
+/// Sol panel başlığı: başlık, isteğe bağlı geri düğmesi ve ✕ (beyaz daireler).
 struct ToolPanelHeader: View {
     let title: String
     var onBack: (() -> Void)? = nil
@@ -13,41 +13,57 @@ struct ToolPanelHeader: View {
     var body: some View {
         HStack(spacing: 8) {
             if let onBack {
-                Button(action: onBack) {
-                    Image(systemName: "chevron.left").font(.system(size: 14, weight: .semibold))
-                }
-                .buttonStyle(.plain)
-                .help("Geri")
+                circleButton("chevron.left", "Geri", action: onBack)
             }
-            Text(title).font(.system(size: 20, weight: .bold))
+            Text(title)
+                .font(.title2.weight(.semibold))
+                .foregroundStyle(Theme.text)
+                .lineLimit(1)
             Spacer()
-            Button(action: onClose) {
-                Image(systemName: "xmark").font(.system(size: 13, weight: .semibold))
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(.secondary)
-            .help("Paneli kapat")
+            circleButton("xmark", "Paneli kapat", action: onClose)
         }
-        .padding(.bottom, 10)
+        .padding(.horizontal, 4)
+        .padding(.bottom, 4)
+    }
+
+    private func circleButton(_ symbol: String, _ label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(Theme.text)
+                .frame(width: 28, height: 28)
+                .background(Circle().fill(Theme.card))
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .help(label)
+        .accessibilityLabel(label)
     }
 }
 
-/// Küçük, büyük harfli bölüm başlığı ("SAYFAYI DEĞİŞTİR").
+/// Kart içindeki küçük bölüm başlığı (ör. "Metin", "İçerik ekle").
 struct PanelCapsTitle: View {
     let text: String
     init(_ text: String) { self.text = text }
     var body: some View {
-        Text(text)
-            .font(.system(size: 11, weight: .semibold))
-            .kerning(0.8)
-            .foregroundStyle(.secondary)
-            .padding(.top, 14)
-            .padding(.bottom, 4)
-            .padding(.horizontal, 8)
+        Text(text.lowercased(with: Locale(identifier: "tr_TR")).capitalizedFirst)
+            .font(.callout)
+            .foregroundStyle(Theme.secondaryText)
+            .padding(.top, 10)
+            .padding(.bottom, 2)
+            .padding(.horizontal, 6)
     }
 }
 
-/// Araç listesi satırı: renkli simge + başlık.
+extension String {
+    /// Yalnızca ilk harfi büyütür (Türkçe kurallarıyla).
+    var capitalizedFirst: String {
+        guard let f = first else { return self }
+        return String(f).uppercased(with: Locale(identifier: "tr_TR")) + dropFirst()
+    }
+}
+
+/// Araç listesi satırı: koyu simge + başlık; kart içinde ayırıcılarla kullanılır.
 struct ToolListRow: View {
     let symbol: String
     let title: String
@@ -60,48 +76,66 @@ struct ToolListRow: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 12) {
+            HStack(spacing: 10) {
                 Image(systemName: symbol)
-                    .font(.system(size: 16))
-                    .frame(width: 24)
-                    .foregroundStyle(iconColor ?? (active ? Theme.selection : Color.primary))
+                    .font(.system(size: 14))
+                    .frame(width: 20)
+                    .foregroundStyle(iconColor ?? (active ? Theme.navy : Theme.ink))
                 Text(title)
-                    .font(.system(size: 14, weight: bold ? .semibold : .regular))
-                    .foregroundStyle(Color.primary)
+                    .font(.body.weight(bold || active ? .medium : .regular))
+                    .foregroundStyle(Theme.text)
+                    .multilineTextAlignment(.leading)
                 Spacer(minLength: 4)
                 if let trailing {
-                    Text(trailing).font(.caption).foregroundStyle(.secondary)
+                    if trailing == "›" {
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(Theme.secondaryText)
+                    } else {
+                        Text(trailing).font(.callout).foregroundStyle(Theme.secondaryText)
+                    }
                 }
             }
-            .padding(.vertical, 8)
             .padding(.horizontal, 8)
-            .background(RoundedRectangle(cornerRadius: 8).fill(active ? Theme.activeNav : (hover ? Theme.activeNav.opacity(0.5) : Color.clear)))
+            .frame(minHeight: 36)
+            .background(RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(active ? Theme.card2 : (hover ? Theme.card2.opacity(0.6) : Color.clear)))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .onHover { hover = $0 }
+        .accessibilityAddTraits(active ? .isSelected : [])
     }
 }
 
-/// Kare simge düğmesi (Sayfayı değiştir satırı).
+/// Kapsül simge düğmesi (Sayfa satırı: döndür, kırp, sil, çıkar).
 struct SquareIconButton: View {
     let symbol: String
     let help: String
     var active: Bool = false
+    var destructive: Bool = false
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: 16))
-                .frame(width: 42, height: 40)
-                .foregroundStyle(active ? Theme.selection : Color.primary)
-                .background(RoundedRectangle(cornerRadius: 8).fill(active ? Theme.activeNav : Theme.window))
-                .overlay(RoundedRectangle(cornerRadius: 8).stroke(active ? Theme.selection : Theme.border, lineWidth: 1))
-                .contentShape(Rectangle())
+                .font(.system(size: 13))
+                .frame(maxWidth: .infinity)
+                .frame(height: 34)
+                .foregroundStyle(active ? Theme.onInk : (destructive ? Theme.red : Theme.text))
+                .background(Capsule().fill(active ? Theme.ink : Theme.card2))
+                .contentShape(Capsule())
         }
         .buttonStyle(.plain)
         .help(help)
+        .accessibilityLabel(help)
+    }
+}
+
+/// Kart içinde satırlar arası ince ayırıcı.
+struct PanelDivider: View {
+    var body: some View {
+        Rectangle().fill(Theme.divider).frame(height: 1).padding(.leading, 38)
     }
 }
 
@@ -114,60 +148,63 @@ struct AllToolsPanel: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 8) {
                 ToolPanelHeader(title: "Tüm araçlar", onClose: { session.panel = nil })
-                row("arrow.up.doc", "PDF olarak dışa aktar", 0x0E8A7E) { session.viewerTab = .convert }
-                row("square.and.pencil", "PDF Düzenle", 0xD2338A) { app.perform(.edit) }
-                row("signature", "E-imza iste", 0xB03AC4) {
-                    session.viewerTab = .sign
-                    session.panel = .tab
-                    session.tool = .addSignatureField
-                }
-                row("pencil.and.outline", "Doldur ve İmzala", 0x7C4DDB) { app.perform(.signFill) }
-                row("doc.badge.plus", "PDF oluştur", 0xE5322D) { app.perform(.create) }
-                row("square.on.square", "Dosyaları birleştir", 0x2D6BE4) { app.perform(.merge) }
-                row("square.grid.2x2", "Sayfaları organize et", 0x5BA632) { app.perform(.organize) }
-                row("square.and.arrow.up", "Yorum için gönder", 0xC99A06) { session.shareForReview() }
-                row("doc.text.viewfinder", "Tarama ve OCR", 0x1E8E3E) { session.runOCR(force: false) }
-                row("lock.shield", "PDF koru", 0x4F5BD5) { app.perform(.protect) }
-                row("eye.slash", "PDF'yi redakte et", 0xD2338A) { app.perform(.redact) }
-                row("arrow.down.right.and.arrow.up.left", "PDF sıkıştır", 0xE5322D) { app.perform(.compress) }
-                row("list.bullet.rectangle", "Form hazırla", 0x7C4DDB) { session.panel = .formPrepare }
-                row("text.bubble", "Yorum ekleyin", 0xC99A06) { session.tool = .note }
-                if showMore {
-                    row("scissors", "PDF böl", 0xE5322D) { app.perform(.split) }
-                    row("doc.richtext", "PDF'yi Word'e", 0x2D6BE4) { app.perform(.toWord) }
-                    row("tablecells", "PDF'yi Excel'e", 0x1E8E3E) { app.perform(.toExcel) }
-                    row("rectangle.on.rectangle.angled", "PDF'yi PowerPoint'e", 0xE8710A) { app.perform(.toPowerPoint) }
-                    row("checkmark.seal", "Sertifika ile İmzala", 0x7C4DDB) { app.perform(.certificateSign) }
-                    row("checkmark.shield", "İmzaları doğrula", 0x4F5BD5) {
+                PanelCard(spacing: 0, padding: 6) {
+                    row("arrow.up.doc", "PDF olarak dışa aktar") { session.viewerTab = .convert }
+                    row("square.and.pencil", "PDF Düzenle") { app.perform(.edit) }
+                    row("signature", "E-imza iste") {
                         session.viewerTab = .sign
-                        session.panel = .verifySignatures
+                        session.panel = .tab
+                        session.tool = .addSignatureField
                     }
-                    row("trash.slash", "Hassas bilgileri kaldır", 0xE5322D) { app.perform(.sanitize) }
-                    row("menubar.rectangle", "Üstbilgi ve altbilgi", 0xD2338A) {
-                        session.viewerTab = .edit
-                        session.panel = .headerFooter
-                    }
-                    row("drop", "Filigran", 0xD2338A) {
-                        session.viewerTab = .edit
-                        session.panel = .watermark
+                    row("pencil.and.outline", "Doldur ve İmzala") { app.perform(.signFill) }
+                    row("doc.badge.plus", "PDF oluştur") { app.perform(.create) }
+                    row("square.on.square", "Dosyaları birleştir") { app.perform(.merge) }
+                    row("square.grid.2x2", "Sayfaları organize et") { app.perform(.organize) }
+                    row("square.and.arrow.up", "Yorum için gönder") { session.shareForReview() }
+                }
+                PanelCard(spacing: 0, padding: 6) {
+                    row("doc.text.viewfinder", "Tarama ve OCR") { session.runOCR(force: false) }
+                    row("lock.shield", "PDF koru") { app.perform(.protect) }
+                    row("eye.slash", "PDF'yi redakte et") { app.perform(.redact) }
+                    row("arrow.down.right.and.arrow.up.left", "PDF sıkıştır") { app.perform(.compress) }
+                    row("list.bullet.rectangle", "Form hazırla") { session.panel = .formPrepare }
+                    row("text.bubble", "Yorum ekleyin") { session.tool = .note }
+                }
+                if showMore {
+                    PanelCard(spacing: 0, padding: 6) {
+                        row("scissors", "PDF böl") { app.perform(.split) }
+                        row("doc.richtext", "PDF'yi Word'e") { app.perform(.toWord) }
+                        row("tablecells", "PDF'yi Excel'e") { app.perform(.toExcel) }
+                        row("rectangle.on.rectangle.angled", "PDF'yi PowerPoint'e") { app.perform(.toPowerPoint) }
+                        row("checkmark.seal", "Sertifika ile İmzala") { app.perform(.certificateSign) }
+                        row("checkmark.shield", "İmzaları doğrula") {
+                            session.viewerTab = .sign
+                            session.panel = .verifySignatures
+                        }
+                        row("trash.slash", "Hassas bilgileri kaldır") { app.perform(.sanitize) }
+                        row("menubar.rectangle", "Üstbilgi ve altbilgi") {
+                            session.viewerTab = .edit
+                            session.panel = .headerFooter
+                        }
+                        row("drop", "Filigran") {
+                            session.viewerTab = .edit
+                            session.panel = .watermark
+                        }
                     }
                 }
                 Button(showMore ? "Daha az göster" : "Daha fazla göster") {
                     withAnimation(.easeInOut(duration: 0.15)) { showMore.toggle() }
                 }
-                .buttonStyle(.link)
-                .font(.system(size: 14))
-                .padding(.horizontal, 8)
-                .padding(.top, 10)
+                .buttonStyle(QSecondaryButtonStyle(fullWidth: true, filled: Theme.card))
             }
-            .padding(16)
+            .padding(12)
         }
     }
 
-    private func row(_ symbol: String, _ title: String, _ color: UInt32, action: @escaping () -> Void) -> some View {
-        ToolListRow(symbol: symbol, title: title, iconColor: Color(nsColor: Theme.hex(color)), action: action)
+    private func row(_ symbol: String, _ title: String, action: @escaping () -> Void) -> some View {
+        ToolListRow(symbol: symbol, title: title, action: action)
     }
 }
 
@@ -228,65 +265,54 @@ struct ConvertTabPanel: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
                 ToolPanelHeader(title: "Dönüştür", onClose: { session.panel = nil })
-                PanelCapsTitle("PDF'Yİ DIŞA AKTARMA FORMATI")
-                formatRow(.word) { Text("DOCX").formatTag() }
-                formatRow(.powerpoint) { Text("PPTX").formatTag() }
-                formatRow(.excel) { Text("XLSX").formatTag() }
-                formatRow(.image) {
-                    Picker("", selection: $imageFormat) {
-                        ForEach(ImageFormat.allCases) { Text($0.title).tag($0) }
+                PanelCard(title: "PDF'yi dışa aktarma formatı", spacing: 4) {
+                    formatRow(.word) { Text("DOCX").formatTag() }
+                    formatRow(.powerpoint) { Text("PPTX").formatTag() }
+                    formatRow(.excel) { Text("XLSX").formatTag() }
+                    formatRow(.image) {
+                        Picker("", selection: $imageFormat) {
+                            ForEach(ImageFormat.allCases) { Text($0.title).tag($0) }
+                        }
+                        .labelsHidden()
+                        .fixedSize()
+                    }
+                    formatRow(.other) {
+                        Picker("", selection: $otherTarget) {
+                            Text("RTF").tag(ConvertTarget.rtf)
+                            Text("TXT").tag(ConvertTarget.text)
+                            Text("HTML").tag(ConvertTarget.html)
+                        }
+                        .labelsHidden()
+                        .fixedSize()
+                    }
+                }
+
+                PanelCard(title: "Tanınan metin dili") {
+                    Picker("", selection: $language) {
+                        ForEach(Self.languages, id: \.code) { Text($0.name).tag($0.code) }
                     }
                     .labelsHidden()
-                    .fixedSize()
+                    Text("Taranmış sayfalarda metin bu dile göre tanınır (OCR).")
+                        .font(.callout).foregroundStyle(Theme.secondaryText)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                formatRow(.other) {
-                    Picker("", selection: $otherTarget) {
-                        Text("RTF").tag(ConvertTarget.rtf)
-                        Text("TXT").tag(ConvertTarget.text)
-                        Text("HTML").tag(ConvertTarget.html)
+
+                Button(action: run) {
+                    Text(buttonTitle)
+                }
+                .buttonStyle(QPrimaryButtonStyle(height: 36, fullWidth: true))
+                .disabled(running)
+
+                PanelCard(title: "Diğer seçenekler", spacing: 0, padding: 6) {
+                    ToolListRow(symbol: "doc.badge.plus", title: "PDF'ye Dönüştür") { app.perform(.create) }
+                    ToolListRow(symbol: "arrow.down.right.and.arrow.up.left", title: "PDF sıkıştır") { app.perform(.compress) }
+                    ToolListRow(symbol: "doc.text.viewfinder", title: "Tara ve OCR Uygula") {
+                        applyLanguage()
+                        session.runOCR(force: false)
                     }
-                    .labelsHidden()
-                    .fixedSize()
-                }
-
-                Text("Tanınan metin dili")
-                    .font(.system(size: 13, weight: .semibold))
-                    .padding(.top, 10)
-                    .padding(.horizontal, 4)
-                Picker("", selection: $language) {
-                    ForEach(Self.languages, id: \.code) { Text($0.name).tag($0.code) }
-                }
-                .labelsHidden()
-                .padding(.horizontal, 4)
-                Text("Taranmış sayfalarda metin bu dile göre tanınır (OCR).")
-                    .font(.caption).foregroundStyle(.secondary)
-                    .padding(.horizontal, 4)
-
-                HStack {
-                    Spacer()
-                    Button(action: run) {
-                        Text(buttonTitle)
-                            .font(.system(size: 14, weight: .semibold))
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .buttonBorderShape(.capsule)
-                    .tint(Theme.selection)
-                    .controlSize(.large)
-                    .disabled(running)
-                }
-                .padding(.top, 8)
-
-                PanelCapsTitle("DİĞER SEÇENEKLER")
-                ToolListRow(symbol: "doc.badge.plus", title: "PDF'ye Dönüştür") { app.perform(.create) }
-                ToolListRow(symbol: "arrow.down.right.and.arrow.up.left", title: "PDF sıkıştır") { app.perform(.compress) }
-                ToolListRow(symbol: "doc.text.viewfinder", title: "Tara ve OCR Uygula") {
-                    applyLanguage()
-                    session.runOCR(force: false)
                 }
             }
-            .padding(16)
+            .padding(12)
         }
     }
 
@@ -294,18 +320,18 @@ struct ConvertTabPanel: View {
         let selected = format == f
         return HStack(spacing: 10) {
             Image(systemName: selected ? "largecircle.fill.circle" : "circle")
-                .font(.system(size: 15))
-                .foregroundStyle(selected ? Theme.selection : Color.secondary)
-            Text(f.title).font(.system(size: 14))
+                .font(.system(size: 14))
+                .foregroundStyle(selected ? Theme.ink : Theme.secondaryText)
+            Text(f.title).font(.body).foregroundStyle(Theme.text)
             Spacer(minLength: 4)
             trailing()
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(RoundedRectangle(cornerRadius: 8).fill(selected ? Theme.activeNav.opacity(0.5) : Color.clear))
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke(selected ? Theme.selection : Theme.border, lineWidth: 1))
+        .padding(.horizontal, 10)
+        .frame(minHeight: 36)
+        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(selected ? Theme.card2 : Color.clear))
         .contentShape(Rectangle())
         .onTapGesture { format = f }
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     private func applyLanguage() {
@@ -357,9 +383,9 @@ struct ConvertTabPanel: View {
 
 private extension Text {
     func formatTag() -> some View {
-        self.font(.system(size: 12, weight: .semibold))
+        self.font(.callout.weight(.semibold))
             .kerning(0.4)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(Theme.secondaryText)
     }
 }
 
@@ -386,6 +412,7 @@ struct HeaderFooterPanel: View {
                 ToolPanelHeader(title: "Üstbilgi ve altbilgi",
                                 onBack: { session.panel = .tab },
                                 onClose: { session.panel = nil })
+                PanelCard(spacing: 10) {
                 Text("Metin tüm sayfalara gerçek PDF metni olarak eklenir. {n} sayfa numarası, {N} toplam sayfa, {tarih} bugünün tarihi olur.")
                     .font(.caption).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -421,15 +448,14 @@ struct HeaderFooterPanel: View {
                 } label: {
                     Text("Tüm sayfalara uygula").frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(Theme.selection)
-                .controlSize(.large)
+                .buttonStyle(QPrimaryButtonStyle(height: 36, fullWidth: true))
                 .disabled(header.trimmingCharacters(in: .whitespaces).isEmpty
                           && footer.trimmingCharacters(in: .whitespaces).isEmpty && !addNumbers)
                 Text("Geri almak için ⌘Z kullanın. Kaydetmeyi unutmayın.")
                     .font(.caption).foregroundStyle(.secondary)
+                }
             }
-            .padding(16)
+            .padding(12)
         }
     }
 }
@@ -451,6 +477,7 @@ struct WatermarkPanel: View {
                 ToolPanelHeader(title: "Filigran",
                                 onBack: { session.panel = .tab },
                                 onClose: { session.panel = nil })
+                PanelCard(spacing: 10) {
                 Text("Metin")
                     .font(.callout.weight(.semibold))
                 TextField("ör. GİZLİ, TASLAK", text: $text).textFieldStyle(.roundedBorder)
@@ -476,29 +503,28 @@ struct WatermarkPanel: View {
                 }
                 // Önizleme
                 ZStack {
-                    RoundedRectangle(cornerRadius: 6).fill(Color.white)
+                    RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white)
                     Text(text.isEmpty ? " " : text)
                         .font(.system(size: max(8, size / 6), weight: bold ? .bold : .regular))
                         .foregroundStyle(color.opacity(opacity))
                         .rotationEffect(.degrees(-angle))
                 }
                 .frame(height: 120)
-                .overlay(RoundedRectangle(cornerRadius: 6).stroke(Theme.border))
+                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(Theme.divider))
                 Button {
                     session.applyWatermark(text: text, size: CGFloat(size), color: NSColor(color),
                                            opacity: CGFloat(opacity), angle: CGFloat(angle), bold: bold)
                 } label: {
                     Text("Tüm sayfalara uygula").frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(Theme.selection)
-                .controlSize(.large)
+                .buttonStyle(QPrimaryButtonStyle(height: 36, fullWidth: true))
                 .disabled(text.trimmingCharacters(in: .whitespaces).isEmpty)
                 Text("Filigran sayfa içeriğine gerçek metin olarak eklenir. Geri almak için ⌘Z.")
                     .font(.caption).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+                }
             }
-            .padding(16)
+            .padding(12)
         }
     }
 }
@@ -514,6 +540,7 @@ struct FormPreparePanel: View {
                 ToolPanelHeader(title: "Form hazırla",
                                 onBack: { session.panel = .tab; session.tool = .select },
                                 onClose: { session.panel = nil; session.tool = .select })
+                PanelCard(spacing: 2, padding: 8) {
                 Text("Alan türünü seçin, sonra sayfada bir yere tıklayın. Alanlar doldurulabilir form alanı olarak kaydedilir.")
                     .font(.caption).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -524,13 +551,15 @@ struct FormPreparePanel: View {
                 ToolListRow(symbol: "chevron.down.square", title: "Açılır liste", active: session.tool == .addDropdown) { session.tool = .addDropdown }
                 ToolListRow(symbol: "signature", title: "İmza alanı", active: session.tool == .addSignatureField) { session.tool = .addSignatureField }
                 if session.selectedAnnotation != nil {
-                    Divider().padding(.vertical, 8)
                     Button(role: .destructive) { session.deleteSelected() } label: {
                         Label("Seçili alanı sil", systemImage: "trash")
                     }
+                    .buttonStyle(QSecondaryButtonStyle(fullWidth: true, foreground: Theme.red))
+                    .padding(.top, 6)
+                }
                 }
             }
-            .padding(16)
+            .padding(12)
         }
     }
 }

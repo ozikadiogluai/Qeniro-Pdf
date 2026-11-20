@@ -1,156 +1,212 @@
 import SwiftUI
 
-/// Ana Sayfa: logo, Hoş Geldiniz, arama, 8 hızlı araç, Belge Tara, Son Dosyalar, + düğmesi.
+/// Ana Sayfa: lacivert kahraman alan (logo, karşılama, arama, 5 hızlı araç), Belge Tara kartı,
+/// Son Dosyalar kartı ve diğer araçlar kartı. Alttaki hap menü RootView'dadır.
 struct HomeView: View {
     @EnvironmentObject private var app: AppModel
     @EnvironmentObject private var library: FileLibrary
     var openFile: () -> Void
     var startTool: (ToolKind) -> Void
     @State private var query = ""
+    @AppStorage(AppearanceChoice.storageKey) private var appearanceRaw = AppearanceChoice.system.rawValue
 
-    let quickTools: [ToolKind] = [.editPDF, .createPDF, .merge, .split, .compress, .convert, .sign, .protect]
-    let columns = Array(repeating: GridItem(.flexible(minimum: 0), spacing: 10), count: 4)
+    let heroTools: [ToolKind] = [.editPDF, .sign, .convert, .merge, .compress]
+    let moreTools: [ToolKind] = [.protect, .split, .redact, .ocr]
+    let gridColumns = Array(repeating: GridItem(.flexible(minimum: 0), spacing: 10), count: 2)
 
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
+        ZStack(alignment: .top) {
             Theme.background.ignoresSafeArea()
             ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    header
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Hoş Geldiniz")
-                            .font(.system(size: 28, weight: .bold))
-                            .tracking(-0.56)
-                            .foregroundStyle(Theme.text)
-                        Text("Qeniro PDF'lerinizle daha fazlasını yapın.")
-                            .font(.system(size: 15))
-                            .foregroundStyle(Theme.secondary)
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 4)
-
-                    searchField
-                        .padding(.horizontal, 20)
-                        .padding(.top, 16)
-
+                VStack(alignment: .leading, spacing: 8) {
+                    hero
                     if query.isEmpty {
-                        LazyVGrid(columns: columns, spacing: 10) {
-                            ForEach(quickTools) { t in
-                                QuickToolCard(tool: t) { startTool(t) }
-                            }
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 18)
-
-                        scanBanner
-                            .padding(.horizontal, 20)
-                            .padding(.top, 14)
+                        scanCard
+                            .padding(.top, 4)
+                        recentsSection
+                        moreToolsCard
                     } else {
                         searchResults
+                        recentsSection
                     }
-
-                    recentsSection
-                        .padding(.bottom, 110)
                 }
+                .padding(.bottom, 24)
             }
             .scrollDismissesKeyboard(.interactively)
-
-            Button(action: openFile) {
-                Image(systemName: "plus")
-                    .font(.system(size: 26, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 58, height: 58)
-                    .background(Theme.accent, in: Circle())
-                    .shadow(color: Theme.accent.opacity(0.35), radius: 10, x: 0, y: 8)
-            }
-            .accessibilityLabel("PDF aç")
-            .padding(.trailing, 20)
-            .padding(.bottom, 20)
         }
     }
 
-    private var header: some View {
-        HStack(spacing: 10) {
-            Text("Q")
-                .font(.system(size: 18, weight: .bold))
-                .foregroundStyle(.white)
-                .frame(width: 34, height: 34)
-                .background(Theme.accent, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
-            Text("Qeniro PDF")
-                .font(.system(size: 19, weight: .bold))
-                .foregroundStyle(Theme.text)
-            Spacer()
-            Menu {
-                Text("Yeni bildirim yok")
-            } label: {
-                Image(systemName: "bell")
-                    .font(.system(size: 20))
-                    .foregroundStyle(Theme.text)
-                    .frame(width: 44, height: 44)
-            }
-            .accessibilityLabel("Bildirimler")
-            Menu {
-                Text("Qeniro PDF 1.0 (iPhone)")
-                Text("Dosyalar uygulamasında: Qeniro PDF klasörü")
-            } label: {
-                Image(systemName: "person.circle")
-                    .font(.system(size: 21))
-                    .foregroundStyle(Theme.text)
-                    .frame(width: 44, height: 44)
-            }
-            .accessibilityLabel("Hesap")
-        }
-        .padding(.horizontal, 20)
-        .padding(.top, 8)
-        .padding(.bottom, 12)
-    }
+    // MARK: Kahraman
 
-    private var searchField: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 16))
-                .foregroundStyle(Theme.secondary)
-            TextField("Dosya veya araç ara", text: $query)
-                .font(.system(size: 15))
-                .foregroundStyle(Theme.text)
-                .submitLabel(.search)
-            if !query.isEmpty {
-                Button { query = "" } label: {
-                    Image(systemName: "xmark.circle.fill").foregroundStyle(Theme.chevron)
-                }
-            }
-        }
-        .padding(.horizontal, 12)
-        .frame(height: 44)
-        .background(Theme.card, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Theme.border, lineWidth: 1))
-    }
-
-    private var scanBanner: some View {
-        Button {
-            if DocumentScannerView.isSupported {
-                app.showScanner = true
-            } else {
-                app.errorMessage = "Bu cihazda belge tarayıcı kullanılamıyor (simülatörde kamera yoktur)."
-            }
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "camera")
-                    .font(.system(size: 22))
-                VStack(alignment: .leading, spacing: 1) {
-                    Text("Belge Tara").font(.system(size: 15, weight: .semibold))
-                    Text("Kamerayla çek, metni otomatik tanı (OCR)").font(.system(size: 12.5)).opacity(0.9)
+    private var hero: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 8) {
+                Text("Q")
+                    .font(.system(size: 19, weight: .bold))
+                    .foregroundStyle(Color(hex: 0x121A21))
+                    .frame(width: 40, height: 40)
+                    .background(Color.white, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Qeniro PDF")
+                        .font(.footnote)
+                        .foregroundStyle(Color.white.opacity(0.72))
+                    Text("Hoş geldin")
+                        .font(.headline)
+                        .foregroundStyle(Color.white)
                 }
                 Spacer()
-                Image(systemName: "chevron.right").font(.system(size: 15, weight: .semibold))
+                Menu {
+                    Section("Bildirimler") {
+                        Text("Yeni bildirim yok")
+                    }
+                    Section("Ayarlar") {
+                        Picker("Görünüm", selection: $appearanceRaw) {
+                            ForEach(AppearanceChoice.allCases) { Text($0.title).tag($0.rawValue) }
+                        }
+                        .pickerStyle(.menu)
+                    }
+                    Section {
+                        Text("Qeniro PDF 1.0 (iPhone)")
+                        Text("Dosyalar uygulamasında: Qeniro PDF klasörü")
+                    }
+                } label: {
+                    Image(systemName: "bell")
+                        .font(.system(size: 18))
+                        .foregroundStyle(Color.white)
+                        .frame(width: 44, height: 44)
+                        .background(Color.white.opacity(0.09), in: Circle())
+                }
+                .accessibilityLabel("Bildirimler ve ayarlar")
             }
-            .foregroundStyle(.white)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
-            .background(Theme.accent, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 16))
+                    .accessibilityHidden(true)
+                TextField("", text: $query, prompt: Text("Dosya veya araç ara").foregroundStyle(Color.white.opacity(0.78)))
+                    .font(.subheadline)
+                    .foregroundStyle(Color.white)
+                    .tint(Color.white)
+                    .submitLabel(.search)
+                    .accessibilityLabel("Dosya veya araç ara")
+                if !query.isEmpty {
+                    Button { query = "" } label: {
+                        Image(systemName: "xmark.circle.fill").frame(width: 32, height: 44)
+                    }
+                    .accessibilityLabel("Aramayı temizle")
+                }
+            }
+            .foregroundStyle(Color.white.opacity(0.78))
+            .padding(.horizontal, 14)
+            .frame(minHeight: 44)
+            .background(Color.white.opacity(0.10), in: Capsule())
+
+            HStack(alignment: .top, spacing: 0) {
+                ForEach(heroTools) { t in
+                    Button { startTool(t) } label: {
+                        VStack(spacing: 6) {
+                            Image(systemName: t.icon)
+                                .font(.system(size: 20))
+                                .foregroundStyle(Color.white)
+                                .frame(width: 50, height: 50)
+                                .background(Color.white.opacity(0.12), in: Circle())
+                            Text(t.heroTitle)
+                                .font(.caption)
+                                .foregroundStyle(Color.white)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(t.title)
+                }
+            }
         }
-        .buttonStyle(.plain)
+        .padding(.horizontal, 18)
+        .padding(.top, 14)
+        .padding(.bottom, 20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            UnevenRoundedRectangle(bottomLeadingRadius: 34, bottomTrailingRadius: 34, style: .continuous)
+                .fill(Theme.heroGradient())
+                .ignoresSafeArea(edges: .top)
+        )
     }
+
+    // MARK: Belge Tara
+
+    private var scanCard: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "camera")
+                .font(.system(size: 19))
+                .foregroundStyle(Theme.ink)
+                .frame(width: 44, height: 44)
+                .background(Theme.card2, in: Circle())
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Belge Tara").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.text)
+                Text("Kamerayla çek, metni otomatik tanı").font(.caption).foregroundStyle(Theme.secondary)
+            }
+            Spacer(minLength: 4)
+            Button {
+                if DocumentScannerView.isSupported {
+                    app.showScanner = true
+                } else {
+                    app.errorMessage = "Bu cihazda belge tarayıcı kullanılamıyor (simülatörde kamera yoktur)."
+                }
+            } label: {
+                Text("Tara")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Theme.onInk)
+                    .padding(.horizontal, 16)
+                    .frame(height: 36)
+                    .background(Theme.ink, in: Capsule())
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .card()
+        .padding(.horizontal, 12)
+    }
+
+    // MARK: Diğer araçlar
+
+    private var moreToolsCard: some View {
+        LazyVGrid(columns: gridColumns, alignment: .leading, spacing: 10) {
+            ForEach(moreTools) { t in
+                Button { startTool(t) } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: t.icon)
+                            .font(.system(size: 15))
+                            .foregroundStyle(Theme.ink)
+                            .frame(width: 34, height: 34)
+                            .background(Theme.card2, in: Circle())
+                        Text(t.gridTitle)
+                            .font(.subheadline)
+                            .foregroundStyle(Theme.text)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.85)
+                        Spacer(minLength: 0)
+                    }
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .card()
+        .padding(.horizontal, 12)
+    }
+
+    // MARK: Arama
 
     private var matchingTools: [ToolKind] {
         let q = query.lowercased(with: Fmt.trLocale)
@@ -160,8 +216,13 @@ struct HomeView: View {
     private var searchResults: some View {
         VStack(alignment: .leading, spacing: 8) {
             if !matchingTools.isEmpty {
-                SectionLabel(text: "Araçlar").padding(.top, 18)
-                VStack(spacing: 0) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Araçlar")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Theme.text)
+                        .padding(.horizontal, 14)
+                        .padding(.top, 12)
+                        .padding(.bottom, 2)
                     ForEach(Array(matchingTools.enumerated()), id: \.element.id) { i, t in
                         ToolListRow(tool: t, showDivider: i < matchingTools.count - 1) { startTool(t) }
                     }
@@ -169,7 +230,8 @@ struct HomeView: View {
                 .card()
             }
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, 12)
+        .padding(.top, 4)
     }
 
     private var filteredRecents: [FileEntry] {
@@ -178,75 +240,78 @@ struct HomeView: View {
         return library.recents.filter { $0.name.lowercased(with: Fmt.trLocale).contains(q) }
     }
 
+    // MARK: Son dosyalar
+
     private var recentsSection: some View {
-        VStack(spacing: 0) {
+        VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .firstTextBaseline) {
                 Text(query.isEmpty ? "Son Dosyalar" : "Dosyalar")
-                    .font(.system(size: 18, weight: .bold))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Theme.text)
                 Spacer()
                 if query.isEmpty && !library.recents.isEmpty {
                     Button("Tümü") { app.tab = .files }
-                        .font(.system(size: 14))
-                        .foregroundStyle(Theme.blue)
+                        .font(.footnote)
+                        .foregroundStyle(Theme.secondary)
+                        .frame(minHeight: 32)
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 20)
-            .padding(.bottom, 8)
+            .padding(.horizontal, 14)
+            .padding(.top, 10)
 
             if filteredRecents.isEmpty {
                 VStack(spacing: 8) {
-                    Image(systemName: "doc.text.magnifyingglass")
-                        .font(.system(size: 28))
-                        .foregroundStyle(Theme.chevron)
-                    Text(query.isEmpty ? "Henüz dosya açmadınız. Sağ alttaki + ile bir PDF açın." : "Eşleşen dosya yok.")
-                        .font(.system(size: 14))
+                    Text(query.isEmpty ? "Henüz dosya açmadınız. Alttaki + ile bir PDF açın." : "Eşleşen dosya yok.")
+                        .font(.subheadline)
                         .foregroundStyle(Theme.secondary)
                         .multilineTextAlignment(.center)
+                    if query.isEmpty {
+                        Button("PDF aç", action: openFile)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Theme.onInk)
+                            .padding(.horizontal, 18)
+                            .frame(minHeight: 44)
+                            .background(Theme.ink, in: Capsule())
+                    }
                 }
                 .frame(maxWidth: .infinity)
-                .padding(24)
-                .card()
-                .padding(.horizontal, 20)
+                .padding(.vertical, 18)
             } else {
                 VStack(spacing: 0) {
                     ForEach(Array(filteredRecents.enumerated()), id: \.element.id) { i, e in
                         RecentRow(entry: e, showDivider: i < filteredRecents.count - 1)
                     }
                 }
-                .card()
-                .padding(.horizontal, 20)
+                .padding(.bottom, 4)
             }
         }
+        .card()
+        .padding(.horizontal, 12)
     }
 }
 
-/// Ana sayfadaki 4x2 hızlı araç kartı.
-struct QuickToolCard: View {
-    let tool: ToolKind
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 6) {
-                Image(systemName: tool.icon)
-                    .font(.system(size: 22, weight: .regular))
-                    .foregroundStyle(tool.tint)
-                    .frame(height: 26)
-                Text(tool.shortTitle)
-                    .font(.system(size: 11.5, weight: .semibold))
-                    .foregroundStyle(Theme.text)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.85)
-            }
-            .frame(maxWidth: .infinity, minHeight: 72)
-            .padding(.vertical, 12)
-            .padding(.horizontal, 4)
-            .card()
+extension ToolKind {
+    /// Kahraman alandaki kısa ad.
+    var heroTitle: String {
+        switch self {
+        case .editPDF: return "Düzenle"
+        case .sign: return "İmzala"
+        case .convert: return "Dönüştür"
+        case .merge: return "Birleştir"
+        case .compress: return "Sıkıştır"
+        default: return shortTitle
         }
-        .buttonStyle(.plain)
+    }
+
+    /// Ana sayfa ızgara kartındaki ad.
+    var gridTitle: String {
+        switch self {
+        case .protect: return "Şifreyle koru"
+        case .split: return "Böl"
+        case .redact: return "Sansürle"
+        case .ocr: return "Metni tanı (OCR)"
+        default: return title
+        }
     }
 }
 
@@ -276,7 +341,7 @@ struct RecentRow: View {
                 }
             }
             if showDivider {
-                Rectangle().fill(Theme.divider).frame(height: 1)
+                Rectangle().fill(Theme.divider).frame(height: 1).padding(.leading, 14)
             }
         }
     }
@@ -293,11 +358,12 @@ struct ToolListRow: View {
             Button(action: action) {
                 HStack(spacing: 12) {
                     Image(systemName: tool.icon)
-                        .font(.system(size: 18))
-                        .foregroundStyle(tool.tint)
-                        .frame(width: 24)
+                        .font(.system(size: 15))
+                        .foregroundStyle(Theme.ink)
+                        .frame(width: 34, height: 34)
+                        .background(Theme.card2, in: Circle())
                     Text(tool.title)
-                        .font(.system(size: 15.5))
+                        .font(.subheadline)
                         .foregroundStyle(Theme.text)
                     Spacer()
                     Image(systemName: "chevron.right")
@@ -310,7 +376,7 @@ struct ToolListRow: View {
             }
             .buttonStyle(.plain)
             if showDivider {
-                Rectangle().fill(Theme.divider).frame(height: 1)
+                Rectangle().fill(Theme.divider).frame(height: 1).padding(.leading, 60)
             }
         }
     }

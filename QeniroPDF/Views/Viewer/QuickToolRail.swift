@@ -13,11 +13,7 @@ struct QuickToolRail: View {
     }
 
     var body: some View {
-        VStack(spacing: 6) {
-            Capsule()
-                .fill(Theme.border)
-                .frame(width: 30, height: 4)
-                .padding(.bottom, 2)
+        VStack(spacing: 2) {
             railButton("cursorarrow", "Seç", active: session.tool == .select || session.tool == .editText) {
                 session.tool = session.viewerTab == .edit ? .editText : .select
             }
@@ -45,23 +41,22 @@ struct QuickToolRail: View {
                 }
             } label: {
                 Image(systemName: "ellipsis")
-                    .font(.system(size: 17, weight: .semibold))
-                    .frame(width: 40, height: 40)
-                    .foregroundStyle(isMoreActive ? Color.white : Color.primary)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(isMoreActive ? Theme.selection : Color.clear))
-                    .contentShape(Rectangle())
+                    .font(.system(size: 14, weight: .semibold))
+                    .frame(width: 36, height: 36)
+                    .foregroundStyle(isMoreActive ? Theme.onInk : Theme.text)
+                    .background(Circle().fill(isMoreActive ? Theme.ink : Color.clear))
+                    .contentShape(Circle())
             }
             .menuStyle(.button)
             .buttonStyle(.plain)
             .menuIndicator(.hidden)
             .fixedSize()
             .help("Diğer: altını çiz, üstünü çiz, şekil")
+            .accessibilityLabel("Diğer araçlar")
         }
-        .padding(.vertical, 8)
-        .padding(.horizontal, 6)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Theme.window))
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border, lineWidth: 1))
-        .shadow(color: .black.opacity(0.08), radius: 6, y: 2)
+        .padding(4)
+        .qGlassCapsule()
+        .shadow(color: .black.opacity(0.12), radius: 10, y: 6)
     }
 
     private func colorItem(_ title: String, _ color: NSColor) -> some View {
@@ -71,13 +66,14 @@ struct QuickToolRail: View {
     private func railButton(_ symbol: String, _ help: String, active: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: 17))
-                .frame(width: 40, height: 40)
-                .foregroundStyle(active ? Color.white : Color.primary)
-                .background(RoundedRectangle(cornerRadius: 8).fill(active ? Theme.selection : Color.clear))
-                .contentShape(Rectangle())
+                .font(.system(size: 14))
+                .frame(width: 36, height: 36)
+                .foregroundStyle(active ? Theme.onInk : Theme.text)
+                .background(Circle().fill(active ? Theme.ink : Color.clear))
+                .contentShape(Circle())
         }
         .buttonStyle(.plain)
         .help(help)
+        .accessibilityLabel(help)
     }
 }

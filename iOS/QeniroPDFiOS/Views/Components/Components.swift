@@ -149,7 +149,8 @@ struct PDFBadge: View {
             .font(.system(size: 10, weight: .bold))
             .foregroundStyle(Theme.pdfBadgeText)
             .frame(width: 36, height: 44)
-            .background(Theme.pdfBadgeBackground, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .background(Theme.pdfBadgeBackground, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .accessibilityHidden(true)
     }
 }
 
@@ -163,23 +164,25 @@ struct FileRow: View {
             PDFBadge()
             VStack(alignment: .leading, spacing: 2) {
                 Text(entry.name)
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.subheadline.weight(.medium))
                     .foregroundStyle(Theme.text)
                     .lineLimit(1)
                     .truncationMode(.middle)
                 Text("\(Fmt.fileSize(entry.size)) · \(Fmt.relativeDate(entry.date))")
-                    .font(.system(size: 12.5))
+                    .font(.caption)
+                    .monospacedDigit()
                     .foregroundStyle(Theme.secondary)
             }
             Spacer(minLength: 0)
             if starred {
                 Image(systemName: "star.fill")
-                    .font(.system(size: 16))
-                    .foregroundStyle(Theme.star)
+                    .font(.system(size: 15))
+                    .foregroundStyle(Theme.orange)
+                    .accessibilityLabel("Yıldızlı")
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 11)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
         .contentShape(Rectangle())
     }
 }
@@ -192,10 +195,10 @@ struct BusyOverlay: View {
             Color.black.opacity(0.25).ignoresSafeArea()
             VStack(spacing: 12) {
                 ProgressView().controlSize(.large)
-                Text(message).font(.system(size: 15, weight: .medium)).multilineTextAlignment(.center)
+                Text(message).font(.subheadline.weight(.medium)).multilineTextAlignment(.center)
             }
             .padding(24)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
             .padding(40)
         }
     }

@@ -39,12 +39,13 @@ struct ToolScaffold<Content: View>: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 12) {
                 Image(systemName: kind.symbol)
-                    .font(.system(size: 26))
-                    .foregroundStyle(kind.tint)
-                    .frame(width: 40)
+                    .font(.system(size: 18))
+                    .foregroundStyle(Theme.ink)
+                    .frame(width: 44, height: 44)
+                    .background(Circle().fill(Theme.card2))
                 VStack(alignment: .leading, spacing: 2) {
                     Text(kind.title).font(.title3.bold())
-                    Text(kind.subtitle).foregroundStyle(.secondary)
+                    Text(kind.subtitle).foregroundStyle(Theme.secondaryText)
                 }
             }
             Divider()
@@ -54,15 +55,16 @@ struct ToolScaffold<Content: View>: View {
                 Spacer()
                 Button("Kapat") { dismiss() }
                     .keyboardShortcut(.cancelAction)
+                    .buttonStyle(QSecondaryButtonStyle())
                 Button(runTitle, action: run)
                     .keyboardShortcut(.defaultAction)
-                    .buttonStyle(.borderedProminent)
-                    .tint(Theme.accent)
+                    .buttonStyle(QPrimaryButtonStyle())
                     .disabled(!canRun || state.isRunning)
             }
         }
         .padding(22)
         .frame(width: 620)
+        .background(Theme.background)
     }
 
     @ViewBuilder
@@ -77,7 +79,7 @@ struct ToolScaffold<Content: View>: View {
             }
         case .failed(let msg):
             Label(msg, systemImage: "exclamationmark.triangle.fill")
-                .foregroundStyle(.red)
+                .foregroundStyle(Theme.red)
                 .fixedSize(horizontal: false, vertical: true)
         case .done(let msg, let urls):
             VStack(alignment: .leading, spacing: 8) {
@@ -121,7 +123,7 @@ struct FileListEditor: View {
                 ForEach(files, id: \.self) { u in
                     HStack(spacing: 8) {
                         Image(systemName: u.pathExtension.lowercased() == "pdf" ? "doc.richtext" : "doc")
-                            .foregroundStyle(Theme.accent)
+                            .foregroundStyle(Theme.pdfBadgeText)
                         Text(u.lastPathComponent).lineLimit(1)
                         Spacer()
                         Text(Fmt.fileSize(Fmt.fileSize(of: u))).font(.caption).foregroundStyle(.secondary)
@@ -138,7 +140,8 @@ struct FileListEditor: View {
                 }
             }
             .frame(height: multiple ? 170 : 56)
-            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Theme.border))
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Theme.divider))
             HStack {
                 Button(multiple ? "Dosya Ekle…" : "Dosya Seç…") {
                     let picked = Dialogs.openFiles(types: types, multiple: multiple, title: multiple ? "Dosya ekle" : "Dosya seç")

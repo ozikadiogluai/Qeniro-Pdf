@@ -13,6 +13,11 @@ struct AllToolsPanel: View {
 
     var body: some View {
         NavigationStack {
+            VStack(spacing: 0) {
+            SheetHeader(title: "Tüm araçlar", cancelTitle: "Kapat", onCancel: close)
+                .padding(.horizontal, 12)
+                .padding(.top, 14)
+                .padding(.bottom, 4)
             List {
                 Section {
                     row("Kaydet", "square.and.arrow.down", Theme.blue) {
@@ -73,15 +78,10 @@ struct AllToolsPanel: View {
             }
             .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
-            .background(Theme.background)
-            .navigationTitle("Tüm araçlar")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: close) { Image(systemName: "xmark").font(.system(size: 15, weight: .semibold)) }
-                        .accessibilityLabel("Kapat")
-                }
+            .listSectionSpacing(.compact)
             }
+            .background(Theme.background)
+            .toolbar(.hidden, for: .navigationBar)
         }
         .fileImporter(isPresented: $showMergeImporter, allowedContentTypes: [.pdf], allowsMultipleSelection: true) { result in
             if case .success(let urls) = result, !urls.isEmpty { session.appendPDFs(urls) }
@@ -94,12 +94,21 @@ struct AllToolsPanel: View {
         }
     }
 
+    private func rowLabel(_ title: String, _ icon: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundStyle(Theme.ink)
+                .frame(width: 34, height: 34)
+                .background(Theme.card2, in: Circle())
+            Text(title).font(.subheadline).foregroundStyle(Theme.text)
+        }
+        .frame(minHeight: 44)
+    }
+
     private func row(_ title: String, _ icon: String, _ tint: Color, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            HStack(spacing: 12) {
-                Image(systemName: icon).font(.system(size: 17)).foregroundStyle(tint).frame(width: 24)
-                Text(title).font(.system(size: 15.5)).foregroundStyle(Theme.text)
-            }
+            rowLabel(title, icon)
         }
         .listRowBackground(Theme.card)
     }
@@ -108,10 +117,7 @@ struct AllToolsPanel: View {
         NavigationLink {
             destination()
         } label: {
-            HStack(spacing: 12) {
-                Image(systemName: icon).font(.system(size: 17)).foregroundStyle(tint).frame(width: 24)
-                Text(title).font(.system(size: 15.5)).foregroundStyle(Theme.text)
-            }
+            rowLabel(title, icon)
         }
         .listRowBackground(Theme.card)
     }

@@ -54,16 +54,19 @@ struct CloudView: View {
                         VStack(spacing: 0) {
                             ForEach(filtered) { f in
                                 CloudRow(file: f)
-                                Divider()
+                                Rectangle().fill(Theme.divider).frame(height: 1)
                             }
                         }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .qCard(radius: Theme.cardRadius)
                     }
                 }
             }
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 28)
-        .padding(.top, 24)
+        .padding(.horizontal, 18)
+        .padding(.top, 16)
         .frame(maxWidth: 1100, alignment: .leading)
         .onAppear { reloadLocations() }
         .onChange(of: selected) { _, _ in load() }
@@ -93,9 +96,9 @@ struct CloudRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: "doc.richtext").font(.system(size: 18)).foregroundStyle(Theme.accent).frame(width: 24)
+            PDFBadge()
             VStack(alignment: .leading, spacing: 2) {
-                Text(file.url.lastPathComponent).font(.system(size: 13, weight: .semibold)).lineLimit(1)
+                Text(file.url.lastPathComponent).font(.body.weight(.medium)).foregroundStyle(Theme.text).lineLimit(1)
                 Text("\(Fmt.fileSize(file.size)) · \(Fmt.relativeDate(file.modified)) · \(file.url.deletingLastPathComponent().lastPathComponent)")
                     .font(Theme.captionFont).foregroundStyle(.secondary).lineLimit(1)
             }
@@ -103,7 +106,7 @@ struct CloudRow: View {
         }
         .padding(.vertical, 7)
         .padding(.horizontal, 6)
-        .background(RoundedRectangle(cornerRadius: 6).fill(hover ? Theme.activeNav.opacity(0.5) : Color.clear))
+        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(hover ? Theme.card2 : Color.clear))
         .contentShape(Rectangle())
         .onHover { hover = $0 }
         .onTapGesture { app.open(file.url) }

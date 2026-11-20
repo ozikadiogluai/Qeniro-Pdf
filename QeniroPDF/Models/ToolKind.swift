@@ -36,6 +36,18 @@ enum ToolKind: String, CaseIterable, Identifiable {
         }
     }
 
+    /// Ana sayfadaki daire düğmelerin kısa adı.
+    var shortTitle: String {
+        switch self {
+        case .merge: return "Birleştir"
+        case .split: return "Böl"
+        case .compress: return "Sıkıştır"
+        case .convert: return "Dönüştür"
+        case .signFill: return "İmzala"
+        default: return title
+        }
+    }
+
     var subtitle: String {
         switch self {
         case .create: return "Dosyalardan PDF oluşturun"
@@ -76,15 +88,8 @@ enum ToolKind: String, CaseIterable, Identifiable {
         }
     }
 
-    var tint: Color {
-        switch self {
-        case .create, .compress, .redact, .sanitize: return Theme.accent
-        case .convert, .toWord: return Theme.blue
-        case .toExcel: return Theme.green
-        case .toPowerPoint: return Theme.orange
-        default: return Theme.purple
-        }
-    }
+    /// Lacivert temada araç simgeleri tek renklidir (koyu ikon, kart2 daire içinde).
+    var tint: Color { Theme.ink }
 
     var group: ToolGroup {
         switch self {

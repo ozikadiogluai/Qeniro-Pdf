@@ -18,22 +18,10 @@ struct ConvertPanel: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text("Dönüştür")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundStyle(Theme.text)
-                Spacer()
-                if let onClose {
-                    Button(action: onClose) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundStyle(Theme.secondary)
-                            .frame(width: 44, height: 44, alignment: .trailing)
-                    }
-                    .accessibilityLabel("Kapat")
-                }
+            if let onClose {
+                SheetHeader(title: "Dönüştür", onCancel: onClose)
+                    .padding(.bottom, 2)
             }
-            .padding(.top, 4)
 
             SectionLabel(text: "PDF'yi dışa aktarma formatı")
 
@@ -58,8 +46,8 @@ struct ConvertPanel: View {
 
             HStack {
                 Text("Tanınan metin dili")
-                    .font(.system(size: 14))
-                    .foregroundStyle(Theme.tertiary)
+                    .font(.subheadline)
+                    .foregroundStyle(Theme.text)
                 Spacer()
                 Menu {
                     Picker("Tanınan metin dili", selection: $language) {
@@ -71,19 +59,21 @@ struct ConvertPanel: View {
                         Image(systemName: "chevron.up.chevron.down").font(.system(size: 11))
                     }
                     .foregroundStyle(Theme.text)
-                    .padding(.horizontal, 10)
-                    .frame(height: 40)
-                    .background(Theme.card, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Theme.border, lineWidth: 1))
+                    .padding(.horizontal, 14)
+                    .frame(minHeight: 40)
+                    .background(Theme.card2, in: Capsule())
                 }
             }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 6)
+            .card()
             .padding(.top, 6)
 
             PrimaryButton(title: options.buttonTitle, busy: job.running) { convert() }
                 .padding(.top, 6)
 
             if let e = job.error {
-                Text(e).font(.system(size: 13)).foregroundStyle(Theme.accent)
+                Text(e).font(.footnote).foregroundStyle(Theme.red)
             }
             if let out = job.output {
                 ToolResultView(output: out, allowOpen: false)

@@ -9,13 +9,22 @@ struct SettingsView: View {
             SignatureSettings()
                 .tabItem { Label("İmzalar", systemImage: "signature") }
         }
-        .frame(width: 520, height: 360)
+        .frame(width: 540, height: 400)
     }
 }
 
 private struct GeneralSettings: View {
+    @AppStorage(AppearanceChoice.storageKey) private var appearanceRaw = AppearanceChoice.system.rawValue
+
     var body: some View {
         Form {
+            Picker("Görünüm", selection: $appearanceRaw) {
+                ForEach(AppearanceChoice.allCases) { Text($0.title).tag($0.rawValue) }
+            }
+            .pickerStyle(.segmented)
+            .onChange(of: appearanceRaw) { _, new in
+                (AppearanceChoice(rawValue: new) ?? .system).apply()
+            }
             LabeledContent("Sürüm") {
                 Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0")
             }

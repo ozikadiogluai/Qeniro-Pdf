@@ -95,8 +95,7 @@ struct SignatureCreatorView: View {
                     .keyboardShortcut(.cancelAction)
                 Button("Kaydet ve Kullan") { save() }
                     .keyboardShortcut(.defaultAction)
-                    .buttonStyle(.borderedProminent)
-                    .tint(Theme.selection)
+                    .buttonStyle(QPrimaryButtonStyle())
                     .disabled(!canSave)
             }
         }

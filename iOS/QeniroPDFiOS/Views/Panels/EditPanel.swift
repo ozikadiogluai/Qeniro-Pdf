@@ -14,7 +14,7 @@ struct SessionDataView<Content: View>: View {
             if let data {
                 content(data)
             } else if failed {
-                Text("Belge hazırlanamadı.").foregroundStyle(Theme.accent)
+                Text("Belge hazırlanamadı.").foregroundStyle(Theme.red)
             } else {
                 ProgressView().frame(maxWidth: .infinity).padding()
             }
@@ -34,10 +34,12 @@ struct PanelPage<Content: View>: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) { content() }
-                .padding(.horizontal, 16)
+                .padding(16)
+                .card()
+                .padding(.horizontal, 12)
                 .padding(.vertical, 12)
         }
-        .background(Theme.card)
+        .background(Theme.background)
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -55,36 +57,47 @@ struct EditPanel: View {
         ("Mavi", Color(hex: 0x1F4FB8)), ("Yeşil", Color(hex: 0x1E7E34)), ("Beyaz", .white)
     ]
 
+    private var hasTextSelection: Bool {
+        session.selectedTextItem != nil || (session.selectedAnnotation?.isFreeText ?? false)
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 8) {
+                    SheetHeader(title: "Düzenle", primaryTitle: "Kaydet",
+                                onCancel: { session.cancelMode() },
+                                onPrimary: { if session.save() { session.exitMode() } })
                     if !PDFiumSupport.isAvailable {
                         Label("Gerçek metin düzenleme motoru (PDFium) bu derlemede yok. Mac'te build-ios.sh ile yeniden derleyin.",
                               systemImage: "exclamationmark.triangle")
-                            .font(.system(size: 12.5))
-                            .foregroundStyle(Theme.accent)
+                            .font(.footnote)
+                            .foregroundStyle(Theme.red)
+                            .padding(.horizontal, 6)
                     }
-                    styleRow
-                    if session.selectedTextItem != nil || (session.selectedAnnotation?.isFreeText ?? false) {
-                        HStack(spacing: 8) {
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        styleRow
+                        formatRow
+                        if hasTextSelection {
                             Button {
                                 if session.selectedTextItem != nil { session.deleteSelectedTextItem() } else { session.deleteSelected() }
                             } label: {
-                                Label("Seçili metni sil", systemImage: "trash").font(.system(size: 13.5))
+                                Label("Seçili metni sil", systemImage: "trash")
+                                    .font(.footnote)
+                                    .foregroundStyle(Theme.red)
+                                    .padding(.horizontal, 14)
+                                    .frame(minHeight: 40)
+                                    .background(Theme.card2, in: Capsule())
                             }
-                            .buttonStyle(.bordered)
-                            .tint(Theme.accent)
-                            Toggle(isOn: Binding(get: { session.textStyle.underline },
-                                                 set: { v in session.updateStyle { $0.underline = v } })) {
-                                Text("Altı çizili").font(.system(size: 13.5))
-                            }
-                            .toggleStyle(.button)
+                            .buttonStyle(.plain)
                         }
                     }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 12)
+                    .card()
 
-                    SectionLabel(text: "İçerik ekle")
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 0), spacing: 6), count: 5), spacing: 6) {
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 0), spacing: 2), count: 5), spacing: 2) {
                         AddTile(title: "Metin", icon: "textformat", selected: session.tool == .editText) {
                             session.tool = .editText
                         }
@@ -95,7 +108,7 @@ struct EditPanel: View {
                         NavigationLink {
                             HeaderFooterForm(session: session)
                         } label: {
-                            AddTileLabel(title: "Üst/Alt", icon: "rectangle.topthird.inset.filled", selected: false)
+                            AddTileLabel(title: "Üst/Alt bilgi", icon: "rectangle.topthird.inset.filled", selected: false)
                         }
                         .buttonStyle(.plain)
                         NavigationLink {
@@ -109,36 +122,45 @@ struct EditPanel: View {
                             detent = .height(220)
                         }
                     }
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 12)
+                    .card()
 
-                    SectionLabel(text: "Sayfayı değiştir")
-                    HStack(spacing: 6) {
-                        SquareIconButton(icon: "arrow.clockwise", label: "Döndür") { session.rotateCurrent(by: 90) }
-                        SquareIconButton(icon: "crop", label: "Kırp", selected: session.tool == .crop) {
-                            session.tool = .crop
-                            detent = .height(220)
-                        }
-                        SquareIconButton(icon: "trash", label: "Sayfayı sil") { confirmDeletePage = true }
-                        Button {
-                            session.openOrganizer()
-                        } label: {
-                            HStack(spacing: 6) {
-                                Image(systemName: "square.grid.2x2").font(.system(size: 16))
-                                Text("Sayfaları organize et").font(.system(size: 14)).lineLimit(1).minimumScaleFactor(0.8)
+                    VStack(spacing: 0) {
+                        Button { session.openOrganizer() } label: {
+                            listRow(icon: "square.grid.2x2", title: "Sayfaları düzenle") {
+                                Text("\(session.pageCount) sayfa")
+                                    .font(.footnote)
+                                    .monospacedDigit()
+                                    .foregroundStyle(Theme.secondary)
                             }
-                            .foregroundStyle(Theme.text)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 44)
-                            .background(Theme.card, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                            .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Theme.border, lineWidth: 1))
                         }
                         .buttonStyle(.plain)
+                        Rectangle().fill(Theme.divider).frame(height: 1).padding(.leading, 46)
+                        Menu {
+                            Button { session.rotateCurrent(by: 90) } label: { Label("Sayfayı döndür", systemImage: "arrow.clockwise") }
+                            Button {
+                                session.tool = .crop
+                                detent = .height(220)
+                            } label: { Label("Sayfayı kırp", systemImage: "crop") }
+                            Button(role: .destructive) { confirmDeletePage = true } label: { Label("Sayfayı sil", systemImage: "trash") }
+                        } label: {
+                            listRow(icon: "arrow.clockwise", title: "Döndür, kırp veya sil") {
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundStyle(Theme.chevron)
+                            }
+                        }
                     }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 4)
+                    .card()
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
+                .padding(.horizontal, 12)
+                .padding(.top, 14)
                 .padding(.bottom, 24)
             }
-            .background(Theme.card)
+            .background(Theme.background)
             .toolbar(.hidden, for: .navigationBar)
         }
         .onChange(of: photoItem) { _, item in
@@ -160,6 +182,23 @@ struct EditPanel: View {
         }
     }
 
+    private func listRow<Trailing: View>(icon: String, title: String, @ViewBuilder trailing: () -> Trailing) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundStyle(Theme.ink)
+                .frame(width: 34, height: 34)
+                .background(Theme.card2, in: Circle())
+            Text(title)
+                .font(.subheadline)
+                .foregroundStyle(Theme.text)
+            Spacer(minLength: 4)
+            trailing()
+        }
+        .frame(minHeight: 48)
+        .contentShape(Rectangle())
+    }
+
     private var styleRow: some View {
         HStack(spacing: 6) {
             Menu {
@@ -169,16 +208,16 @@ struct EditPanel: View {
                 }
             } label: {
                 HStack {
-                    Text(session.textStyle.family).font(.system(size: 14)).lineLimit(1)
+                    Text(session.textStyle.family).font(.subheadline).lineLimit(1)
                     Spacer(minLength: 2)
                     Image(systemName: "chevron.up.chevron.down").font(.system(size: 11))
                 }
                 .foregroundStyle(Theme.text)
-                .padding(.horizontal, 10)
-                .frame(maxWidth: .infinity, minHeight: 40)
-                .background(Theme.card, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Theme.border, lineWidth: 1))
+                .padding(.horizontal, 14)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .background(Theme.card2, in: Capsule())
             }
+            .accessibilityLabel("Yazı tipi")
             Menu {
                 Picker("Boyut", selection: Binding(get: { session.textStyle.size },
                                                   set: { v in session.updateStyle { $0.size = v } })) {
@@ -186,14 +225,19 @@ struct EditPanel: View {
                 }
             } label: {
                 HStack(spacing: 2) {
-                    Text(Self.sizeText(session.textStyle.size)).font(.system(size: 14))
+                    Text(Self.sizeText(session.textStyle.size)).font(.subheadline).monospacedDigit()
                     Image(systemName: "chevron.up.chevron.down").font(.system(size: 10))
                 }
                 .foregroundStyle(Theme.text)
-                .frame(width: 64, height: 40)
-                .background(Theme.card, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Theme.border, lineWidth: 1))
+                .frame(width: 74, height: 44)
+                .background(Theme.card2, in: Capsule())
             }
+            .accessibilityLabel("Yazı boyutu")
+        }
+    }
+
+    private var formatRow: some View {
+        HStack(spacing: 6) {
             StyleToggle(label: "B", selected: session.textStyle.bold, bold: true) {
                 session.updateStyle { $0.bold.toggle() }
             }
@@ -202,20 +246,26 @@ struct EditPanel: View {
                 session.updateStyle { $0.italic.toggle() }
             }
             .accessibilityLabel("İtalik")
+            StyleToggle(label: "U", selected: session.textStyle.underline, underline: true) {
+                session.updateStyle { $0.underline.toggle() }
+            }
+            .disabled(!hasTextSelection)
+            .opacity(hasTextSelection ? 1 : 0.45)
+            .accessibilityLabel("Altı çizili")
             Menu {
                 ForEach(colors, id: \.0) { c in
                     Button(c.0) { session.updateStyle { $0.color = c.1 } }
                 }
             } label: {
-                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                Circle()
                     .fill(session.textStyle.color)
-                    .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(Theme.border, lineWidth: 1))
+                    .overlay(Circle().strokeBorder(Theme.divider, lineWidth: 1))
                     .frame(width: 18, height: 18)
-                    .frame(width: 40, height: 40)
-                    .background(Theme.card, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Theme.border, lineWidth: 1))
+                    .frame(width: 48, height: 44)
+                    .background(Theme.card2, in: Capsule())
             }
             .accessibilityLabel("Renk")
+            Spacer(minLength: 0)
         }
     }
 
@@ -236,48 +286,53 @@ struct EditPanel: View {
     }
 }
 
-/// B / I düğmesi (seçiliyken mavi kenarlık ve açık mavi zemin).
+/// B / I / U kapsül düğmesi (seçiliyken koyu).
 struct StyleToggle: View {
     let label: String
     let selected: Bool
     var bold = false
     var italic = false
+    var underline = false
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             Text(label)
-                .font(.system(size: 16, weight: bold ? .bold : .regular))
+                .font(.body.weight(bold ? .bold : .regular))
                 .italic(italic)
-                .foregroundStyle(Theme.text)
-                .frame(width: 40, height: 40)
-                .background(selected ? Theme.chipSelected : Theme.card, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .strokeBorder(selected ? Theme.blue : Theme.border, lineWidth: 1))
+                .underline(underline)
+                .foregroundStyle(selected ? Theme.onInk : Theme.text)
+                .frame(width: 48, height: 44)
+                .background(selected ? Theme.ink : Theme.card2, in: Capsule())
         }
         .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
 
-/// "İçerik ekle" ızgarasındaki kutucuk görünümü.
+/// "İçerik ekle" ızgarasındaki öğe: 46 pt daire + etiket (seçiliyken koyu daire).
 struct AddTileLabel: View {
     let title: String
     let icon: String
     let selected: Bool
 
     var body: some View {
-        VStack(spacing: 5) {
-            Image(systemName: icon).font(.system(size: 19))
-            Text(title).font(.system(size: 11)).lineLimit(1).minimumScaleFactor(0.8)
+        VStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 17))
+                .foregroundStyle(selected ? Theme.onInk : Theme.ink)
+                .frame(width: 46, height: 46)
+                .background(selected ? Theme.ink : Theme.card2, in: Circle())
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(Theme.text)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
         }
-        .foregroundStyle(Theme.text)
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 10)
-        .padding(.horizontal, 2)
-        .background(selected ? Theme.chipSelected : Theme.card, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .strokeBorder(selected ? Theme.blue : Theme.border, lineWidth: 1))
         .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
 
@@ -293,7 +348,7 @@ struct AddTile: View {
     }
 }
 
-/// 48x44 simge düğmesi.
+/// Kapsül simge düğmesi.
 struct SquareIconButton: View {
     let icon: String
     let label: String
@@ -303,12 +358,10 @@ struct SquareIconButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: icon)
-                .font(.system(size: 17))
-                .foregroundStyle(Theme.text)
+                .font(.system(size: 16))
+                .foregroundStyle(selected ? Theme.onInk : Theme.text)
                 .frame(width: 48, height: 44)
-                .background(selected ? Theme.chipSelected : Theme.card, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .strokeBorder(selected ? Theme.blue : Theme.border, lineWidth: 1))
+                .background(selected ? Theme.ink : Theme.card2, in: Capsule())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(label)

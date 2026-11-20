@@ -25,35 +25,61 @@ struct SignPanel: View {
     @State private var askInitials = false
     @State private var initialsText = ""
     @State private var inkChoice = 0
+    @State private var confirmApply = false
 
     let inks: [(String, UIColor)] = [
-        ("Lacivert", UIColor(hex: 0x1F3F8F)), ("Siyah", UIColor(hex: 0x111111)), ("Mavi", UIColor(hex: 0x2D6BE4))
+        ("Lacivert", UIColor(hex: 0x2E4A5E)), ("Siyah", UIColor(hex: 0x121A21)), ("Mavi", UIColor(hex: 0x1F3F8F))
     ]
-    let purple = Theme.purple
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 8) {
+                SheetHeader(title: "İmzala", primaryTitle: "Uygula",
+                            onCancel: { session.cancelMode() },
+                            onPrimary: { confirmApply = true })
                 segmented
                 switch source {
                 case .draw: drawArea
                 case .type: typeArea
                 case .image: imageArea
                 }
+                savedList
                 chips
-                if !store.signatures.isEmpty { savedList }
-                PrimaryButton(title: "İmzayı Kaydet ve Yerleştir", color: purple) { saveAndPlace() }
+                Button { saveAndPlace() } label: {
+                    Label("İmzayı Kaydet ve Yerleştir", systemImage: "signature")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Theme.text)
+                        .frame(maxWidth: .infinity)
+                        .frame(minHeight: 48)
+                        .background(Theme.card, in: Capsule())
+                }
+                .buttonStyle(.plain)
                 if session.redactionMarkCount > 0 || hasPlacedItems {
-                    Text("Yerleştirdiğiniz öğeleri sürükleyerek taşıyın. Bitince üstteki Uygula ile sayfaya kalıcı olarak gömün.")
-                        .font(.system(size: 12.5))
+                    Text("Yerleştirdiğiniz öğeleri sürükleyerek taşıyın. Bitince Uygula ile sayfaya kalıcı olarak gömün.")
+                        .font(.footnote)
                         .foregroundStyle(Theme.secondary)
+                        .padding(.horizontal, 4)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
+            .padding(.horizontal, 12)
+            .padding(.top, 14)
             .padding(.bottom, 24)
         }
-        .background(Theme.card)
+        .background(Theme.background)
+        .confirmationDialog("İmzalar ve alanlar sayfaya gömülsün mü?", isPresented: $confirmApply, titleVisibility: .visible) {
+            Button("Uygula ve kaydet") {
+                let n = session.applyAnnotations()
+                session.exitMode()
+                if n > 0 { _ = session.save() }
+            }
+            Button("Yalnızca uygula") {
+                _ = session.applyAnnotations()
+                session.exitMode()
+            }
+            Button("Vazgeç", role: .cancel) {}
+        } message: {
+            Text("Uygulanan imza, metin, onay ve tarih öğeleri artık taşınamaz; belgenin parçası olur.")
+        }
         .onChange(of: photoItem) { _, item in
             guard let item else { return }
             Task {
@@ -85,37 +111,33 @@ struct SignPanel: View {
 
     private var segmented: some View {
         HStack(spacing: 0) {
-            ForEach(Source.allCases) { s in
-                Button { source = s } label: {
-                    Text(s.rawValue)
-                        .font(.system(size: 14, weight: source == s ? .semibold : .regular))
-                        .foregroundStyle(source == s ? Theme.text : Theme.tertiary)
+            ForEach(Source.allCases) { src in
+                Button { source = src } label: {
+                    Text(src.rawValue)
+                        .font(.subheadline.weight(source == src ? .semibold : .regular))
+                        .foregroundStyle(source == src ? Theme.onInk : Theme.text)
                         .frame(maxWidth: .infinity)
-                        .frame(height: 34)
-                        .background {
-                            if source == s {
-                                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .fill(Theme.card)
-                                    .shadow(color: .black.opacity(0.08), radius: 1.5, x: 0, y: 1)
-                            }
-                        }
+                        .frame(minHeight: 40)
+                        .background(source == src ? Theme.ink : Color.clear, in: Capsule())
+                        .contentShape(Capsule())
                 }
                 .buttonStyle(.plain)
+                .accessibilityAddTraits(source == src ? .isSelected : [])
             }
         }
-        .padding(3)
-        .background(Theme.segmentBackground, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .padding(4)
+        .background(Theme.card, in: Capsule())
     }
 
     private var drawArea: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Theme.padBackground)
+            RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous).fill(Color.white)
             Rectangle()
-                .fill(Theme.border)
+                .fill(Color(hex: 0xDCDCD8))
                 .frame(height: 1)
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 22)
                 .frame(maxHeight: .infinity, alignment: .bottom)
-                .padding(.bottom, 28)
+                .padding(.bottom, 34)
             SignaturePadView(drawing: $drawing, inkColor: inks[inkChoice].1)
             VStack {
                 HStack {
@@ -125,38 +147,44 @@ struct SignPanel: View {
                         }
                     } label: {
                         Circle().fill(Color(uiColor: inks[inkChoice].1)).frame(width: 18, height: 18)
-                            .frame(width: 32, height: 32)
+                            .frame(width: 44, height: 44)
                     }
                     .accessibilityLabel("Mürekkep rengi")
                     Spacer()
-                    Button("Temizle") { drawing = PKDrawing() }
-                        .font(.system(size: 13.5))
-                        .foregroundStyle(Theme.blue)
-                        .frame(height: 32)
-                        .padding(.horizontal, 10)
+                    Button { drawing = PKDrawing() } label: {
+                        Text("Temizle")
+                            .font(.footnote)
+                            .foregroundStyle(Color(hex: 0x111111))
+                            .padding(.horizontal, 12)
+                            .frame(height: 32)
+                            .background(Color(hex: 0xF1F1EF), in: Capsule())
+                            .frame(minHeight: 44)
+                    }
+                    .buttonStyle(.plain)
                 }
                 Spacer()
                 Text("Parmağınla veya Apple Pencil ile imzala")
-                    .font(.system(size: 11.5))
-                    .foregroundStyle(Theme.secondary)
+                    .font(.caption)
+                    .foregroundStyle(Color(hex: 0x6E6E6E))
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.leading, 20)
+                    .padding(.leading, 14)
                     .padding(.bottom, 8)
                     .allowsHitTesting(false)
             }
-            .padding(.top, 8)
-            .padding(.trailing, 8)
-            .padding(.leading, 8)
+            .padding(.horizontal, 8)
+            .padding(.top, 2)
         }
-        .frame(height: 150)
-        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.border, lineWidth: 1))
+        .frame(height: 170)
     }
 
     private var typeArea: some View {
         VStack(alignment: .leading, spacing: 10) {
             TextField("Adınızı yazın", text: $typedName)
-                .textFieldStyle(.roundedBorder)
                 .textContentType(.name)
+                .font(.subheadline)
+                .padding(.horizontal, 14)
+                .frame(minHeight: 44)
+                .background(Theme.card2, in: Capsule())
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     ForEach(SignatureImages.scriptFonts.indices, id: \.self) { i in
@@ -167,43 +195,51 @@ struct SignPanel: View {
                                 .lineLimit(1)
                                 .padding(.horizontal, 12)
                                 .frame(height: 56)
-                                .background(fontIndex == i ? Theme.chipSelected : Theme.padBackground,
-                                            in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .strokeBorder(fontIndex == i ? Theme.blue : Theme.border, lineWidth: 1))
+                                .background(Color.white, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .strokeBorder(fontIndex == i ? Color(hex: 0x121A21) : Color(hex: 0xEDEDEB), lineWidth: fontIndex == i ? 1.5 : 1))
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel(SignatureImages.scriptFonts[i].title)
                     }
                 }
             }
         }
-        .frame(minHeight: 150, alignment: .top)
+        .padding(12)
+        .frame(minHeight: 170, alignment: .top)
+        .card()
     }
 
     private var imageArea: some View {
         VStack(alignment: .leading, spacing: 10) {
             ZStack {
-                RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Theme.padBackground)
+                RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.white)
                 if let img = processedImage {
                     Image(uiImage: img).resizable().scaledToFit().padding(12)
                 } else {
                     Text("Beyaz kâğıda atılmış imzanızın fotoğrafını seçin.")
-                        .font(.system(size: 13))
-                        .foregroundStyle(Theme.secondary)
+                        .font(.footnote)
+                        .foregroundStyle(Color(hex: 0x6E6E6E))
                         .multilineTextAlignment(.center)
                         .padding()
                 }
             }
-            .frame(height: 150)
-            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.border, lineWidth: 1))
+            .frame(height: 130)
             HStack {
                 PhotosPicker(selection: $photoItem, matching: .images) {
-                    Label("Fotoğraf seç", systemImage: "photo").font(.system(size: 14))
+                    Label("Fotoğraf seç", systemImage: "photo")
+                        .font(.subheadline)
+                        .foregroundStyle(Theme.text)
+                        .padding(.horizontal, 14)
+                        .frame(minHeight: 40)
+                        .background(Theme.card2, in: Capsule())
                 }
                 Spacer()
-                Toggle("Beyazı kaldır", isOn: $removeWhite).font(.system(size: 13.5)).fixedSize()
+                Toggle("Beyazı kaldır", isOn: $removeWhite).font(.footnote).fixedSize()
             }
         }
+        .padding(12)
+        .card()
     }
 
     private func reprocess() {
@@ -214,20 +250,23 @@ struct SignPanel: View {
     private var chips: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 6) {
-                Chip(title: "Aa Baş harfler") { initialsText = ""; askInitials = true }
-                Chip(title: "T Metin", selected: session.tool == .placeText) { session.tool = .placeText; detent = .height(220) }
-                Chip(title: "✓ Onay", selected: session.tool == .placeCheck) { session.tool = .placeCheck; detent = .height(220) }
+                Chip(title: "Metin", selected: session.tool == .placeText) { session.tool = .placeText; detent = .height(220) }
+                Chip(title: "Onay kutusu", selected: session.tool == .placeCheck) { session.tool = .placeCheck; detent = .height(220) }
                 Chip(title: "Tarih", selected: session.tool == .placeDate) { session.tool = .placeDate; detent = .height(220) }
             }
         }
     }
 
     private var savedList: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            SectionLabel(text: "Kayıtlı imzalar")
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Kayıtlı imzalar")
+                .font(.footnote)
+                .foregroundStyle(Theme.secondary)
+                .padding(.leading, 2)
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     ForEach(store.signatures) { sig in
+                        let active = session.tool == .placeSignature(sig.id)
                         Button {
                             session.tool = .placeSignature(sig.id)
                             detent = .height(220)
@@ -241,18 +280,41 @@ struct SignPanel: View {
                             }
                             .padding(6)
                             .frame(width: 96, height: 52)
-                            .background(Color.white, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                            .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .strokeBorder(session.tool == .placeSignature(sig.id) ? Theme.blue : Theme.border, lineWidth: 1))
+                            .background(Color.white, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .strokeBorder(active ? Color(hex: 0x121A21) : Color(hex: 0xEDEDEB), lineWidth: active ? 1.5 : 1))
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel("Kayıtlı imza")
+                        .accessibilityAddTraits(active ? .isSelected : [])
                         .contextMenu {
                             Button(role: .destructive) { store.delete(sig.id) } label: { Label("İmzayı sil", systemImage: "trash") }
                         }
                     }
+                    Button { initialsText = ""; askInitials = true } label: {
+                        Text("Aa")
+                            .font(.custom("TimesNewRomanPS-ItalicMT", size: 20))
+                            .foregroundStyle(Theme.ink)
+                            .frame(width: 72, height: 52)
+                            .background(Theme.card2, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Baş harfler")
+                    Button { saveAndPlace() } label: {
+                        Image(systemName: "plus")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(Theme.ink)
+                            .frame(width: 52, height: 52)
+                            .background(Theme.card2, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Çizilen imzayı kaydet ve yerleştir")
                 }
             }
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .card()
     }
 
     private func currentSignatureImage() -> UIImage? {
@@ -318,7 +380,7 @@ struct SignPanel: View {
     }
 }
 
-/// Yuvarlak kenarlı küçük seçim düğmesi.
+/// Kapsül seçim düğmesi (beyaz; seçiliyken koyu).
 struct Chip: View {
     let title: String
     var selected = false
@@ -327,13 +389,13 @@ struct Chip: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 13.5))
-                .foregroundStyle(Theme.text)
-                .padding(.horizontal, 12)
-                .frame(height: 40)
-                .background(selected ? Theme.chipSelected : Theme.card, in: Capsule())
-                .overlay(Capsule().strokeBorder(selected ? Theme.blue : Theme.border, lineWidth: 1))
+                .font(.footnote)
+                .foregroundStyle(selected ? Theme.onInk : Theme.text)
+                .padding(.horizontal, 14)
+                .frame(minHeight: 44)
+                .background(selected ? Theme.ink : Theme.card, in: Capsule())
         }
         .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }

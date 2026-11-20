@@ -28,13 +28,16 @@ struct ViewerView: View {
                 VStack(spacing: 10) {
                     if session.selectedAnnotation != nil && session.tool == .select { selectionBar }
                     if session.tool == .redact && session.redactionMarkCount > 0 { redactBar }
-                    floatingToolbar
                 }
-                .padding(.bottom, 16)
+                .padding(.bottom, 14)
+            }
+            .overlay(alignment: .trailing) {
+                floatingToolbar
+                    .padding(.trailing, 12)
             }
             bottomTabs
         }
-        .background(Theme.barBackground.ignoresSafeArea())
+        .background(Theme.viewerBackground.ignoresSafeArea())
         .sheet(item: $session.activeTab) { tab in
             panel(for: tab)
                 .environmentObject(app)
@@ -43,8 +46,8 @@ struct ViewerView: View {
                 .presentationDetents(detents(for: tab), selection: $detent)
                 .presentationBackgroundInteraction(.enabled(upThrough: .medium))
                 .presentationDragIndicator(.visible)
-                .presentationCornerRadius(18)
-                .presentationBackground(Theme.card)
+                .presentationCornerRadius(Theme.sheetRadius)
+                .presentationBackground(Theme.background)
         }
         .sheet(isPresented: $session.showOrganizer) {
             PageOrganizerView(session: session)
@@ -178,11 +181,11 @@ struct ViewerView: View {
                              onCreatePDF: { session.activeTab = nil; showCreateAfterDelay() },
                              onCompress: nil,
                              onOCR: { session.activeTab = nil; session.runOCR(force: false) })
-                    .padding(.horizontal, 18)
-                    .padding(.top, 8)
+                    .padding(.horizontal, 12)
+                    .padding(.top, 14)
                     .padding(.bottom, 24)
             }
-            .background(Theme.card)
+            .background(Theme.background)
         case .sign:
             SignPanel(session: session, detent: $detent)
         }
@@ -210,68 +213,98 @@ struct ViewerView: View {
     // MARK: - Üst çubuk
 
     @ViewBuilder private var topBar: some View {
-        HStack(spacing: 2) {
+        HStack(spacing: 8) {
             switch session.mode {
             case .edit?:
-                textButton("Vazgeç") { session.cancelMode() }
+                if session.activeTab == nil {
+                    capsuleButton("Vazgeç") { session.cancelMode() }
+                } else {
+                    Color.clear.frame(width: 44, height: 44)
+                }
                 titleBlock(title: "Düzenle", subtitle: session.displayName)
                 Button { session.undo() } label: {
-                    Image(systemName: "arrow.uturn.backward").font(.system(size: 18))
+                    Image(systemName: "arrow.uturn.backward").font(.system(size: 17))
                         .foregroundStyle(session.canUndo ? Theme.text : Theme.chevron)
-                        .frame(width: 40, height: 44)
+                        .frame(width: 44, height: 44)
                 }
                 .disabled(!session.canUndo)
+                .qGlass(Circle())
                 .accessibilityLabel("Geri al")
-                textButton("Kaydet", bold: true, trailing: true) {
-                    if session.save() { session.exitMode() }
+                if session.activeTab == nil {
+                    capsuleButton("Kaydet", primary: true) {
+                        if session.save() { session.exitMode() }
+                    }
                 }
             case .sign?:
-                textButton("Vazgeç") { session.cancelMode() }
+                if session.activeTab == nil {
+                    capsuleButton("Vazgeç") { session.cancelMode() }
+                } else {
+                    Color.clear.frame(width: 44, height: 44)
+                }
                 titleBlock(title: "Doldur ve İmzala", subtitle: "Sayfa \(session.currentPageIndex + 1) / \(session.pageCount)")
-                textButton("Uygula", bold: true, trailing: true) { confirmApplySign = true }
+                if session.activeTab == nil {
+                    capsuleButton("Uygula", primary: true) { confirmApplySign = true }
+                } else {
+                    Color.clear.frame(width: 44, height: 44)
+                }
             default:
                 Button { close() } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundStyle(Theme.blue)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(Theme.text)
                         .frame(width: 44, height: 44)
+                        .contentShape(Circle())
                 }
+                .buttonStyle(.plain)
+                .qGlass(Circle())
                 .accessibilityLabel("Geri")
                 titleBlock(title: session.displayName + (session.isDirty ? " •" : ""),
                            subtitle: "Sayfa \(session.currentPageIndex + 1) / \(session.pageCount)")
-                Button {
-                    session.isSearching.toggle()
-                    if session.isSearching { searchFocused = true } else { session.clearSearch() }
-                } label: {
-                    Image(systemName: "magnifyingglass").font(.system(size: 19))
-                        .foregroundStyle(Theme.text)
-                        .frame(width: 44, height: 44)
+                HStack(spacing: 0) {
+                    Button {
+                        session.isSearching.toggle()
+                        if session.isSearching { searchFocused = true } else { session.clearSearch() }
+                    } label: {
+                        Image(systemName: "magnifyingglass").font(.system(size: 17))
+                            .foregroundStyle(Theme.text)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Ara")
+                    Button { shareCopy() } label: {
+                        Image(systemName: "square.and.arrow.up").font(.system(size: 17))
+                            .foregroundStyle(Theme.text)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Paylaş")
                 }
-                .accessibilityLabel("Ara")
-                Button { shareCopy() } label: {
-                    Image(systemName: "square.and.arrow.up").font(.system(size: 19))
-                        .foregroundStyle(Theme.text)
-                        .frame(width: 44, height: 44)
-                }
-                .accessibilityLabel("Paylaş")
+                .qGlassCapsule()
             }
         }
-        .padding(.horizontal, 8)
+        .padding(.horizontal, 12)
         .padding(.top, 6)
-        .padding(.bottom, 8)
-        .background(Theme.barBackground)
-        .overlay(alignment: .bottom) { Rectangle().fill(Theme.border).frame(height: 1) }
+        .padding(.bottom, 10)
+        .background(
+            LinearGradient(stops: [.init(color: Theme.viewerBackground.opacity(0.96), location: 0.55),
+                                   .init(color: Theme.viewerBackground.opacity(0), location: 1)],
+                           startPoint: .top, endPoint: .bottom)
+                .ignoresSafeArea(edges: .top)
+        )
     }
 
     private func titleBlock(title: String, subtitle: String) -> some View {
         VStack(spacing: 1) {
             Text(title)
-                .font(.system(size: 16, weight: .semibold))
+                .font(.headline)
                 .foregroundStyle(Theme.text)
                 .lineLimit(1)
                 .truncationMode(.middle)
             Text(subtitle)
-                .font(.system(size: 12))
+                .font(.caption)
+                .monospacedDigit()
                 .foregroundStyle(Theme.secondary)
                 .lineLimit(1)
                 .truncationMode(.middle)
@@ -279,14 +312,16 @@ struct ViewerView: View {
         .frame(maxWidth: .infinity)
     }
 
-    private func textButton(_ title: String, bold: Bool = false, trailing: Bool = false, action: @escaping () -> Void) -> some View {
+    private func capsuleButton(_ title: String, primary: Bool = false, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 16, weight: bold ? .semibold : .regular))
-                .foregroundStyle(Theme.blue)
-                .frame(minWidth: 60, minHeight: 44, alignment: trailing ? .trailing : .leading)
-                .padding(trailing ? .trailing : .leading, 8)
+                .font(.subheadline.weight(primary ? .semibold : .regular))
+                .foregroundStyle(primary ? Theme.onInk : Theme.text)
+                .padding(.horizontal, 16)
+                .frame(minHeight: 44)
+                .background(primary ? Theme.ink : Theme.card, in: Capsule())
         }
+        .buttonStyle(.plain)
     }
 
     private func close() {
@@ -297,68 +332,76 @@ struct ViewerView: View {
     private var searchBar: some View {
         HStack(spacing: 8) {
             HStack(spacing: 6) {
-                Image(systemName: "magnifyingglass").foregroundStyle(Theme.secondary)
+                Image(systemName: "magnifyingglass").foregroundStyle(Theme.secondary).accessibilityHidden(true)
                 TextField("Belgede ara", text: $session.searchText)
                     .focused($searchFocused)
                     .submitLabel(.search)
                     .onSubmit { session.search() }
             }
-            .padding(.horizontal, 10)
-            .frame(height: 38)
-            .background(Theme.background, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .padding(.horizontal, 14)
+            .frame(minHeight: 44)
+            .background(Theme.card, in: Capsule())
             if !session.searchResults.isEmpty {
                 Text("\(session.searchIndex + 1)/\(session.searchResults.count)")
-                    .font(.system(size: 13).monospacedDigit())
+                    .font(.footnote.monospacedDigit())
                     .foregroundStyle(Theme.secondary)
-                Button { session.previousResult() } label: { Image(systemName: "chevron.up") }
-                Button { session.nextResult() } label: { Image(systemName: "chevron.down") }
+                Button { session.previousResult() } label: { Image(systemName: "chevron.up").frame(width: 36, height: 44) }
+                    .accessibilityLabel("Önceki sonuç")
+                Button { session.nextResult() } label: { Image(systemName: "chevron.down").frame(width: 36, height: 44) }
+                    .accessibilityLabel("Sonraki sonuç")
             }
             Button("Bitti") {
                 session.isSearching = false
                 session.clearSearch()
             }
-            .foregroundStyle(Theme.blue)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(Theme.text)
+            .frame(minHeight: 44)
         }
+        .tint(Theme.text)
         .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(Theme.barBackground)
-        .overlay(alignment: .bottom) { Rectangle().fill(Theme.border).frame(height: 1) }
+        .padding(.bottom, 8)
     }
 
     private func hintBand(_ text: String) -> some View {
         HStack(spacing: 8) {
             Image(systemName: "info.circle")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(Theme.hintIcon)
+                .foregroundStyle(Theme.navy)
+                .accessibilityHidden(true)
             Text(text)
-                .font(.system(size: 12.5))
-                .foregroundStyle(Theme.tertiary)
+                .font(.footnote)
+                .foregroundStyle(Theme.text)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
             if session.mode == nil && session.tool != .select {
                 Button("Bitti") { session.tool = .select }
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(Theme.blue)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(Theme.onInk)
+                    .padding(.horizontal, 12)
+                    .frame(minHeight: 32)
+                    .background(Theme.ink, in: Capsule())
+                    .frame(minHeight: 44)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .frame(minHeight: 40)
-        .background(Theme.hintBackground)
-        .overlay(alignment: .bottom) { Rectangle().fill(Theme.hintBorder).frame(height: 1) }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 6)
+        .background(Theme.card, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .padding(.horizontal, 12)
+        .padding(.bottom, 8)
     }
 
-    // MARK: - Yüzen araç çubuğu
+    // MARK: - Yüzen araç çubuğu (cam, dikey)
 
     private var floatingToolbar: some View {
-        HStack(spacing: 4) {
+        VStack(spacing: 2) {
             toolButton("cursorarrow", "Seç", selected: session.tool == .select || session.tool == .editText && session.mode == nil) {
                 session.tool = session.mode == .edit ? .editText : .select
             }
             toolButton("text.bubble", "Yorum", selected: session.tool == .comment) {
                 session.tool = session.tool == .comment ? .select : .comment
             }
-            toolButton("highlighter", "Vurgula", selected: false, accent: Color(hex: 0xF5C518)) {
+            toolButton("highlighter", "Vurgula", selected: false, accent: Theme.orange) {
                 session.applyMarkup(.highlight)
             }
             toolButton("scribble.variable", "Çiz", selected: session.tool == .draw) {
@@ -389,33 +432,33 @@ struct ViewerView: View {
                 Button { session.rotateCurrent(by: 90) } label: { Label("Sayfayı döndür", systemImage: "rotate.right") }
             } label: {
                 Image(systemName: "ellipsis")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(Theme.text)
                     .frame(width: 44, height: 44)
             }
             .accessibilityLabel("Diğer araçlar")
         }
-        .padding(5)
-        .background(Theme.card, in: Capsule())
-        .overlay(Capsule().strokeBorder(Theme.border, lineWidth: 1))
+        .padding(4)
+        .qGlassCapsule()
         .shadow(color: .black.opacity(0.12), radius: 10, x: 0, y: 6)
     }
 
     let inkColors: [(String, UIColor)] = [
-        ("Kırmızı", UIColor(hex: 0xE5322D)), ("Mavi", UIColor(hex: 0x2D6BE4)), ("Siyah", UIColor(hex: 0x111111)),
-        ("Yeşil", UIColor(hex: 0x1E8E3E)), ("Sarı", UIColor(hex: 0xF5C518))
+        ("Kırmızı", UIColor(hex: 0xD23B2B)), ("Lacivert", UIColor(hex: 0x2E4A5E)), ("Siyah", UIColor(hex: 0x111111)),
+        ("Yeşil", UIColor(hex: 0x178A4C)), ("Turuncu", UIColor(hex: 0xE07A1F))
     ]
 
     private func toolButton(_ icon: String, _ label: String, selected: Bool, accent: Color? = nil, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: icon)
-                .font(.system(size: 18))
-                .foregroundStyle(selected ? Color.white : (accent ?? Theme.text))
+                .font(.system(size: 17))
+                .foregroundStyle(selected ? Theme.onInk : (accent ?? Theme.text))
                 .frame(width: 44, height: 44)
-                .background(selected ? Theme.blue : Color.clear, in: Circle())
+                .background(selected ? Theme.ink : Color.clear, in: Circle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(label)
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     private var selectionBar: some View {
@@ -430,19 +473,18 @@ struct ViewerView: View {
             smallButton("Sil", "trash") { session.deleteSelected() }
         }
         .padding(4)
-        .background(Theme.card, in: Capsule())
-        .overlay(Capsule().strokeBorder(Theme.border, lineWidth: 1))
+        .qGlassCapsule()
         .shadow(color: .black.opacity(0.10), radius: 6, x: 0, y: 3)
     }
 
     private var redactBar: some View {
         Button { session.applyRedactions() } label: {
             Label("Sansürü uygula (\(session.redactionMarkCount))", systemImage: "checkmark.seal")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.white)
-                .padding(.horizontal, 16)
-                .frame(height: 40)
-                .background(Color.black, in: Capsule())
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Color.white)
+                .padding(.horizontal, 18)
+                .frame(minHeight: 44)
+                .background(Theme.red, in: Capsule())
         }
     }
 
@@ -450,10 +492,10 @@ struct ViewerView: View {
         Button(action: action) {
             Label(title, systemImage: icon)
                 .labelStyle(.titleAndIcon)
-                .font(.system(size: 13))
+                .font(.footnote)
                 .foregroundStyle(Theme.text)
                 .padding(.horizontal, 10)
-                .frame(height: 34)
+                .frame(minHeight: 44)
         }
         .buttonStyle(.plain)
     }
@@ -461,25 +503,35 @@ struct ViewerView: View {
     // MARK: - Alt sekmeler
 
     private var bottomTabs: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 3) {
             ForEach(ViewerTab.allCases) { tab in
+                let active = isActive(tab)
                 Button { open(tab) } label: {
-                    VStack(spacing: 3) {
-                        Image(systemName: tab.icon).font(.system(size: 20))
-                            .frame(height: 24)
-                        Text(tab.title).font(.system(size: 11, weight: isActive(tab) ? .semibold : .medium))
+                    VStack(spacing: 2) {
+                        Image(systemName: tab.icon).font(.system(size: 16, weight: .medium))
+                            .frame(height: 20)
+                        Text(tab == .allTools ? "Araçlar" : tab.title)
+                            .font(.caption2.weight(.medium))
+                            .lineLimit(1)
                     }
-                    .foregroundStyle(isActive(tab) ? Theme.accent : Theme.secondary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 8)
-                    .padding(.bottom, 4)
-                    .contentShape(Rectangle())
+                    .foregroundStyle(active ? Color(hex: 0x121A21) : Color.white)
+                    .padding(.horizontal, 12)
+                    .frame(minWidth: 64, minHeight: 48)
+                    .background(active ? Color.white : Color.white.opacity(0.07), in: Capsule())
+                    .contentShape(Capsule())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(tab.title)
+                .accessibilityAddTraits(active ? .isSelected : [])
             }
         }
-        .background(Theme.barBackground.ignoresSafeArea(edges: .bottom))
-        .overlay(alignment: .top) { Rectangle().fill(Theme.border).frame(height: 1) }
+        .padding(4)
+        .background(Theme.pill, in: Capsule())
+        .shadow(color: .black.opacity(0.22), radius: 10, x: 0, y: 6)
+        .frame(maxWidth: .infinity)
+        .padding(.top, 8)
+        .padding(.bottom, 6)
+        .background(Theme.viewerBackground.ignoresSafeArea(edges: .bottom))
     }
 
     private func isActive(_ tab: ViewerTab) -> Bool {

@@ -13,7 +13,10 @@ struct QeniroPDFApp: App {
                 .environmentObject(appState.library)
                 .environmentObject(SignatureStore.shared)
                 .frame(minWidth: 980, minHeight: 640)
-                .onAppear { appDelegate.attach(appState) }
+                .onAppear {
+                    AppearanceChoice.current.apply()
+                    appDelegate.attach(appState)
+                }
         }
         .defaultSize(width: 1280, height: 820)
         .commands { AppCommands(appState: appState) }

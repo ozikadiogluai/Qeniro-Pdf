@@ -10,7 +10,6 @@ struct ContentView: View {
         VStack(spacing: 0) {
             if !app.sessions.isEmpty {
                 TabBarView()
-                Divider()
             }
             Group {
                 switch app.tab {
@@ -26,7 +25,7 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .background(Theme.window)
+        .background(Theme.background)
         .sheet(item: $app.sheet) { req in
             ToolSheetHost(request: req)
                 .environmentObject(app)
@@ -49,81 +48,102 @@ struct ShellView: View {
     @EnvironmentObject var app: AppState
 
     var body: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 10) {
             SidebarView()
                 .frame(width: Theme.sidebarWidth)
-            Divider()
-            ZStack(alignment: .topTrailing) {
-                Group {
-                    switch app.sidebar {
-                    case .home: HomeView()
-                    case .tools: AllToolsView()
-                    case .recent: FileListPage(kind: .recent)
-                    case .starred: FileListPage(kind: .starred)
-                    case .cloud: CloudView()
-                    }
+            Group {
+                switch app.sidebar {
+                case .home: HomeView()
+                case .tools: AllToolsView()
+                case .recent: FileListPage(kind: .recent)
+                case .starred: FileListPage(kind: .starred)
+                case .cloud: CloudView()
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                TopIconsView()
-                    .padding(.top, 20)
-                    .padding(.trailing, 24)
             }
-            .background(Theme.background)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
+        .padding(10)
+        .background(Theme.background)
         .navigationTitle("Qeniro PDF")
     }
 }
 
+/// Sol kenar çubuğu: 220 pt, yarı saydam (cam), seçili öğe koyu kapsül-dikdörtgen.
 struct SidebarView: View {
     @EnvironmentObject var app: AppState
+    @AppStorage(AppearanceChoice.storageKey) private var appearanceRaw = AppearanceChoice.system.rawValue
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 8) {
-                Image(nsImage: NSApp.applicationIconImage)
-                    .resizable()
+            HStack(spacing: 10) {
+                Text("Q")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(Theme.onInk)
                     .frame(width: 30, height: 30)
+                    .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(Theme.ink))
+                    .accessibilityHidden(true)
                 Text("Qeniro PDF")
-                    .font(.system(size: 17, weight: .bold))
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(Theme.text)
             }
-            .padding(.horizontal, 6)
-            .padding(.bottom, 18)
+            .padding(.horizontal, 8)
             .padding(.top, 6)
+            .padding(.bottom, 16)
 
             ForEach(SidebarItem.allCases) { item in
-                let active = app.sidebar == item
+                let active = app.tab == .shell && app.sidebar == item
                 Button {
                     app.showShell(item)
                 } label: {
                     HStack(spacing: 10) {
-                        Image(systemName: item.symbol)
+                        Image(systemName: active ? item.symbol + ".fill" : item.symbol)
                             .frame(width: 18)
                         Text(item.title)
                         Spacer()
                     }
-                    .font(.system(size: 13, weight: active ? .semibold : .regular))
-                    .foregroundStyle(active ? Theme.selection : Color.primary)
+                    .font(.body.weight(active ? .medium : .regular))
+                    .foregroundStyle(active ? Theme.onInk : Theme.text)
                     .padding(.horizontal, 10)
-                    .padding(.vertical, 7)
-                    .background(RoundedRectangle(cornerRadius: 7).fill(active ? Theme.activeNav : Color.clear))
+                    .frame(height: 34)
+                    .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(active ? Theme.ink : Color.clear))
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityAddTraits(active ? .isSelected : [])
             }
             Spacer()
-            Button {
-                app.openPanel()
+            TopIconsView()
+                .padding(.horizontal, 6)
+                .padding(.bottom, 8)
+            Menu {
+                Picker("Görünüm", selection: $appearanceRaw) {
+                    ForEach(AppearanceChoice.allCases) { Text($0.title).tag($0.rawValue) }
+                }
+                .pickerStyle(.inline)
             } label: {
-                Label("PDF Aç", systemImage: "folder")
-                    .frame(maxWidth: .infinity)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Tema").font(.callout.weight(.semibold)).foregroundStyle(Theme.text)
+                    Text("Lacivert · " + (AppearanceChoice(rawValue: appearanceRaw) ?? .system).title)
+                        .font(.callout)
+                        .foregroundStyle(Theme.secondaryText)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(12)
+                .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Theme.card2))
+                .contentShape(Rectangle())
             }
-            .controlSize(.large)
-            .buttonStyle(.borderedProminent)
-            .tint(Theme.accent)
+            .menuStyle(.button)
+            .buttonStyle(.plain)
+            .menuIndicator(.hidden)
+            .help("Tema: açık, koyu veya sistemle aynı")
+            .onChange(of: appearanceRaw) { _, new in
+                (AppearanceChoice(rawValue: new) ?? .system).apply()
+            }
         }
-        .padding(12)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 14)
         .frame(maxHeight: .infinity, alignment: .top)
-        .background(Theme.sidebar)
+        .qGlass(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 }
 
@@ -131,11 +151,11 @@ struct TabBarView: View {
     @EnvironmentObject var app: AppState
 
     var body: some View {
-        HStack(spacing: 2) {
+        HStack(spacing: 4) {
             tabButton("Ana Sayfa", active: app.tab == .shell && app.sidebar != .tools) { app.showShell(.home) }
             tabButton("Araçlar", active: app.tab == .shell && app.sidebar == .tools) { app.showShell(.tools) }
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 2) {
+                HStack(spacing: 4) {
                     ForEach(app.sessions) { s in
                         DocumentTab(session: s, active: app.tab == .document(s.id))
                     }
@@ -144,18 +164,19 @@ struct TabBarView: View {
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 10)
-        .padding(.vertical, 5)
-        .background(Theme.sidebar)
+        .padding(.vertical, 6)
+        .background(Theme.background)
     }
 
     private func tabButton(_ title: String, active: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 13, weight: active ? .semibold : .regular))
+                .font(.body.weight(active ? .semibold : .regular))
+                .foregroundStyle(active ? Theme.onInk : Theme.text)
                 .padding(.horizontal, 14)
-                .padding(.vertical, 6)
-                .background(RoundedRectangle(cornerRadius: 7).fill(active ? Theme.window : Color.clear))
-                .contentShape(Rectangle())
+                .frame(height: 28)
+                .background(Capsule().fill(active ? Theme.ink : Color.clear))
+                .contentShape(Capsule())
         }
         .buttonStyle(.plain)
     }
@@ -170,32 +191,37 @@ struct DocumentTab: View {
     var body: some View {
         HStack(spacing: 6) {
             Image(systemName: "doc.fill")
-                .foregroundStyle(Theme.accent)
+                .foregroundStyle(Theme.pdfBadgeText)
                 .font(.system(size: 11))
+                .accessibilityHidden(true)
             Text(session.displayName)
                 .lineLimit(1)
-                .font(.system(size: 13, weight: active ? .semibold : .regular))
+                .font(.body.weight(active ? .semibold : .regular))
+                .foregroundStyle(Theme.text)
                 .frame(maxWidth: 200)
             Button {
                 app.close(session)
             } label: {
                 Image(systemName: session.isDirty && !hover ? "circle.fill" : "xmark")
                     .font(.system(size: session.isDirty && !hover ? 7 : 9, weight: .bold))
-                    .frame(width: 14, height: 14)
+                    .foregroundStyle(Theme.secondaryText)
+                    .frame(width: 16, height: 16)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .help("Sekmeyi kapat")
+            .accessibilityLabel("Sekmeyi kapat")
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(RoundedRectangle(cornerRadius: 7).fill(active ? Theme.window : (hover ? Theme.window.opacity(0.5) : Color.clear)))
-        .contentShape(Rectangle())
+        .frame(height: 28)
+        .background(Capsule().fill(active ? Theme.card : (hover ? Theme.card.opacity(0.6) : Color.clear)))
+        .contentShape(Capsule())
         .onHover { hover = $0 }
         .onTapGesture { app.tab = .document(session.id) }
     }
 }
 
+/// Kenar çubuğunun altındaki küçük düğmeler: PDF aç, Yardım, Bildirimler, Hesap.
 struct TopIconsView: View {
     @EnvironmentObject var app: AppState
     @State private var showHelp = false
@@ -203,25 +229,33 @@ struct TopIconsView: View {
     @State private var showAccount = false
 
     var body: some View {
-        HStack(spacing: 16) {
-            Button { showHelp.toggle() } label: { Image(systemName: "questionmark.circle") }
-                .popover(isPresented: $showHelp, arrowEdge: .bottom) { HelpPopover() }
-                .help("Yardım")
-            Button {
+        HStack(spacing: 6) {
+            iconButton("plus", "PDF aç (⌘O)") { app.openPanel() }
+            iconButton("questionmark", "Yardım") { showHelp.toggle() }
+                .popover(isPresented: $showHelp, arrowEdge: .top) { HelpPopover() }
+            iconButton(app.unreadNotices > 0 ? "bell.badge" : "bell", "Bildirimler") {
                 showNotices.toggle()
                 app.markNoticesRead()
-            } label: {
-                Image(systemName: app.unreadNotices > 0 ? "bell.badge" : "bell")
             }
-            .popover(isPresented: $showNotices, arrowEdge: .bottom) { NoticesPopover() }
-            .help("Bildirimler")
-            Button { showAccount.toggle() } label: { Image(systemName: "person.crop.circle") }
-                .popover(isPresented: $showAccount, arrowEdge: .bottom) { AccountPopover() }
-                .help("Hesap")
+            .popover(isPresented: $showNotices, arrowEdge: .top) { NoticesPopover() }
+            iconButton("person", "Hesap") { showAccount.toggle() }
+                .popover(isPresented: $showAccount, arrowEdge: .top) { AccountPopover() }
+            Spacer(minLength: 0)
+        }
+    }
+
+    private func iconButton(_ symbol: String, _ label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(Theme.ink)
+                .frame(width: 32, height: 32)
+                .background(Circle().fill(Theme.card2))
+                .contentShape(Circle())
         }
         .buttonStyle(.plain)
-        .font(.system(size: 17))
-        .foregroundStyle(.secondary)
+        .help(label)
+        .accessibilityLabel(label)
     }
 }
 
@@ -295,7 +329,7 @@ struct AccountPopover: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
-                Image(systemName: "person.crop.circle.fill").font(.system(size: 34)).foregroundStyle(Theme.accent)
+                Image(systemName: "person.crop.circle.fill").font(.system(size: 34)).foregroundStyle(Theme.ink)
                 VStack(alignment: .leading) {
                     Text(NSFullUserName().isEmpty ? NSUserName() : NSFullUserName()).font(.headline)
                     Text("Yerel hesap · tüm işlemler bu Mac'te yapılır").font(.caption).foregroundStyle(.secondary)

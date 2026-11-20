@@ -32,21 +32,36 @@ final class SelectionOverlayView: NSView {
                 }
             }
         }
-        // Düzenle sekmesi: üzerine gelinen metin kesikli, seçili metin düz çerçeve.
+        // Düzenle sekmesi: düzenlenebilir satırlar kesikli lacivert (%45), üzerine gelinen satır daha belirgin,
+        // seçili satır 1.5 pt lacivert çerçeve + 6 pt köşe + %6 dolgu.
+        if s.tool == .editText, !v.isInlineEditing {
+            for page in v.visiblePages {
+                let idx = s.document.index(for: page)
+                guard idx != NSNotFound else { continue }
+                for item in s.textItems(onPage: idx) where item != s.selectedTextItem && item != v.hoverTextItem {
+                    let r = v.convert(item.bounds, from: page).insetBy(dx: -3, dy: -3)
+                    let p = NSBezierPath(roundedRect: r, xRadius: 3, yRadius: 3)
+                    p.lineWidth = 1
+                    p.setLineDash([4, 3], count: 2, phase: 0)
+                    blue.withAlphaComponent(0.45).setStroke()
+                    p.stroke()
+                }
+            }
+        }
         if let item = v.hoverTextItem, item != s.selectedTextItem, !v.isInlineEditing,
            let page = s.document.page(at: item.pageIndex) {
-            let r = v.convert(item.bounds, from: page).insetBy(dx: -2, dy: -2)
-            let p = NSBezierPath(rect: r)
+            let r = v.convert(item.bounds, from: page).insetBy(dx: -3, dy: -3)
+            let p = NSBezierPath(roundedRect: r, xRadius: 3, yRadius: 3)
             p.lineWidth = 1
             p.setLineDash([4, 3], count: 2, phase: 0)
-            blue.withAlphaComponent(0.85).setStroke()
+            blue.withAlphaComponent(0.9).setStroke()
             p.stroke()
         }
         if let item = s.selectedTextItem, !v.isInlineEditing, let page = s.document.page(at: item.pageIndex) {
-            let r = v.convert(item.bounds, from: page).insetBy(dx: -2, dy: -2)
+            let r = v.convert(item.bounds, from: page).insetBy(dx: -4, dy: -4)
+            let p = NSBezierPath(roundedRect: r, xRadius: 6, yRadius: 6)
             blue.withAlphaComponent(0.06).setFill()
-            NSBezierPath(rect: r).fill()
-            let p = NSBezierPath(rect: r)
+            p.fill()
             p.lineWidth = 1.5
             blue.setStroke()
             p.stroke()
@@ -132,6 +147,8 @@ final class QPDFView: PDFView {
 
     // Satır içi düzenleme
     private var inlineField: NSTextField?
+    /// Düzenleme kutusunun üstündeki koyu kapsül etiket ("Düzenleniyor · Yazı tipi boyut").
+    private var inlineBadge: NSView?
     private let inlineController = InlineFieldController()
     private var inlineItem: PDFTextItem?
     private var inlinePage: PDFPage?
@@ -313,7 +330,7 @@ final class QPDFView: PDFView {
         field.isBordered = false
         field.isBezeled = false
         field.drawsBackground = true
-        field.backgroundColor = NSColor.white.withAlphaComponent(0.97)
+        field.backgroundColor = Theme.hex(0xF4F6F7)
         field.focusRingType = .none
         field.usesSingleLineMode = true
         field.lineBreakMode = .byClipping
@@ -321,9 +338,10 @@ final class QPDFView: PDFView {
         field.cell?.wraps = false
         field.placeholderString = item == nil ? "Metin yazın" : nil
         field.wantsLayer = true
-        field.layer?.borderColor = Theme.selectionNS.cgColor
+        field.layer?.borderColor = Theme.navyNS.cgColor
         field.layer?.borderWidth = 1.5
-        field.layer?.cornerRadius = 2
+        field.layer?.cornerRadius = 6
+        field.layer?.masksToBounds = true
         field.delegate = inlineController
         inlineController.onFinish = { [weak self] commit in self?.endInlineEdit(commit: commit) }
         inlineController.onChange = { [weak self] in self?.positionInlineField() }
@@ -331,6 +349,23 @@ final class QPDFView: PDFView {
         inlineItem = item
         inlinePage = page
         addSubview(field, positioned: .above, relativeTo: nil)
+        let family = item?.familyName ?? s.textStyle.family
+        let pt = item?.visualSize ?? s.textStyle.size
+        let ptText = pt == pt.rounded() ? "\(Int(pt))" : String(format: "%.1f", Double(pt))
+        let label = NSTextField(labelWithString: "Düzenleniyor · \(family) \(ptText)")
+        label.font = NSFont.systemFont(ofSize: 11, weight: .medium)
+        label.textColor = .white
+        label.sizeToFit()
+        let badge = NSView(frame: NSRect(x: 0, y: 0, width: label.frame.width + 18, height: 22))
+        badge.wantsLayer = true
+        badge.layer?.backgroundColor = Theme.hex(0x121A21).cgColor
+        badge.layer?.cornerRadius = 11
+        label.frame.origin = NSPoint(x: 9, y: (22 - label.frame.height) / 2)
+        badge.addSubview(label)
+        badge.setAccessibilityElement(true)
+        badge.setAccessibilityLabel("Düzenleniyor: \(family) \(ptText) punto")
+        addSubview(badge, positioned: .above, relativeTo: nil)
+        inlineBadge = badge
         positionInlineField()
         window?.makeFirstResponder(field)
         if let editor = field.currentEditor() {
@@ -350,6 +385,11 @@ final class QPDFView: PDFView {
         let w = max(r.width + 12, textWidth, 60)
         let h = max(r.height + 4, lineHeight)
         field.frame = NSRect(x: r.minX - 4, y: r.midY - h / 2, width: w, height: h)
+        if let badge = inlineBadge {
+            let bh = badge.frame.height
+            let y = isFlipped ? field.frame.minY - bh - 4 : field.frame.maxY + 4
+            badge.setFrameOrigin(NSPoint(x: field.frame.minX, y: y))
+        }
     }
 
     /// Düzenleme kutusunu kapatır; `commit` ise metni PDF'e yazar (ana döngünün sonraki turunda).
@@ -367,6 +407,8 @@ final class QPDFView: PDFView {
         inlineController.onChange = nil
         field.delegate = nil
         field.removeFromSuperview()
+        inlineBadge?.removeFromSuperview()
+        inlineBadge = nil
         if let w = window, w.firstResponder == nil || w.firstResponder === w { w.makeFirstResponder(self) }
         inlineEnding = false
         overlay.needsDisplay = true

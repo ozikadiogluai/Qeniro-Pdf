@@ -6,7 +6,7 @@ struct PanelHeader: View {
 
     var body: some View {
         HStack {
-            Text(title).font(.system(size: 14, weight: .semibold))
+            Text(title).font(.title3.weight(.semibold)).foregroundStyle(Theme.text)
             Spacer()
             Button(action: onClose) {
                 Image(systemName: "xmark").font(.system(size: 11, weight: .semibold))
@@ -22,7 +22,7 @@ struct PanelSectionTitle: View {
     let text: String
     init(_ text: String) { self.text = text }
     var body: some View {
-        Text(text).font(.system(size: 13, weight: .semibold)).padding(.top, 4)
+        Text(text).font(.callout).foregroundStyle(Theme.secondaryText).padding(.top, 4)
     }
 }
 
@@ -40,15 +40,15 @@ struct PanelRow: View {
             HStack(spacing: 10) {
                 Image(systemName: symbol)
                     .frame(width: 20)
-                    .foregroundStyle(tint ?? (active ? Theme.selection : Color.primary))
+                    .foregroundStyle(tint ?? (active ? Theme.navy : Theme.ink))
                 Text(title)
-                    .foregroundStyle(tint ?? (active ? Theme.selection : Color.primary))
+                    .foregroundStyle(tint ?? Theme.text)
                 Spacer()
             }
-            .font(.system(size: 13))
-            .padding(.vertical, 6)
-            .padding(.horizontal, 6)
-            .background(RoundedRectangle(cornerRadius: 6).fill(active ? Theme.activeNav : (hover ? Theme.activeNav.opacity(0.5) : Color.clear)))
+            .font(.body)
+            .padding(.horizontal, 8)
+            .frame(minHeight: 34)
+            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(active ? Theme.card2 : (hover ? Theme.card2.opacity(0.6) : Color.clear)))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -65,11 +65,13 @@ struct ToggleGlyph: View {
     var body: some View {
         Button(action: action) {
             label
-                .frame(width: 30, height: 24)
-                .background(RoundedRectangle(cornerRadius: 5).fill(isOn ? Theme.activeNav : Color.clear))
-                .foregroundStyle(isOn ? Theme.selection : Color.primary)
-                .contentShape(Rectangle())
+                .font(.body)
+                .frame(width: 36, height: 32)
+                .background(Capsule().fill(isOn ? Theme.ink : Theme.card2))
+                .foregroundStyle(isOn ? Theme.onInk : Theme.text)
+                .contentShape(Capsule())
         }
         .buttonStyle(.plain)
+        .accessibilityAddTraits(isOn ? .isSelected : [])
     }
 }

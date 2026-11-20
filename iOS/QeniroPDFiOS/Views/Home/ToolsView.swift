@@ -17,8 +17,7 @@ struct ToolsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Tüm Araçlar")
-                        .font(.system(size: 28, weight: .bold))
-                        .tracking(-0.56)
+                        .font(.largeTitle.weight(.bold))
                         .foregroundStyle(Theme.text)
                         .padding(.top, 14)
                         .padding(.bottom, 10)
@@ -34,7 +33,7 @@ struct ToolsView: View {
                         .card()
                     }
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 12)
                 .padding(.bottom, 24)
             }
         }
@@ -56,16 +55,19 @@ struct FilesView: View {
                         Button(action: openFile) {
                             HStack(spacing: 12) {
                                 Image(systemName: "folder")
-                                    .font(.system(size: 20))
-                                    .foregroundStyle(Theme.blue)
+                                    .font(.system(size: 18))
+                                    .foregroundStyle(Theme.ink)
+                                    .frame(width: 44, height: 44)
+                                    .background(Theme.card2, in: Circle())
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Dosyalar'da gözat").font(.system(size: 15.5, weight: .semibold)).foregroundStyle(Theme.text)
-                                    Text("iCloud Drive, iPhone'umda, Google Drive…").font(.system(size: 12.5)).foregroundStyle(Theme.secondary)
+                                    Text("Dosyalar'da gözat").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.text)
+                                    Text("iCloud Drive, iPhone'umda, Google Drive…").font(.caption).foregroundStyle(Theme.secondary)
                                 }
                                 Spacer()
                                 Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.chevron)
                             }
-                            .padding(14)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 10)
                             .card()
                         }
                         .buttonStyle(.plain)
@@ -76,13 +78,16 @@ struct FilesView: View {
                         } label: {
                             HStack(spacing: 12) {
                                 Image(systemName: "doc.viewfinder")
-                                    .font(.system(size: 20))
-                                    .foregroundStyle(Theme.accent)
-                                Text("Belge Tara").font(.system(size: 15.5, weight: .semibold)).foregroundStyle(Theme.text)
+                                    .font(.system(size: 18))
+                                    .foregroundStyle(Theme.ink)
+                                    .frame(width: 44, height: 44)
+                                    .background(Theme.card2, in: Circle())
+                                Text("Belge Tara").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.text)
                                 Spacer()
                                 Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.chevron)
                             }
-                            .padding(14)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 10)
                             .card()
                         }
                         .buttonStyle(.plain)
@@ -90,7 +95,7 @@ struct FilesView: View {
                         SectionLabel(text: "Son açılanlar").padding(.horizontal, 4).padding(.top, 8)
                         if library.recents.isEmpty {
                             Text("Henüz dosya yok.")
-                                .font(.system(size: 14))
+                                .font(.subheadline)
                                 .foregroundStyle(Theme.secondary)
                                 .frame(maxWidth: .infinity)
                                 .padding(24)
@@ -104,11 +109,11 @@ struct FilesView: View {
                             .card()
                         }
                         Text("Taranan ve oluşturulan PDF'ler Dosyalar uygulamasında \"iPhone'umda > Qeniro PDF\" klasörüne kaydedilir.")
-                            .font(.system(size: 12.5))
+                            .font(.caption)
                             .foregroundStyle(Theme.secondary)
                             .padding(.horizontal, 4)
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 12)
                     .padding(.vertical, 12)
                 }
             }
@@ -140,10 +145,10 @@ struct StarredView: View {
                             .font(.system(size: 34))
                             .foregroundStyle(Theme.chevron)
                         Text("Yıldızlı dosya yok")
-                            .font(.system(size: 17, weight: .semibold))
+                            .font(.headline)
                             .foregroundStyle(Theme.text)
                         Text("Bir dosyaya basılı tutup Yıldızla'yı seçin veya görüntüleyicide ••• menüsünü kullanın.")
-                            .font(.system(size: 14))
+                            .font(.subheadline)
                             .foregroundStyle(Theme.secondary)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 40)
@@ -156,7 +161,7 @@ struct StarredView: View {
                             }
                         }
                         .card()
-                        .padding(.horizontal, 20)
+                        .padding(.horizontal, 12)
                         .padding(.vertical, 12)
                     }
                 }

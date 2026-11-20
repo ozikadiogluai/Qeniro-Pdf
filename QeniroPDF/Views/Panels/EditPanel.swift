@@ -17,107 +17,112 @@ struct EditTabPanel: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 8) {
                 ToolPanelHeader(title: "Düzenle", onClose: { session.panel = nil })
 
-                PanelCapsTitle("SAYFAYI DEĞİŞTİR")
-                HStack(spacing: 6) {
-                    SquareIconButton(symbol: "rotate.right", help: "Sayfayı sağa döndür (90°)") {
-                        session.rotateCurrent(by: 90)
-                    }
-                    SquareIconButton(symbol: "crop", help: "Kırp: sayfada tutulacak alanı sürükleyin", active: session.tool == .crop) {
-                        session.tool = .crop
-                    }
-                    SquareIconButton(symbol: "trash", help: "Geçerli sayfayı sil") {
-                        if Dialogs.confirm("Sayfa \(session.currentPageIndex + 1) silinsin mi?", "Bu işlemi ⌘Z ile geri alabilirsiniz.", ok: "Sil") {
-                            session.deletePages([session.currentPageIndex])
-                        }
-                    }
-                    SquareIconButton(symbol: "rectangle.portrait.and.arrow.right", help: "Sayfayı çıkar (yeni PDF olarak kaydet)") {
-                        session.extractPages([session.currentPageIndex])
-                    }
-                }
-                .padding(.horizontal, 6)
-                .padding(.bottom, 4)
-                ToolListRow(symbol: "square.grid.2x2", title: "Sayfaları organize et") { app.perform(.organize) }
-
-                PanelCapsTitle("İÇERİK EKLE")
-                ToolListRow(symbol: "textformat", title: "Metin", active: session.tool == .editText,
-                            trailing: session.tool == .editText ? "seçili" : nil) {
-                    session.tool = .editText
-                }
                 if session.tool == .editText || session.selectedTextItem != nil || selectedFreeText != nil {
-                    TextPropertiesBox(session: session)
-                        .padding(.horizontal, 4)
-                        .padding(.vertical, 4)
-                }
-                if let a = selectedFreeText {
-                    Text("Metin kutusu içeriği").font(.caption).foregroundStyle(.secondary).padding(.horizontal, 8)
-                    TextEditor(text: Binding(get: { a.contents ?? "" },
-                                             set: { session.setContents($0, of: a) }))
-                        .font(.system(size: 12))
-                        .frame(height: 80)
-                        .focused($contentFocused)
-                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Theme.border))
-                        .padding(.horizontal, 4)
-                }
-                ToolListRow(symbol: "photo", title: "Görüntü", active: session.tool == .addImage) {
-                    if let u = Dialogs.openFiles(types: [.image], multiple: false, title: "Görsel seçin").first,
-                       let img = NSImage(contentsOf: u) {
-                        session.pendingImage = img
-                        session.tool = .addImage
-                    }
-                }
-                ToolListRow(symbol: "menubar.rectangle", title: "Üstbilgi ve altbilgi", trailing: "›") {
-                    session.panel = .headerFooter
-                }
-                ToolListRow(symbol: "drop", title: "Filigran", trailing: "›") {
-                    session.panel = .watermark
-                }
-                ToolListRow(symbol: "link", title: "Bağlantı", active: session.tool == .addLink, trailing: "›") {
-                    session.tool = .addLink
-                }
-                Button(showMoreContent ? "Daha az" : "Diğer") {
-                    withAnimation(.easeInOut(duration: 0.15)) { showMoreContent.toggle() }
-                }
-                .buttonStyle(.link)
-                .font(.system(size: 14))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 6)
-                if showMoreContent {
-                    ToolListRow(symbol: "character.textbox", title: "Serbest metin kutusu (yorum katmanı)", active: session.tool == .addText) {
-                        session.tool = .addText
-                    }
-                    ToolListRow(symbol: "rectangle.on.rectangle", title: "Seçili metni örtüp yeniden yaz") {
-                        if session.pdfView.currentSelection == nil {
-                            session.tool = .select
-                            Dialogs.info("Önce metni seçin", "Seçim aracı açıldı. Değiştirmek istediğiniz metni sürükleyerek seçin, sonra bu düğmeye tekrar basın.")
-                        } else {
-                            session.replaceSelectedText()
+                    PanelCard(title: "Metin") {
+                        TextPropertiesBox(session: session)
+                        if let a = selectedFreeText {
+                            Text("Metin kutusu içeriği").font(.callout).foregroundStyle(Theme.secondaryText)
+                            TextEditor(text: Binding(get: { a.contents ?? "" },
+                                                     set: { session.setContents($0, of: a) }))
+                                .font(.body)
+                                .frame(height: 80)
+                                .focused($contentFocused)
+                                .scrollContentBackground(.hidden)
+                                .padding(4)
+                                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Theme.card2))
+                        }
+                        if session.selectedAnnotation != nil || session.selectedTextItem != nil {
+                            Button(role: .destructive) {
+                                if session.selectedAnnotation != nil { session.deleteSelected() } else { session.deleteSelectedTextItem() }
+                            } label: {
+                                Label(session.selectedTextItem != nil && session.selectedAnnotation == nil ? "Seçili metin satırını sil" : "Seçili öğeyi sil",
+                                      systemImage: "trash")
+                            }
+                            .buttonStyle(QSecondaryButtonStyle(fullWidth: true, foreground: Theme.red))
                         }
                     }
-                    Text("Yedek yöntem: özgün metnin üstü beyaz kutuyla örtülür. Gerçek düzenleme için \"Metin\" aracını kullanın.")
-                        .font(.caption).foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .padding(.horizontal, 8)
-                }
-                if session.selectedAnnotation != nil || session.selectedTextItem != nil {
-                    Button(role: .destructive) {
-                        if session.selectedAnnotation != nil { session.deleteSelected() } else { session.deleteSelectedTextItem() }
-                    } label: {
-                        Label(session.selectedTextItem != nil && session.selectedAnnotation == nil ? "Seçili metin satırını sil" : "Seçili öğeyi sil",
-                              systemImage: "trash")
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.top, 6)
                 }
 
-                PanelCapsTitle("DİĞER SEÇENEKLER")
-                ToolListRow(symbol: "square.on.square", title: "Dosyaları birleştir", bold: true) { app.perform(.merge) }
-                ToolListRow(symbol: "eye.slash", title: "PDF'ye Redaksiyon Yap", bold: true) { app.perform(.redact) }
-                ToolListRow(symbol: "list.bullet.rectangle", title: "Form hazırla", bold: true) { session.panel = .formPrepare }
+                PanelCard(title: "İçerik ekle", spacing: 0, padding: 6) {
+                    ToolListRow(symbol: "textformat", title: "Metin", active: session.tool == .editText,
+                                trailing: session.tool == .editText ? "seçili" : nil) {
+                        session.tool = .editText
+                    }
+                    PanelDivider()
+                    ToolListRow(symbol: "photo", title: "Görüntü", active: session.tool == .addImage) {
+                        if let u = Dialogs.openFiles(types: [.image], multiple: false, title: "Görsel seçin").first,
+                           let img = NSImage(contentsOf: u) {
+                            session.pendingImage = img
+                            session.tool = .addImage
+                        }
+                    }
+                    PanelDivider()
+                    ToolListRow(symbol: "menubar.rectangle", title: "Üstbilgi ve altbilgi", trailing: "›") {
+                        session.panel = .headerFooter
+                    }
+                    PanelDivider()
+                    ToolListRow(symbol: "drop", title: "Filigran", trailing: "›") {
+                        session.panel = .watermark
+                    }
+                    PanelDivider()
+                    ToolListRow(symbol: "link", title: "Bağlantı", active: session.tool == .addLink, trailing: "›") {
+                        session.tool = .addLink
+                    }
+                    PanelDivider()
+                    ToolListRow(symbol: showMoreContent ? "chevron.up" : "ellipsis", title: showMoreContent ? "Daha az" : "Diğer") {
+                        withAnimation(.easeInOut(duration: 0.15)) { showMoreContent.toggle() }
+                    }
+                    if showMoreContent {
+                        ToolListRow(symbol: "character.textbox", title: "Serbest metin kutusu (yorum katmanı)", active: session.tool == .addText) {
+                            session.tool = .addText
+                        }
+                        ToolListRow(symbol: "rectangle.on.rectangle", title: "Seçili metni örtüp yeniden yaz") {
+                            if session.pdfView.currentSelection == nil {
+                                session.tool = .select
+                                Dialogs.info("Önce metni seçin", "Seçim aracı açıldı. Değiştirmek istediğiniz metni sürükleyerek seçin, sonra bu düğmeye tekrar basın.")
+                            } else {
+                                session.replaceSelectedText()
+                            }
+                        }
+                        Text("Yedek yöntem: özgün metnin üstü beyaz kutuyla örtülür. Gerçek düzenleme için \"Metin\" aracını kullanın.")
+                            .font(.callout).foregroundStyle(Theme.secondaryText)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                    }
+                }
+
+                PanelCard(title: "Sayfa") {
+                    HStack(spacing: 6) {
+                        SquareIconButton(symbol: "rotate.right", help: "Sayfayı sağa döndür (90°)") {
+                            session.rotateCurrent(by: 90)
+                        }
+                        SquareIconButton(symbol: "crop", help: "Kırp: sayfada tutulacak alanı sürükleyin", active: session.tool == .crop) {
+                            session.tool = .crop
+                        }
+                        SquareIconButton(symbol: "trash", help: "Geçerli sayfayı sil", destructive: true) {
+                            if Dialogs.confirm("Sayfa \(session.currentPageIndex + 1) silinsin mi?", "Bu işlemi ⌘Z ile geri alabilirsiniz.", ok: "Sil") {
+                                session.deletePages([session.currentPageIndex])
+                            }
+                        }
+                        SquareIconButton(symbol: "rectangle.portrait.and.arrow.right", help: "Sayfayı çıkar (yeni PDF olarak kaydet)") {
+                            session.extractPages([session.currentPageIndex])
+                        }
+                    }
+                    Button("Sayfaları organize et") { app.perform(.organize) }
+                        .buttonStyle(QSecondaryButtonStyle(height: 34, fullWidth: true))
+                }
+
+                PanelCard(title: "Diğer seçenekler", spacing: 0, padding: 6) {
+                    ToolListRow(symbol: "square.on.square", title: "Dosyaları birleştir") { app.perform(.merge) }
+                    ToolListRow(symbol: "eye.slash", title: "PDF'ye Redaksiyon Yap") { app.perform(.redact) }
+                    ToolListRow(symbol: "list.bullet.rectangle", title: "Form hazırla") { session.panel = .formPrepare }
+                }
             }
-            .padding(16)
+            .padding(12)
         }
         .onChange(of: session.focusTextRequest) { _, _ in
             Task { @MainActor in contentFocused = true }
@@ -152,34 +157,56 @@ struct TextPropertiesBox: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
-                Picker("", selection: Binding(get: { session.textStyle.family },
-                                              set: { v in session.updateStyle { $0.family = v } })) {
-                    ForEach(families, id: \.self) { f in
-                        Text(f).tag(f)
+                Menu {
+                    Picker("Yazı tipi", selection: Binding(get: { session.textStyle.family },
+                                                          set: { v in session.updateStyle { $0.family = v } })) {
+                        ForEach(families, id: \.self) { f in
+                            Text(f).tag(f)
+                        }
                     }
+                    .pickerStyle(.inline)
+                } label: {
+                    capsuleField(session.textStyle.family)
                 }
-                .labelsHidden()
-                Picker("", selection: Binding(get: { session.textStyle.size },
-                                              set: { v in session.updateStyle { $0.size = v } })) {
-                    ForEach(sizes, id: \.self) { s in
-                        Text(sizeLabel(s)).tag(s)
+                .menuStyle(.button)
+                .buttonStyle(.plain)
+                .menuIndicator(.hidden)
+                .accessibilityLabel("Yazı tipi")
+                Menu {
+                    Picker("Boyut", selection: Binding(get: { session.textStyle.size },
+                                                       set: { v in session.updateStyle { $0.size = v } })) {
+                        ForEach(sizes, id: \.self) { s in
+                            Text(sizeLabel(s)).tag(s)
+                        }
                     }
+                    .pickerStyle(.inline)
+                } label: {
+                    capsuleField(sizeLabel(session.textStyle.size))
                 }
-                .labelsHidden()
+                .menuStyle(.button)
+                .buttonStyle(.plain)
+                .menuIndicator(.hidden)
                 .frame(width: 66)
+                .accessibilityLabel("Yazı boyutu")
             }
-            HStack(spacing: 4) {
+            HStack(spacing: 6) {
                 ToggleGlyph(label: Text("B").bold(), isOn: session.textStyle.bold) { session.updateStyle { $0.bold.toggle() } }
+                    .accessibilityLabel("Kalın")
                 ToggleGlyph(label: Text("I").italic(), isOn: session.textStyle.italic) { session.updateStyle { $0.italic.toggle() } }
+                    .accessibilityLabel("İtalik")
                 ToggleGlyph(label: Text("U").underline(), isOn: session.textStyle.underline) { session.updateStyle { $0.underline.toggle() } }
-                Spacer()
+                    .accessibilityLabel("Altı çizili")
                 ColorPicker("", selection: Binding(get: { session.textStyle.color },
                                                    set: { c in session.updateStyle { $0.color = c } }),
                             supportsOpacity: false)
                     .labelsHidden()
+                    .frame(width: 36, height: 32)
+                    .background(Capsule().fill(Theme.card2))
                     .help("Metin rengi")
+                    .accessibilityLabel("Metin rengi")
+                Spacer(minLength: 0)
             }
-            HStack(spacing: 4) {
+            HStack(spacing: 6) {
                 alignButton(.left, "text.alignleft")
                 alignButton(.center, "text.aligncenter")
                 alignButton(.right, "text.alignright")
@@ -190,12 +217,25 @@ struct TextPropertiesBox: View {
             Text(session.selectedTextItem != nil && session.selectedAnnotation == nil
                  ? "Değişiklikler seçili satıra uygulanır. Yazı tipi değişirse satır seçilen sistem yazı tipiyle yeniden yazılır."
                  : "Seçim yokken bu ayarlar yeni eklenecek metne uygulanır.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(.callout)
+                .foregroundStyle(Theme.secondaryText)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(12)
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
+    }
+
+    private func capsuleField(_ text: String) -> some View {
+        HStack(spacing: 4) {
+            Text(text).lineLimit(1).foregroundStyle(Theme.text)
+            Spacer(minLength: 2)
+            Image(systemName: "chevron.up.chevron.down")
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundStyle(Theme.secondaryText)
+        }
+        .font(.body)
+        .padding(.horizontal, 10)
+        .frame(maxWidth: .infinity, minHeight: 32)
+        .background(Capsule().fill(Theme.card2))
+        .contentShape(Capsule())
     }
 
     private func alignButton(_ alignment: NSTextAlignment, _ symbol: String) -> some View {
@@ -218,8 +258,9 @@ struct RedactPanel: View {
                 ToolPanelHeader(title: "PDF'yi redakte et",
                                 onBack: { session.panel = .tab; session.tool = .select },
                                 onClose: { session.panel = nil; session.tool = .select })
+                PanelCard(spacing: 10) {
                 Text("İşaretlenen alanlar uygulandığında kalıcı olarak kaldırılır; yalnızca üstü örtülmez.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(.callout).foregroundStyle(Theme.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)
 
                 PanelSectionTitle("İşaretle")
@@ -247,7 +288,7 @@ struct RedactPanel: View {
                     Text("\(n) alan işaretlendi.").font(.caption).foregroundStyle(Theme.green)
                 }
 
-                Divider().padding(.vertical, 4)
+                Rectangle().fill(Theme.divider).frame(height: 1).padding(.vertical, 4)
 
                 PanelSectionTitle("Uygula")
                 Text("Toplam \(session.redactionMarkCount) işaret").font(.caption).foregroundStyle(.secondary)
@@ -259,13 +300,13 @@ struct RedactPanel: View {
                 } label: {
                     Label("Sansürü Uygula", systemImage: "eye.slash").frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(Theme.accent)
+                .buttonStyle(QDestructiveButtonStyle(fullWidth: true))
                 Text("İşaretli sayfalar yüksek çözünürlüklü görüntüye dönüştürülür; işaretli içerik dosyada hiçbir biçimde kalmaz. Kaydetmeyi unutmayın.")
                     .font(.caption).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+                }
             }
-            .padding(16)
+            .padding(12)
         }
     }
 

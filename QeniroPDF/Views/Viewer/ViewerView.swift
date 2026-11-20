@@ -26,66 +26,54 @@ struct ThumbnailsView: NSViewRepresentable {
     func updateNSView(_ nsView: PDFThumbnailView, context: Context) {}
 }
 
-/// Açık belge: üstte sekmeler (Tüm araçlar · Düzenle · Dönüştür · E-imza), solda araç paneli,
-/// sayfa alanının solunda yüzen hızlı araç çubuğu.
+/// Açık belge: üstte cam araç çubuğu (sekmeler ortada), solda 290 pt araç paneli (beyaz kartlar),
+/// sayfa alanının solunda yüzen cam hızlı araç çubuğu, altta sayfa/yakınlaştırma kapsülü.
 struct ViewerView: View {
     @EnvironmentObject var app: AppState
     @ObservedObject var session: DocumentSession
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         VStack(spacing: 0) {
-            ViewerTabsBar(session: session)
-            Divider()
             ViewerToolbar(session: session)
-            Divider()
             if session.isSearching {
                 SearchBar(session: session)
-                Divider()
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 6)
             }
             if let hint = session.tool.hint {
-                HStack(spacing: 8) {
-                    Image(systemName: "info.circle")
-                    Text(hint)
-                        .lineLimit(2)
+                banner(symbol: "info.circle", tint: Theme.navy) {
+                    Text(hint).lineLimit(2)
                     Spacer()
                     Button("Vazgeç") { session.tool = .select }
-                        .buttonStyle(.link)
+                        .buttonStyle(QSecondaryButtonStyle(height: 26, filled: Theme.card2))
                 }
-                .font(.callout)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 6)
-                .background(Theme.activeNav)
-                Divider()
             }
             if let notice = session.editNotice {
-                HStack(spacing: 8) {
-                    Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(Theme.orange)
-                    Text(notice)
-                        .fixedSize(horizontal: false, vertical: true)
+                banner(symbol: "exclamationmark.triangle.fill", tint: Theme.orange) {
+                    Text(notice).fixedSize(horizontal: false, vertical: true)
                     Spacer()
                     Button { session.editNotice = nil } label: { Image(systemName: "xmark") }
                         .buttonStyle(.plain)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.secondaryText)
+                        .accessibilityLabel("Uyarıyı kapat")
                 }
-                .font(.callout)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 6)
-                .background(Theme.noticeBackground)
-                Divider()
             }
-            HStack(spacing: 0) {
+            HStack(spacing: 10) {
                 if let panel = session.panel, !session.showOrganizer {
                     ToolPanelHost(session: session, panel: panel)
                         .frame(width: Theme.toolPanelWidth)
-                        .background(Theme.window)
-                    Divider()
+                        .background(RoundedRectangle(cornerRadius: 22, style: .continuous).fill(Theme.background))
+                        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                        .shadow(color: .black.opacity(0.05), radius: 1, y: 1)
+                        .transition(reduceMotion ? AnyTransition.opacity : AnyTransition.move(edge: .leading).combined(with: AnyTransition.opacity))
                 }
                 if session.showThumbnails && !session.showOrganizer {
                     ThumbnailsView(session: session)
                         .frame(width: 130)
-                    Divider()
+                        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                 }
-                VStack(spacing: 0) {
+                VStack(spacing: 8) {
                     if session.signatureProblem && !session.showOrganizer {
                         SignatureProblemBanner(session: session)
                     }
@@ -95,11 +83,17 @@ struct ViewerView: View {
                         } else {
                             PDFKitView(session: session)
                             QuickToolRail(session: session)
-                                .padding(.leading, 14)
-                                .padding(.top, 14)
+                                .padding(.leading, 16)
+                                .padding(.top, 16)
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .overlay(alignment: .bottom) {
+                        if !session.showOrganizer {
+                            PageZoomCapsule(session: session)
+                                .padding(.bottom, 14)
+                        }
+                    }
                     .overlay {
                         if let msg = session.busyMessage {
                             VStack(spacing: 10) {
@@ -107,63 +101,33 @@ struct ViewerView: View {
                                 Text(msg).font(.callout)
                             }
                             .padding(22)
-                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
                         }
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+            .padding(.leading, 10)
+            .padding(.bottom, 10)
+            .animation(reduceMotion ? nil : Animation.easeInOut(duration: 0.18), value: session.panel == nil)
         }
+        .background(Theme.canvas)
         .navigationTitle(session.displayName + (session.isDirty ? " — Düzenlendi" : "") + " — Qeniro PDF")
         .onDisappear { session.tool = .select }
     }
-}
 
-/// Üstteki dört sekme.
-struct ViewerTabsBar: View {
-    @ObservedObject var session: DocumentSession
-
-    var body: some View {
-        HStack(spacing: 2) {
-            ForEach(ViewerTab.allCases) { tab in
-                let active = session.viewerTab == tab
-                Button {
-                    if session.showOrganizer { session.showOrganizer = false }
-                    if active && session.panel == .tab {
-                        session.panel = nil
-                    } else {
-                        session.viewerTab = tab
-                        session.panel = .tab
-                    }
-                } label: {
-                    VStack(spacing: 6) {
-                        Text(tab.title)
-                            .font(.system(size: 14, weight: active ? .semibold : .regular))
-                            .foregroundStyle(Color.primary)
-                            .padding(.horizontal, 12)
-                            .padding(.top, 9)
-                        Rectangle()
-                            .fill(active ? Color.primary : Color.clear)
-                            .frame(height: 3)
-                    }
-                    .fixedSize()
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-            }
-            Spacer()
-            Button {
-                session.panel = session.panel == nil ? .tab : nil
-            } label: {
-                Image(systemName: "sidebar.left")
-                    .foregroundStyle(session.panel != nil ? Theme.selection : Color.primary)
-            }
-            .buttonStyle(.plain)
-            .help(session.panel == nil ? "Araç panelini göster" : "Araç panelini gizle")
-            .padding(.trailing, 12)
+    private func banner<Content: View>(symbol: String, tint: Color, @ViewBuilder content: () -> Content) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: symbol).foregroundStyle(tint).accessibilityHidden(true)
+            content()
         }
-        .padding(.leading, 10)
-        .background(Theme.window)
+        .font(.callout)
+        .foregroundStyle(Theme.text)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 7)
+        .background(Capsule().fill(Theme.card))
+        .padding(.horizontal, 12)
+        .padding(.bottom, 6)
     }
 }
 
@@ -197,20 +161,23 @@ struct SignatureProblemBanner: View {
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(Color(nsColor: Theme.hex(0xE8A10A)))
-                .font(.system(size: 16))
+                .foregroundStyle(Theme.orange)
+                .font(.system(size: 15))
+                .accessibilityHidden(true)
             Text("En az bir imzada sorun var.")
-                .font(.system(size: 14))
+                .font(.body)
+                .foregroundStyle(Theme.text)
             Spacer()
             Button("İmza panelini aç") {
                 session.viewerTab = .sign
                 session.panel = .verifySignatures
             }
-            .buttonStyle(.link)
+            .buttonStyle(QSecondaryButtonStyle(height: 28, filled: Theme.card2))
         }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 11)
-        .background(Theme.signatureBanner)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 9)
+        .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Theme.card))
+        .padding(.trailing, 10)
     }
 }
 
@@ -220,34 +187,44 @@ struct SearchBar: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-            TextField("Belgede ara", text: $session.searchText)
-                .textFieldStyle(.roundedBorder)
-                .frame(maxWidth: 280)
-                .focused($focused)
-                .onSubmit { session.search() }
+            HStack(spacing: 6) {
+                Image(systemName: "magnifyingglass").foregroundStyle(Theme.secondaryText).accessibilityHidden(true)
+                TextField("Belgede ara", text: $session.searchText)
+                    .textFieldStyle(.plain)
+                    .focused($focused)
+                    .onSubmit { session.search() }
+            }
+            .padding(.horizontal, 12)
+            .frame(width: 280, height: 30)
+            .background(Capsule().fill(Theme.card2))
             if !session.searchResults.isEmpty {
                 Text("\(session.searchIndex + 1) / \(session.searchResults.count)")
                     .monospacedDigit()
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.secondaryText)
             } else if !session.searchText.isEmpty {
-                Text("Enter ile ara").foregroundStyle(.secondary).font(.caption)
+                Text("Enter ile ara").foregroundStyle(Theme.secondaryText).font(.callout)
             }
             Button { session.previousResult() } label: { Image(systemName: "chevron.up") }
+                .buttonStyle(.plain)
                 .disabled(session.searchResults.isEmpty)
                 .help("Önceki sonuç")
+                .accessibilityLabel("Önceki sonuç")
             Button { session.nextResult() } label: { Image(systemName: "chevron.down") }
+                .buttonStyle(.plain)
                 .disabled(session.searchResults.isEmpty)
                 .help("Sonraki sonuç")
+                .accessibilityLabel("Sonraki sonuç")
             Spacer()
             Button("Kapat") {
                 session.clearSearch()
                 session.isSearching = false
             }
+            .buttonStyle(QSecondaryButtonStyle(height: 28, filled: Theme.card2))
             .keyboardShortcut(.cancelAction)
         }
-        .padding(.horizontal, 14)
+        .padding(.horizontal, 10)
         .padding(.vertical, 6)
+        .background(Capsule().fill(Theme.card))
         .onAppear { focused = true }
     }
 }

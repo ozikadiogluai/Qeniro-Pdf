@@ -95,7 +95,7 @@ struct PageOrganizerView: View {
         }
         .padding(8)
         .background(RoundedRectangle(cornerRadius: 8).fill(selected ? Theme.activeNav : Color.clear))
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke(dropTarget == i ? Theme.accent : (selected ? Theme.selection : Color.clear), lineWidth: 2))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(dropTarget == i ? Theme.orange : (selected ? Theme.navy : Color.clear), lineWidth: 2))
         .contentShape(Rectangle())
         .onTapGesture(count: 2) {
             session.showOrganizer = false

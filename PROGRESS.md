@@ -59,3 +59,24 @@ kontrol edildi. **Mac'te derlenmesi gerekiyor:** `iPhone Derle.command` (hata ol
 - [ ] Gerçek iPhone'da Belge Tara çalışır, taranan PDF'de metin aranabilir
 - [ ] E-imza: çizilen imza kaydedilir, yerleştirilir, sürüklenir, Uygula ile gömülür
 - [ ] Dosyalar uygulamasında bir PDF'yi "Paylaş > Qeniro PDF" ile açma
+
+
+## Lacivert tema — durum
+
+Son güncelleme: 2026-11-20. Onaylanan Lacivert tasarım (Ana Sayfa, Görüntüleyici, Düzenle, E-imza, koyu Ana Sayfa,
+Mac Ana Sayfa, Mac Düzenle) macOS ve iPhone uygulamalarına uygulandı. İşlevler değişmedi. Kod derleyicisi olmayan
+bir Linux ortamında yazıldı; **Mac'te derlenmesi gerekiyor.**
+
+| Alan | Kapsam | Durum |
+|---|---|---|
+| Tema | Lacivert palet (açık + koyu), kahraman degradesi, kapsül düğme stilleri, cam yardımcısı (26+ `glassEffect`, eski sürümde materyal), görünüm seçimi | Kod tamamlandı, Mac'te derlenecek |
+| macOS | Cam kenar çubuğu, kahraman kart + 8 araç, Son Dosyalar tablosu, Diğer araçlar, Tüm Araçlar kartları, tek cam üst araç çubuğu, 290 pt kartlı paneller, cam hızlı araç çubuğu, sayfa/yakınlaştırma kapsülü, düzenleme kutusu etiketi | Kod tamamlandı, Mac'te derlenecek |
+| iPhone | Hap menü (+ ortada), kahraman alan, Belge Tara / Son Dosyalar / araç kartları, görüntüleyici cam üst düğmeler + dikey hızlı araç çubuğu + hap, Düzenle / E-imza / Dönüştür / Tüm araçlar sheet'leri, düzenleme kutusu etiketi | Kod tamamlandı, iPhone'da denenecek |
+| Simge | Lacivert degrade + beyaz Q (macOS seti, iOS 1024), AccentColor lacivert | Tamam |
+
+### Lacivert kabul kriterleri
+
+- [ ] `Derle ve Calistir.command` (veya `DMG Olustur.command`) hatasız biter
+- [ ] `iPhone'a Kur.command` hatasız biter
+- [ ] Açık / koyu / sistem seçimi her iki uygulamada çalışır
+- [ ] Düzenle > Metin: seçili satır lacivert çerçeve + "Düzenleniyor" etiketiyle görünür, kayıt eskisi gibi çalışır

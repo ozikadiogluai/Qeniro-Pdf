@@ -53,8 +53,8 @@ struct EditPanel: View {
     @State private var confirmDeletePage = false
 
     let colors: [(String, Color)] = [
-        ("Siyah", Color(hex: 0x111111)), ("Koyu gri", Color(hex: 0x555555)), ("Kırmızı", Color(hex: 0xD0271F)),
-        ("Mavi", Color(hex: 0x1F4FB8)), ("Yeşil", Color(hex: 0x1E7E34)), ("Beyaz", .white)
+        (String(localized: "Siyah"), Color(hex: 0x111111)), (String(localized: "Koyu gri"), Color(hex: 0x555555)), (String(localized: "Kırmızı"), Color(hex: 0xD0271F)),
+        (String(localized: "Mavi"), Color(hex: 0x1F4FB8)), (String(localized: "Yeşil"), Color(hex: 0x1E7E34)), (String(localized: "Beyaz"), .white)
     ]
 
     private var hasTextSelection: Bool {
@@ -65,7 +65,7 @@ struct EditPanel: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 8) {
-                    SheetHeader(title: "Düzenle", primaryTitle: "Kaydet",
+                    SheetHeader(title: String(localized: "Düzenle"), primaryTitle: String(localized: "Kaydet"),
                                 onCancel: { session.cancelMode() },
                                 onPrimary: { if session.save() { session.exitMode() } })
                     if !PDFiumSupport.isAvailable {
@@ -98,26 +98,26 @@ struct EditPanel: View {
                     .card()
 
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 0), spacing: 2), count: 5), spacing: 2) {
-                        AddTile(title: "Metin", icon: "textformat", selected: session.tool == .editText) {
+                        AddTile(title: String(localized: "Metin"), icon: "textformat", selected: session.tool == .editText) {
                             session.tool = .editText
                         }
                         PhotosPicker(selection: $photoItem, matching: .images) {
-                            AddTileLabel(title: "Görüntü", icon: "photo", selected: session.tool == .addImage)
+                            AddTileLabel(title: String(localized: "Görüntü"), icon: "photo", selected: session.tool == .addImage)
                         }
                         .buttonStyle(.plain)
                         NavigationLink {
                             HeaderFooterForm(session: session)
                         } label: {
-                            AddTileLabel(title: "Üst/Alt bilgi", icon: "rectangle.topthird.inset.filled", selected: false)
+                            AddTileLabel(title: String(localized: "Üst/Alt bilgi"), icon: "rectangle.topthird.inset.filled", selected: false)
                         }
                         .buttonStyle(.plain)
                         NavigationLink {
                             WatermarkForm(session: session)
                         } label: {
-                            AddTileLabel(title: "Filigran", icon: "drop", selected: false)
+                            AddTileLabel(title: String(localized: "Filigran"), icon: "drop", selected: false)
                         }
                         .buttonStyle(.plain)
-                        AddTile(title: "Bağlantı", icon: "link", selected: session.tool == .link) {
+                        AddTile(title: String(localized: "Bağlantı"), icon: "link", selected: session.tool == .link) {
                             session.tool = .link
                             detent = .height(220)
                         }
@@ -128,7 +128,7 @@ struct EditPanel: View {
 
                     VStack(spacing: 0) {
                         Button { session.openOrganizer() } label: {
-                            listRow(icon: "square.grid.2x2", title: "Sayfaları düzenle") {
+                            listRow(icon: "square.grid.2x2", title: String(localized: "Sayfaları düzenle")) {
                                 Text("\(session.pageCount) sayfa")
                                     .font(.footnote)
                                     .monospacedDigit()
@@ -145,8 +145,8 @@ struct EditPanel: View {
                             } label: { Label("Sayfayı kırp", systemImage: "crop") }
                             Button(role: .destructive) { confirmDeletePage = true } label: { Label("Sayfayı sil", systemImage: "trash") }
                         } label: {
-                            listRow(icon: "arrow.clockwise", title: "Döndür, kırp veya sil") {
-                                Image(systemName: "chevron.right")
+                            listRow(icon: "arrow.clockwise", title: String(localized: "Döndür, kırp veya sil")) {
+                                Image(systemName: "chevron.right").flipsForRightToLeftLayoutDirection(true)
                                     .font(.system(size: 12, weight: .semibold))
                                     .foregroundStyle(Theme.chevron)
                             }
@@ -171,7 +171,7 @@ struct EditPanel: View {
                     session.tool = .addImage
                     detent = .height(220)
                 } else {
-                    session.errorMessage = "Görüntü yüklenemedi."
+                    session.errorMessage = String(localized: "Görüntü yüklenemedi.")
                 }
                 photoItem = nil
             }
@@ -376,20 +376,20 @@ struct HeaderFooterForm: View {
     @State private var header = ""
     @State private var footer = ""
     @State private var numbering = true
-    @State private var numberFormat = "Sayfa {n} / {N}"
+    @State private var numberFormat = String(localized: "Sayfa {n} / {N}")
     @State private var position: PDFiumNumberPosition = .bottomCenter
     @State private var size: CGFloat = 10
     @State private var margin: CGFloat = 28
 
     var body: some View {
-        PanelPage(title: "Üstbilgi ve altbilgi") {
+        PanelPage(title: String(localized: "Üstbilgi ve altbilgi")) {
             TextField("Üstbilgi (ör. Şirket adı)", text: $header).textFieldStyle(.roundedBorder)
             TextField("Altbilgi (ör. Gizlidir · {tarih})", text: $footer).textFieldStyle(.roundedBorder)
             Toggle("Sayfa numarası", isOn: $numbering)
             if numbering {
                 TextField("Biçim", text: $numberFormat).textFieldStyle(.roundedBorder)
                 Picker("Konum", selection: $position) {
-                    ForEach(PDFiumNumberPosition.allCases) { Text($0.rawValue).tag($0) }
+                    ForEach(PDFiumNumberPosition.allCases) { Text($0.rawValue.loc).tag($0) }
                 }
                 .pickerStyle(.segmented)
             }
@@ -398,7 +398,7 @@ struct HeaderFooterForm: View {
             Text("{n} sayfa numarası, {N} toplam sayfa, {tarih} bugünün tarihi olur. Metin PDF'e gerçek metin olarak eklenir.")
                 .font(.system(size: 12.5))
                 .foregroundStyle(Theme.secondary)
-            PrimaryButton(title: "Tüm sayfalara uygula") {
+            PrimaryButton(title: String(localized: "Tüm sayfalara uygula")) {
                 session.applyHeaderFooter(header: header, footer: footer, numberFormat: numbering ? numberFormat : nil,
                                           position: position, size: size, color: .black, margin: margin)
                 dismiss()
@@ -413,7 +413,7 @@ struct HeaderFooterForm: View {
 struct WatermarkForm: View {
     @ObservedObject var session: DocumentSession
     @Environment(\.dismiss) private var dismiss
-    @State private var text = "GİZLİ"
+    @State private var text = String(localized: "GİZLİ")
     @State private var size: CGFloat = 60
     @State private var opacity: CGFloat = 0.18
     @State private var angle: CGFloat = 45
@@ -421,7 +421,7 @@ struct WatermarkForm: View {
     @State private var color: Color = Color(hex: 0xD0271F)
 
     var body: some View {
-        PanelPage(title: "Filigran") {
+        PanelPage(title: String(localized: "Filigran")) {
             TextField("Filigran metni", text: $text).textFieldStyle(.roundedBorder)
             VStack(alignment: .leading) {
                 Text("Boyut: \(Int(size)) pt")
@@ -437,7 +437,7 @@ struct WatermarkForm: View {
             }
             Toggle("Kalın", isOn: $bold)
             ColorPicker("Renk", selection: $color, supportsOpacity: false)
-            PrimaryButton(title: "Tüm sayfalara uygula") {
+            PrimaryButton(title: String(localized: "Tüm sayfalara uygula")) {
                 session.applyWatermark(text: text, size: size, color: UIColor(color), opacity: opacity, angle: angle, bold: bold)
                 dismiss()
             }

@@ -14,10 +14,10 @@ enum QPDFError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .cannotOpen(let n): return "\"\(n)\" açılamadı. Dosya bozuk olabilir veya PDF değildir."
-        case .locked(let n): return "\"\(n)\" şifreli. Önce Koruma aracıyla şifresini kaldırın veya belgeyi şifresiyle açın."
-        case .writeFailed(let n): return "\"\(n)\" kaydedilemedi. Klasöre yazma izniniz olduğundan emin olun."
-        case .noPages: return "İşlenecek sayfa bulunamadı."
+        case .cannotOpen(let n): return String(localized: "\"\(n)\" açılamadı. Dosya bozuk olabilir veya PDF değildir.")
+        case .locked(let n): return String(localized: "\"\(n)\" şifreli. Önce Koruma aracıyla şifresini kaldırın veya belgeyi şifresiyle açın.")
+        case .writeFailed(let n): return String(localized: "\"\(n)\" kaydedilemedi. Klasöre yazma izniniz olduğundan emin olun.")
+        case .noPages: return String(localized: "İşlenecek sayfa bulunamadı.")
         case .message(let m): return m
         }
     }

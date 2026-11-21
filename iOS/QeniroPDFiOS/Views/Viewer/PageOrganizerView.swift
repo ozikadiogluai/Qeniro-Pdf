@@ -45,7 +45,7 @@ struct PageOrganizerView: View {
                     Button { session.rotate(pages: targets, by: 90) } label: { Image(systemName: "rotate.right") }
                         .accessibilityLabel("Sağa döndür")
                     Spacer()
-                    Text(selection.isEmpty ? "Sayfa seçmek için dokunun" : "\(selection.count) sayfa seçili")
+                    Text(selection.isEmpty ? String(localized: "Sayfa seçmek için dokunun") : String(localized: "\(selection.count) sayfa seçili"))
                         .font(.system(size: 13))
                         .foregroundStyle(Theme.secondary)
                     Spacer()

@@ -252,3 +252,25 @@ Her iki uygulamanın görünümü, Qeniro ana uygulamasının **Lacivert** palet
 - **Sınırlar:** iPhone panellerinde yerinde metin düzenlerken sayfanın görünmesi için `.medium/.large` yanında küçük
   (220 pt) konum korunur. Mac'te standart pencere başlık çubuğu korunur (trafik ışıkları kenar çubuğunun içinde değil).
   Bu tema derleyicisi olmayan bir Linux ortamında yazıldı; Mac'te derlenip denenmelidir.
+
+# Diller (macOS + iPhone)
+
+Arayüz 8 dilde: **Türkçe** (geliştirme dili), **İngilizce**, **İspanyolca**, **Portekizce** (Brezilya ve Portekiz için
+ortak "pt"), **İtalyanca**, **Arapça** (sağdan sola), **Felemenkçe** ve **Fransızca**. Uygulama dili cihazın/uygulamanın
+dil ayarına göre otomatik seçilir; listede olmayan bir dilde arayüz Türkçe açılır.
+
+- **Dili değiştirmek:** iPhone'da *Ayarlar > Qeniro PDF > Dil*; Mac'te *Sistem Ayarları > Genel > Dil ve Bölge >
+  Uygulamalar > + > Qeniro PDF*. Uygulama içinde: iPhone'da zil menüsü > Ayarlar > **Dil** (iOS Ayarlar'ı açar);
+  Mac'te Ayarlar penceresi > Genel > **Dil** ve kenar çubuğundaki Tema menüsü > **Dil ve Bölge ayarlarını aç…**.
+- **Metinler:** `QeniroPDF/Resources/Localizable.xcstrings` ve `iOS/QeniroPDFiOS/Resources/Localizable.xcstrings`
+  (String Catalog, kaynak dil `tr`). Kod içinde `String` döndüren yerler `String(localized:)` kullanır; SwiftUI
+  `Text("…")`/`Button("…")` metinleri doğrudan anahtardır; enum ham değerleri `.loc` ile çevrilir.
+  `InfoPlist.xcstrings` uygulama adını (her dilde "Qeniro PDF"), izin açıklamalarını ve "PDF Belgesi" tür adını çevirir.
+- **Biçimler:** tarih, yüzde ve dosya boyutu `Locale.current`'a göre biçimlenir (`Utilities/Formatters.swift`).
+- **Arapça (RTL):** SwiftUI düzeni otomatik aynalanır; geri/ileri okları `flipsForRightToLeftLayoutDirection`
+  ile çevrilir; PDF sayfasının kendisi aynalanmaz.
+- **OCR dilleri:** Türkçe, İngilizce, Almanca, Fransızca, İspanyolca, İtalyanca, Portekizce, Felemenkçe, Arapça —
+  yalnızca Apple Vision'ın o sistemde desteklediği diller listelenir; varsayılan cihaz dilidir.
+- **Üstbilgi/altbilgi:** `{tarih}` yanında `{date}` de bugünün tarihine dönüşür.
+- **Yeni metin eklerken:** Swift'te `String(localized: "…")` kullanın, ardından Xcode'da kataloğu açıp 7 dilin
+  çevirisini girin (eksik çeviri Türkçe görünür).

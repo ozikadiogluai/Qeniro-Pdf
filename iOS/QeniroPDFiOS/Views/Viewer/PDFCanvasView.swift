@@ -499,8 +499,8 @@ final class PDFCanvasView: UIView, UIGestureRecognizerDelegate, UITextFieldDeleg
         if case .pdfText(let item) = target { badgeFamily = item.familyName; badgeSize = item.visualSize }
         if case .annotation(let a) = target { badgeFamily = (a.font ?? UIFont.systemFont(ofSize: 12)).familyName }
         let sizeText = badgeSize.rounded() == badgeSize ? "\(Int(badgeSize))" : String(format: "%.1f", Double(badgeSize))
-        badge.text = "Düzenleniyor · \(badgeFamily) \(sizeText)"
-        badge.accessibilityLabel = "Düzenleniyor: \(badgeFamily) \(sizeText) punto"
+        badge.text = String(localized: "Düzenleniyor · \(badgeFamily) \(sizeText)")
+        badge.accessibilityLabel = String(localized: "Düzenleniyor: \(badgeFamily) \(sizeText) punto")
         badge.isHidden = false
         field.isHidden = false
         finishing = false

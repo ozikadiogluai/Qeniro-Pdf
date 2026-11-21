@@ -9,7 +9,18 @@ struct SettingsView: View {
             SignatureSettings()
                 .tabItem { Label("İmzalar", systemImage: "signature") }
         }
-        .frame(width: 540, height: 400)
+        .frame(width: 560, height: 480)
+    }
+}
+
+/// macOS'ta uygulama dili Sistem Ayarları'ndan seçilir; burası yalnızca o sayfayı açar.
+enum LanguageSettings {
+    static func open() {
+        let urls = ["x-apple.systempreferences:com.apple.Localization-Settings.extension",
+                    "x-apple.systempreferences:com.apple.Localization"]
+        for s in urls {
+            if let u = URL(string: s), NSWorkspace.shared.open(u) { return }
+        }
     }
 }
 
@@ -25,11 +36,21 @@ private struct GeneralSettings: View {
             .onChange(of: appearanceRaw) { _, new in
                 (AppearanceChoice(rawValue: new) ?? .system).apply()
             }
+            LabeledContent("Dil") {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(Fmt.appLanguageName)
+                    Text("Qeniro PDF, Mac'inizin dilini kullanır. Değiştirmek için: Sistem Ayarları > Genel > Dil ve Bölge > Uygulamalar > + > Qeniro PDF.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Button("Dil ve Bölge ayarlarını aç…") { LanguageSettings.open() }
+                }
+            }
             LabeledContent("Sürüm") {
                 Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0")
             }
             LabeledContent("Metin tanıma (OCR)") {
-                Text("Apple Vision · Türkçe ve İngilizce")
+                Text("Apple Vision · cihaz diline göre (Türkçe, İngilizce ve diğerleri)")
             }
             LabeledContent("LibreOffice") {
                 if LibreOfficeBridge.isAvailable {

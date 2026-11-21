@@ -99,7 +99,7 @@ final class PDFiumEditor {
 
     init(data: Data, password: String?) throws {
         PDFiumLibrary.initialize()
-        guard !data.isEmpty else { throw QPDFError.message("Belge verisi boş.") }
+        guard !data.isEmpty else { throw QPDFError.message(String(localized: "Belge verisi boş.")) }
         // PDFium, belge kapanana kadar bu belleği kullanır; kopyasını tutuyoruz.
         let buf = UnsafeMutableRawPointer.allocate(byteCount: data.count, alignment: 16)
         data.copyBytes(to: buf.assumingMemoryBound(to: UInt8.self), count: data.count)
@@ -112,8 +112,8 @@ final class PDFiumEditor {
         guard let loaded else {
             let code = FPDF_GetLastError()
             buf.deallocate()
-            if code == 4 { throw QPDFError.message("PDF şifreli; doğru şifreyle açılamadı.") }
-            throw QPDFError.message("PDF, metin düzenleme motoruyla (PDFium) açılamadı (hata \(code)).")
+            if code == 4 { throw QPDFError.message(String(localized: "PDF şifreli; doğru şifreyle açılamadı.")) }
+            throw QPDFError.message(String(localized: "PDF, metin düzenleme motoruyla (PDFium) açılamadı (hata \(Int(code)))."))
         }
         doc = loaded
         buffer = buf
@@ -135,7 +135,7 @@ final class PDFiumEditor {
     private func page(_ index: Int) throws -> FPDF_PAGE {
         if let p = pages[index] { return p }
         guard index >= 0, index < pageCount, let p = FPDF_LoadPage(doc, Int32(index)) else {
-            throw QPDFError.message("Sayfa \(index + 1) yüklenemedi.")
+            throw QPDFError.message(String(localized: "Sayfa \(index + 1) yüklenemedi."))
         }
         pages[index] = p
         return p
@@ -431,7 +431,7 @@ final class PDFiumEditor {
         }
         group.sort { $0.index < $1.index }
         guard let first = group.first else {
-            throw QPDFError.message("Bu metin sayfada bulunamadı. Belge değişmiş olabilir; tekrar dokunup deneyin.")
+            throw QPDFError.message(String(localized: "Bu metin sayfada bulunamadı. Belge değişmiş olabilir; tekrar dokunup deneyin."))
         }
         var oldBox = first.bounds
         for g in group.dropFirst() { oldBox = oldBox.union(g.bounds) }
@@ -470,15 +470,15 @@ final class PDFiumEditor {
             let italic = style?.italic ?? info.italic
             let postScript: String? = style?.changesFont == true ? nil : info.baseName
             guard let newFont = resolveFont(family: family, bold: bold, italic: italic, postScript: postScript) else {
-                throw QPDFError.message("Uygun yazı tipi yüklenemedi.")
+                throw QPDFError.message(String(localized: "Uygun yazı tipi yüklenemedi."))
             }
             let rawSize = first.rawSize > 0 ? first.rawSize : first.visualSize
             guard let obj = FPDFPageObj_CreateTextObj(doc, newFont, Float(rawSize)) else {
-                throw QPDFError.message("Yeni metin nesnesi oluşturulamadı.")
+                throw QPDFError.message(String(localized: "Yeni metin nesnesi oluşturulamadı."))
             }
             guard setText(obj, text) else {
                 FPDFPageObj_Destroy(obj)
-                throw QPDFError.message("Metin yazı tipine aktarılamadı.")
+                throw QPDFError.message(String(localized: "Metin yazı tipine aktarılamadı."))
             }
             var t = first.transform
             if first.rawSize <= 0 { t = CGAffineTransform(translationX: first.transform.tx, y: first.transform.ty) }
@@ -487,7 +487,7 @@ final class PDFiumEditor {
             target = obj
             replaced = true
         }
-        guard let target else { throw QPDFError.message("Metin değiştirilemedi.") }
+        guard let target else { throw QPDFError.message(String(localized: "Metin değiştirilemedi.")) }
 
         // Eski nesneleri kaldır (yerinde düzenlenen ilk nesne hariç), yeni nesneyi aynı sıraya koy.
         for g in group.reversed() where replaced || g.object != first.object {
@@ -546,11 +546,11 @@ final class PDFiumEditor {
         guard !clean.trimmingCharacters(in: .whitespaces).isEmpty else { return .zero }
         guard let newFont = resolveFont(family: family, bold: bold, italic: italic, postScript: nil),
               let obj = FPDFPageObj_CreateTextObj(doc, newFont, Float(size)) else {
-            throw QPDFError.message("Metin nesnesi oluşturulamadı.")
+            throw QPDFError.message(String(localized: "Metin nesnesi oluşturulamadı."))
         }
         guard setText(obj, clean) else {
             FPDFPageObj_Destroy(obj)
-            throw QPDFError.message("Metin yazı tipine aktarılamadı.")
+            throw QPDFError.message(String(localized: "Metin yazı tipine aktarılamadı."))
         }
         let normalized = ((rotation % 360) + 360) % 360
         let angle = CGFloat(normalized) * .pi / 180
@@ -605,13 +605,14 @@ final class PDFiumEditor {
     func addHeaderFooter(header: String, footer: String, numberFormat: String?, numberPosition: NumberPosition,
                          size: CGFloat, color: UIColor, margin: CGFloat, date: String) throws {
         guard let lineFont = resolveFont(family: "Arial", bold: false, italic: false, postScript: nil) else {
-            throw QPDFError.message("Yazı tipi yüklenemedi.")
+            throw QPDFError.message(String(localized: "Yazı tipi yüklenemedi."))
         }
         let total = pageCount
         func expand(_ s: String, _ n: Int) -> String {
             s.replacingOccurrences(of: "{n}", with: "\(n)")
                 .replacingOccurrences(of: "{N}", with: "\(total)")
                 .replacingOccurrences(of: "{tarih}", with: date)
+                .replacingOccurrences(of: "{date}", with: date)
         }
         for i in 0..<total {
             let p = try page(i)
@@ -641,7 +642,7 @@ final class PDFiumEditor {
         let clean = text.replacingOccurrences(of: "\n", with: " ")
         guard !clean.trimmingCharacters(in: .whitespaces).isEmpty else { return }
         guard let markFont = resolveFont(family: "Arial", bold: bold, italic: false, postScript: nil) else {
-            throw QPDFError.message("Yazı tipi yüklenemedi.")
+            throw QPDFError.message(String(localized: "Yazı tipi yüklenemedi."))
         }
         let rad = angle * .pi / 180
         var q = Self.rgba(color)
@@ -689,7 +690,7 @@ final class PDFiumEditor {
         }
         let data = withExtendedLifetime(sink) { sink.data }
         guard ok != 0, !data.isEmpty else {
-            throw QPDFError.message("Düzenlenen PDF yazılamadı.")
+            throw QPDFError.message(String(localized: "Düzenlenen PDF yazılamadı."))
         }
         dirtyPages.removeAll()
         return data
@@ -704,7 +705,7 @@ final class PDFiumEditor {
     typealias NumberPosition = PDFiumNumberPosition
 
     private static let missing = QPDFError.message(
-        "Gerçek metin düzenleme motoru (PDFium) bu derlemede yok. Mac'te iOS klasöründeki build-ios.sh betiğini internet bağlantısıyla bir kez çalıştırın.")
+        String(localized: "Gerçek metin düzenleme motoru (PDFium) bu derlemede yok. Mac'te iOS klasöründeki build-ios.sh betiğini internet bağlantısıyla bir kez çalıştırın."))
 
     init(data: Data, password: String?) throws { throw Self.missing }
 

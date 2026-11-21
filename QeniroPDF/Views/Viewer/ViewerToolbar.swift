@@ -11,7 +11,7 @@ struct ViewerToolbar: View {
     var body: some View {
         HStack(spacing: 10) {
             Button { app.showShell(.home) } label: {
-                Image(systemName: "chevron.left")
+                Image(systemName: "chevron.left").flipsForRightToLeftLayoutDirection(true)
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(Theme.text)
                     .frame(width: 32, height: 32)
@@ -28,7 +28,7 @@ struct ViewerToolbar: View {
                     .foregroundStyle(Theme.text)
                     .lineLimit(1)
                     .truncationMode(.middle)
-                Text("Sayfa \(session.currentPageIndex + 1) / \(session.pageCount)" + (session.isDirty ? " · Düzenlendi" : ""))
+                Text(String(localized: "Sayfa \(session.currentPageIndex + 1) / \(session.pageCount)") + (session.isDirty ? String(localized: " · Düzenlendi") : ""))
                     .font(.subheadline)
                     .monospacedDigit()
                     .foregroundStyle(Theme.secondaryText)
@@ -41,14 +41,14 @@ struct ViewerToolbar: View {
             Spacer(minLength: 8)
 
             HStack(spacing: 0) {
-                glassIcon("sidebar.left", session.panel == nil ? "Araç panelini göster" : "Araç panelini gizle",
+                glassIcon("sidebar.left", session.panel == nil ? String(localized: "Araç panelini göster") : String(localized: "Araç panelini gizle"),
                           active: session.panel != nil) {
                     session.panel = session.panel == nil ? .tab : nil
                 }
-                glassIcon("arrow.uturn.backward", "Geri al (⌘Z)") { app.undo() }
-                glassIcon("magnifyingglass", "Ara (⌘F)", active: session.isSearching) { session.isSearching.toggle() }
-                glassIcon("printer", "Yazdır (⌘P)") { session.printDocument() }
-                glassIcon("square.and.arrow.up", "Paylaş") { session.shareForReview() }
+                glassIcon("arrow.uturn.backward", String(localized: "Geri al (⌘Z)")) { app.undo() }
+                glassIcon("magnifyingglass", String(localized: "Ara (⌘F)"), active: session.isSearching) { session.isSearching.toggle() }
+                glassIcon("printer", String(localized: "Yazdır (⌘P)")) { session.printDocument() }
+                glassIcon("square.and.arrow.up", String(localized: "Paylaş")) { session.shareForReview() }
                 moreMenu
             }
             .qGlassCapsule()
@@ -101,16 +101,16 @@ struct ViewerToolbar: View {
 
     private var moreMenu: some View {
         Menu {
-            Button(library.isStarred(session.url) ? "Yıldızı kaldır" : "Yıldızla") {
+            Button(library.isStarred(session.url) ? String(localized: "Yıldızı kaldır") : String(localized: "Yıldızla")) {
                 if let u = session.url { library.toggleStar(u) } else {
-                    Dialogs.info("Önce kaydedin", "Yıldızlamak için belgeyi önce bir dosyaya kaydedin.")
+                    Dialogs.info(String(localized: "Önce kaydedin"), String(localized: "Yıldızlamak için belgeyi önce bir dosyaya kaydedin."))
                 }
             }
             Button("Yinele (⇧⌘Z)") { app.redo() }
             Divider()
             Button("Seçim aracı") { session.tool = .select }
             Button("El aracı") { session.tool = .hand }
-            Button(session.showThumbnails ? "Sayfa küçük resimlerini gizle" : "Sayfa küçük resimlerini göster") {
+            Button(session.showThumbnails ? String(localized: "Sayfa küçük resimlerini gizle") : String(localized: "Sayfa küçük resimlerini göster")) {
                 session.showThumbnails.toggle()
             }
             Divider()
@@ -195,7 +195,7 @@ struct PageZoomCapsule: View {
 
     var body: some View {
         HStack(spacing: 2) {
-            capsuleIcon("chevron.up", "Önceki sayfa") { session.previousPage() }
+            capsuleIcon("chevron.up", String(localized: "Önceki sayfa")) { session.previousPage() }
                 .disabled(session.currentPageIndex == 0)
             TextField("", text: $pageText)
                 .textFieldStyle(.plain)
@@ -210,10 +210,10 @@ struct PageZoomCapsule: View {
             Text("/ \(session.pageCount)")
                 .monospacedDigit()
                 .foregroundStyle(Theme.secondaryText)
-            capsuleIcon("chevron.down", "Sonraki sayfa") { session.nextPage() }
+            capsuleIcon("chevron.down", String(localized: "Sonraki sayfa")) { session.nextPage() }
                 .disabled(session.currentPageIndex >= session.pageCount - 1)
             Rectangle().fill(Theme.divider).frame(width: 1, height: 16).padding(.horizontal, 4)
-            capsuleIcon("minus", "Uzaklaştır (⌘−)") { session.zoomOut() }
+            capsuleIcon("minus", String(localized: "Uzaklaştır (⌘−)")) { session.zoomOut() }
             Menu {
                 ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0, 4.0], id: \.self) { z in
                     Button(Fmt.percent(CGFloat(z))) { session.setZoom(CGFloat(z)) }
@@ -232,7 +232,7 @@ struct PageZoomCapsule: View {
             .menuIndicator(.hidden)
             .fixedSize()
             .accessibilityLabel("Yakınlaştırma oranı")
-            capsuleIcon("plus", "Yakınlaştır (⌘+)") { session.zoomIn() }
+            capsuleIcon("plus", String(localized: "Yakınlaştır (⌘+)")) { session.zoomIn() }
         }
         .font(.body)
         .padding(.horizontal, 6)

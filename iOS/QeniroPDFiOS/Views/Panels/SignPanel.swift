@@ -28,13 +28,13 @@ struct SignPanel: View {
     @State private var confirmApply = false
 
     let inks: [(String, UIColor)] = [
-        ("Lacivert", UIColor(hex: 0x2E4A5E)), ("Siyah", UIColor(hex: 0x121A21)), ("Mavi", UIColor(hex: 0x1F3F8F))
+        (String(localized: "Lacivert"), UIColor(hex: 0x2E4A5E)), (String(localized: "Siyah"), UIColor(hex: 0x121A21)), (String(localized: "Mavi"), UIColor(hex: 0x1F3F8F))
     ]
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
-                SheetHeader(title: "İmzala", primaryTitle: "Uygula",
+                SheetHeader(title: String(localized: "İmzala"), primaryTitle: String(localized: "Uygula"),
                             onCancel: { session.cancelMode() },
                             onPrimary: { confirmApply = true })
                 segmented
@@ -87,7 +87,7 @@ struct SignPanel: View {
                     pickedImage = img
                     reprocess()
                 } else {
-                    session.errorMessage = "Görsel yüklenemedi."
+                    session.errorMessage = String(localized: "Görsel yüklenemedi.")
                 }
                 photoItem = nil
             }
@@ -113,7 +113,7 @@ struct SignPanel: View {
         HStack(spacing: 0) {
             ForEach(Source.allCases) { src in
                 Button { source = src } label: {
-                    Text(src.rawValue)
+                    Text(src.rawValue.loc)
                         .font(.subheadline.weight(source == src ? .semibold : .regular))
                         .foregroundStyle(source == src ? Theme.onInk : Theme.text)
                         .frame(maxWidth: .infinity)
@@ -189,7 +189,7 @@ struct SignPanel: View {
                 HStack(spacing: 8) {
                     ForEach(SignatureImages.scriptFonts.indices, id: \.self) { i in
                         Button { fontIndex = i } label: {
-                            Text(typedName.isEmpty ? "İmza" : typedName)
+                            Text(typedName.isEmpty ? String(localized: "İmza") : typedName)
                                 .font(.custom(SignatureImages.scriptFonts[i].name, size: 22))
                                 .foregroundStyle(Color(uiColor: inks[inkChoice].1))
                                 .lineLimit(1)
@@ -250,9 +250,9 @@ struct SignPanel: View {
     private var chips: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 6) {
-                Chip(title: "Metin", selected: session.tool == .placeText) { session.tool = .placeText; detent = .height(220) }
-                Chip(title: "Onay kutusu", selected: session.tool == .placeCheck) { session.tool = .placeCheck; detent = .height(220) }
-                Chip(title: "Tarih", selected: session.tool == .placeDate) { session.tool = .placeDate; detent = .height(220) }
+                Chip(title: String(localized: "Metin"), selected: session.tool == .placeText) { session.tool = .placeText; detent = .height(220) }
+                Chip(title: String(localized: "Onay kutusu"), selected: session.tool == .placeCheck) { session.tool = .placeCheck; detent = .height(220) }
+                Chip(title: String(localized: "Tarih"), selected: session.tool == .placeDate) { session.tool = .placeDate; detent = .height(220) }
             }
         }
     }
@@ -328,12 +328,12 @@ struct SignPanel: View {
 
     private func saveAndPlace() {
         guard let img = currentSignatureImage() else {
-            session.infoMessage = source == .draw ? "Önce imza alanına imzanızı çizin."
-                : source == .type ? "Önce adınızı yazın." : "Önce bir imza fotoğrafı seçin."
+            session.infoMessage = source == .draw ? String(localized: "Önce imza alanına imzanızı çizin.")
+                : source == .type ? String(localized: "Önce adınızı yazın.") : String(localized: "Önce bir imza fotoğrafı seçin.")
             return
         }
         guard let sig = store.add(img) else {
-            session.errorMessage = "İmza kaydedilemedi."
+            session.errorMessage = String(localized: "İmza kaydedilemedi.")
             return
         }
         drawing = PKDrawing()

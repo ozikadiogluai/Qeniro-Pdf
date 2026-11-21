@@ -8,10 +8,10 @@ enum ViewerTab: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var title: String {
         switch self {
-        case .allTools: return "Tüm araçlar"
-        case .edit: return "Düzenle"
-        case .convert: return "Dönüştür"
-        case .sign: return "E-imza"
+        case .allTools: return String(localized: "Tüm araçlar")
+        case .edit: return String(localized: "Düzenle")
+        case .convert: return String(localized: "Dönüştür")
+        case .sign: return String(localized: "E-imza")
         }
     }
     var icon: String {
@@ -44,17 +44,17 @@ enum ViewerTool: Equatable {
     var hint: String? {
         switch self {
         case .select: return nil
-        case .comment: return "Yorum eklemek istediğin yere dokun."
-        case .draw: return "Parmağınla veya Apple Pencil ile çiz. Bitince Seç'e dokun."
-        case .editText: return "Değiştirmek istediğin yazıya dokun. Kaydedince PDF'teki asıl metin değişir."
-        case .addImage: return "Görüntüyü koymak istediğin yere dokun."
-        case .placeSignature: return "İmzayı koymak istediğin yere dokun, sonra sürükleyerek konumlandır."
-        case .placeText: return "Metin eklemek istediğin yere dokun."
-        case .placeCheck: return "Onay işaretini koymak istediğin yere dokun."
-        case .placeDate: return "Tarihi koymak istediğin yere dokun."
-        case .link: return "Bağlantı olacak alanı parmağınla sürükleyerek çiz."
-        case .redact: return "Kaldırılacak alanları sürükleyerek işaretle, sonra Sansürü uygula."
-        case .crop: return "Sayfada kalacak alanı sürükleyerek çiz."
+        case .comment: return String(localized: "Yorum eklemek istediğin yere dokun.")
+        case .draw: return String(localized: "Parmağınla veya Apple Pencil ile çiz. Bitince Seç'e dokun.")
+        case .editText: return String(localized: "Değiştirmek istediğin yazıya dokun. Kaydedince PDF'teki asıl metin değişir.")
+        case .addImage: return String(localized: "Görüntüyü koymak istediğin yere dokun.")
+        case .placeSignature: return String(localized: "İmzayı koymak istediğin yere dokun, sonra sürükleyerek konumlandır.")
+        case .placeText: return String(localized: "Metin eklemek istediğin yere dokun.")
+        case .placeCheck: return String(localized: "Onay işaretini koymak istediğin yere dokun.")
+        case .placeDate: return String(localized: "Tarihi koymak istediğin yere dokun.")
+        case .link: return String(localized: "Bağlantı olacak alanı parmağınla sürükleyerek çiz.")
+        case .redact: return String(localized: "Kaldırılacak alanları sürükleyerek işaretle, sonra Sansürü uygula.")
+        case .crop: return String(localized: "Sayfada kalacak alanı sürükleyerek çiz.")
         }
     }
 }
@@ -71,9 +71,9 @@ enum MarkupKind {
     case highlight, underline, strikeOut
     var title: String {
         switch self {
-        case .highlight: return "Vurgula"
-        case .underline: return "Altını çiz"
-        case .strikeOut: return "Üstünü çiz"
+        case .highlight: return String(localized: "Vurgula")
+        case .underline: return String(localized: "Altını çiz")
+        case .strikeOut: return String(localized: "Üstünü çiz")
         }
     }
     var subtype: PDFAnnotationSubtype {
@@ -145,7 +145,7 @@ final class DocumentSession: ObservableObject, Identifiable {
     private var undoDepth = 0
     private var modeStartDepth = 0
 
-    var displayName: String { url?.lastPathComponent ?? "Adsız.pdf" }
+    var displayName: String { url?.lastPathComponent ?? String(localized: "Adsız.pdf") }
 
     init(document: PDFDocument, url: URL?, password: String? = nil) {
         self.document = document
@@ -358,14 +358,14 @@ final class DocumentSession: ObservableObject, Identifiable {
         refreshOverlay()
     }
 
-    func add(_ a: PDFAnnotation, to page: PDFPage, tag t: QTag?, name: String = "Ekle") {
+    func add(_ a: PDFAnnotation, to page: PDFPage, tag t: QTag?, name: String = String(localized: "Ekle")) {
         if let t { setTag(a, t) }
         page.addAnnotation(a)
         registerUndo(name) { s in s.remove(a, name: name) }
         changed(page)
     }
 
-    func remove(_ a: PDFAnnotation, name: String = "Sil") {
+    func remove(_ a: PDFAnnotation, name: String = String(localized: "Sil")) {
         guard let page = a.page else { return }
         page.removeAnnotation(a)
         if selectedAnnotation === a { selectedAnnotation = nil }
@@ -378,7 +378,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         if let a = selectedAnnotation { remove(a) }
     }
 
-    func setBounds(_ a: PDFAnnotation, to r: CGRect, from old: CGRect, name: String = "Taşı") {
+    func setBounds(_ a: PDFAnnotation, to r: CGRect, from old: CGRect, name: String = String(localized: "Taşı")) {
         a.bounds = r
         registerUndo(name) { s in s.setBounds(a, to: old, from: r, name: name) }
         changed(a.page)
@@ -401,7 +401,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         if a.isFreeText, let f = a.font {
             a.font = f.withSize(max(4, f.pointSize * factor))
         }
-        setBounds(a, to: r, from: old, name: "Boyutlandır")
+        setBounds(a, to: r, from: old, name: String(localized: "Boyutlandır"))
     }
 
     func setContents(_ text: String, of a: PDFAnnotation) {
@@ -409,7 +409,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         guard old != text else { return }
         a.contents = text
         if a.isFreeText { fitFreeText(a) }
-        registerUndo("Metni değiştir") { s in s.setContents(old, of: a) }
+        registerUndo(String(localized: "Metni değiştir")) { s in s.setContents(old, of: a) }
         changed(a.page)
     }
 
@@ -455,7 +455,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         case .addImage:
             guard let img = pendingImage else { tool = .select; return }
             let a = ImageAnnotation(bounds: fitRect(for: img.size, maxSide: 200, center: p), image: img, kind: .image)
-            add(a, to: page, tag: .image, name: "Görüntü ekle")
+            add(a, to: page, tag: .image, name: String(localized: "Görüntü ekle"))
             pendingImage = nil
             tool = .select
             select(a)
@@ -464,27 +464,27 @@ final class DocumentSession: ObservableObject, Identifiable {
             let isInitials = SignatureStore.shared.signatures.first { $0.id == id }?.isInitials == true
             let a = ImageAnnotation(bounds: fitRect(for: img.size, maxSide: isInitials ? 70 : 150, center: p),
                                     image: img, kind: isInitials ? .initials : .signature)
-            add(a, to: page, tag: a.kind, name: "İmza ekle")
+            add(a, to: page, tag: a.kind, name: String(localized: "İmza ekle"))
             tool = .select
             select(a)
         case .placeText:
             var st = textStyle
             st.family = "Helvetica"
-            let a = makeFreeText("Metin", topLeft: p, style: st)
-            add(a, to: page, tag: .text, name: "Metin ekle")
+            let a = makeFreeText(String(localized: "Metin"), topLeft: p, style: st)
+            add(a, to: page, tag: .text, name: String(localized: "Metin ekle"))
             tool = .select
             select(a)
             inlineTarget = .annotation(a)
         case .placeCheck:
             let img = Self.symbolImage("checkmark", pointSize: 64)
             let a = ImageAnnotation(bounds: fitRect(for: img.size, maxSide: 16, center: p), image: img, kind: .check)
-            add(a, to: page, tag: .check, name: "Onay ekle")
+            add(a, to: page, tag: .check, name: String(localized: "Onay ekle"))
             select(a)
         case .placeDate:
             var st = textStyle
             st.family = "Helvetica"; st.size = 11
             let a = makeFreeText(Fmt.shortDate(), topLeft: CGPoint(x: p.x, y: p.y + 8), style: st)
-            add(a, to: page, tag: .date, name: "Tarih ekle")
+            add(a, to: page, tag: .date, name: String(localized: "Tarih ekle"))
             tool = .select
             select(a)
         case .editText:
@@ -527,7 +527,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         a.color = UIColor.systemOrange
         a.iconType = .comment
         a.userName = UIDevice.current.name
-        add(a, to: page, tag: .note, name: "Yorum")
+        add(a, to: page, tag: .note, name: String(localized: "Yorum"))
         tool = .select
     }
 
@@ -553,12 +553,12 @@ final class DocumentSession: ObservableObject, Identifiable {
             a.action = PDFActionGoTo(destination: PDFDestination(page: target, at: CGPoint(x: 0, y: top)))
         } else {
             if !link.contains("://") { link = "https://" + link }
-            guard let u = URL(string: link) else { errorMessage = "Geçersiz bağlantı adresi."; return }
+            guard let u = URL(string: link) else { errorMessage = String(localized: "Geçersiz bağlantı adresi."); return }
             a.url = u
         }
         let b = PDFBorder(); b.lineWidth = 0
         a.border = b
-        add(a, to: page, tag: .link, name: "Bağlantı ekle")
+        add(a, to: page, tag: .link, name: String(localized: "Bağlantı ekle"))
         tool = .select
     }
 
@@ -568,7 +568,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         a.interiorColor = UIColor.black.withAlphaComponent(0.85)
         let b = PDFBorder(); b.lineWidth = 1
         a.border = b
-        add(a, to: page, tag: .redact, name: "Sansür işareti")
+        add(a, to: page, tag: .redact, name: String(localized: "Sansür işareti"))
     }
 
     var redactionMarkCount: Int {
@@ -594,7 +594,7 @@ final class DocumentSession: ObservableObject, Identifiable {
     func applyMarkup(_ kind: MarkupKind) {
         guard let sel = pdfView.currentSelection, let str = sel.string,
               !str.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            infoMessage = "Önce metni basılı tutarak seçin, sonra \(kind.title) düğmesine dokunun."
+            infoMessage = String(localized: "Önce metni basılı tutarak seçin, sonra \(kind.title) düğmesine dokunun.")
             return
         }
         var count = 0
@@ -640,7 +640,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         border.lineWidth = lineWidth
         a.border = border
         a.color = inkColor
-        add(a, to: page, tag: .ink, name: "Çiz")
+        add(a, to: page, tag: .ink, name: String(localized: "Çiz"))
     }
 
     // MARK: - Sayfa işlemleri
@@ -675,7 +675,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         let dest = max(0, min(to, document.pageCount))
         document.insert(p, at: dest)
         structureChanged()
-        registerUndo("Sayfayı taşı") { s in s.movePage(from: dest, to: from) }
+        registerUndo(String(localized: "Sayfayı taşı")) { s in s.movePage(from: dest, to: from) }
     }
 
     func rotate(pages indices: [Int], by degrees: Int) {
@@ -684,7 +684,7 @@ final class DocumentSession: ObservableObject, Identifiable {
             p.rotation = ((p.rotation + degrees) % 360 + 360) % 360
         }
         structureChanged()
-        registerUndo("Döndür") { s in s.rotate(pages: indices, by: -degrees) }
+        registerUndo(String(localized: "Döndür")) { s in s.rotate(pages: indices, by: -degrees) }
     }
 
     func rotateCurrent(by degrees: Int) { rotate(pages: [currentPageIndex], by: degrees) }
@@ -693,7 +693,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         let sorted = Array(Set(indices)).sorted()
         guard !sorted.isEmpty else { return }
         guard sorted.count < document.pageCount else {
-            errorMessage = "Belgede en az bir sayfa kalmalı."
+            errorMessage = String(localized: "Belgede en az bir sayfa kalmalı.")
             return
         }
         var removed: [(Int, PDFPage)] = []
@@ -704,17 +704,17 @@ final class DocumentSession: ObservableObject, Identifiable {
             }
         }
         structureChanged()
-        registerUndo("Sayfa sil") { s in s.restorePages(removed) }
+        registerUndo(String(localized: "Sayfa sil")) { s in s.restorePages(removed) }
     }
 
     private func restorePages(_ items: [(Int, PDFPage)]) {
         for (i, p) in items.reversed() { document.insert(p, at: min(i, document.pageCount)) }
         structureChanged()
         let indices = items.map { $0.0 }
-        registerUndo("Sayfa sil") { s in s.deletePages(indices) }
+        registerUndo(String(localized: "Sayfa sil")) { s in s.deletePages(indices) }
     }
 
-    func insertPages(_ pages: [PDFPage], at index: Int, name: String = "Sayfa ekle") {
+    func insertPages(_ pages: [PDFPage], at index: Int, name: String = String(localized: "Sayfa ekle")) {
         guard !pages.isEmpty else { return }
         let start = max(0, min(index, document.pageCount))
         for (k, p) in pages.enumerated() { document.insert(p, at: start + k) }
@@ -754,8 +754,8 @@ final class DocumentSession: ObservableObject, Identifiable {
             errorMessage = error.localizedDescription
             return
         }
-        insertPages(pages, at: document.pageCount, name: "Dosyaları birleştir")
-        infoMessage = "\(pages.count) sayfa belgenin sonuna eklendi."
+        insertPages(pages, at: document.pageCount, name: String(localized: "Dosyaları birleştir"))
+        infoMessage = String(localized: "\(pages.count) sayfa belgenin sonuna eklendi.")
     }
 
     func cropPages(_ indices: [Int], to r: CGRect) {
@@ -775,7 +775,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         }
         guard !old.isEmpty else { return }
         structureChanged()
-        registerUndo("Kırp") { s in s.setCropBoxes(old) }
+        registerUndo(String(localized: "Kırp")) { s in s.setCropBoxes(old) }
     }
 
     // MARK: - Uygula / Sansür / OCR
@@ -791,7 +791,7 @@ final class DocumentSession: ObservableObject, Identifiable {
             guard !flat.isEmpty else { continue }
             let keep = anns.filter { a in !flat.contains { $0 === a } }
             if let np = PageRenderer.rebuild(page: page, flatten: flat, keep: keep) {
-                replacePage(at: i, with: np, name: "Uygula")
+                replacePage(at: i, with: np, name: String(localized: "Uygula"))
                 count += 1
             }
         }
@@ -803,7 +803,7 @@ final class DocumentSession: ObservableObject, Identifiable {
     /// boyanır ve kalan metin OCR ile görünmez katman olarak geri eklenir.
     func applyRedactions(restoreText: Bool = true) {
         var count = 0
-        busyMessage = "Sansür uygulanıyor…"
+        busyMessage = String(localized: "Sansür uygulanıyor…")
         for i in 0..<document.pageCount {
             guard let page = document.page(at: i) else { continue }
             let marks = page.annotations.filter { tag(of: $0) == .redact }
@@ -824,23 +824,23 @@ final class DocumentSession: ObservableObject, Identifiable {
             if let np = PageRenderer.rebuild(page: page, contentImage: img, keep: keep, extra: { ctx in
                 PageRenderer.drawInvisibleText(safeLines, in: ctx)
             }) {
-                replacePage(at: i, with: np, name: "Sansürle")
+                replacePage(at: i, with: np, name: String(localized: "Sansürle"))
                 count += 1
             }
         }
         busyMessage = nil
         if count == 0 {
-            infoMessage = "Önce kaldırılacak alanları sürükleyerek işaretleyin."
+            infoMessage = String(localized: "Önce kaldırılacak alanları sürükleyerek işaretleyin.")
         } else {
             tool = .select
-            infoMessage = "\(count) sayfada sansür uygulandı. Kaydetmeyi unutmayın."
+            infoMessage = String(localized: "\(count) sayfada sansür uygulandı. Kaydetmeyi unutmayın.")
         }
     }
 
     /// Taranmış sayfalara aranabilir metin katmanı ekler.
     func runOCR(force: Bool = false) {
         guard let data = currentData() else { return }
-        busyMessage = "Metin tanınıyor (OCR)…"
+        busyMessage = String(localized: "Metin tanınıyor (OCR)…")
         Task {
             let result: [[OCRLine]?]
             do {
@@ -849,7 +849,7 @@ final class DocumentSession: ObservableObject, Identifiable {
                 }.value
             } catch {
                 busyMessage = nil
-                errorMessage = "OCR başarısız: \(error.localizedDescription)"
+                errorMessage = String(localized: "OCR başarısız: \(error.localizedDescription)")
                 return
             }
             var count = 0
@@ -863,8 +863,8 @@ final class DocumentSession: ObservableObject, Identifiable {
                 }
             }
             busyMessage = nil
-            infoMessage = count > 0 ? "\(count) sayfaya aranabilir metin katmanı eklendi. Kaydetmeyi unutmayın."
-                                    : "Tüm sayfalarda zaten seçilebilir metin var."
+            infoMessage = count > 0 ? String(localized: "\(count) sayfaya aranabilir metin katmanı eklendi. Kaydetmeyi unutmayın.")
+                                    : String(localized: "Tüm sayfalarda zaten seçilebilir metin var.")
         }
     }
 
@@ -943,7 +943,7 @@ final class DocumentSession: ObservableObject, Identifiable {
             a.font = s.makeFont()
             a.fontColor = s.uiColor
             fitFreeText(a)
-            registerUndo("Biçim") { sess in
+            registerUndo(String(localized: "Biçim")) { sess in
                 a.font = oldFont; a.fontColor = oldColor
                 sess.fitFreeText(a); sess.changed(a.page)
             }
@@ -990,19 +990,19 @@ final class DocumentSession: ObservableObject, Identifiable {
     @discardableResult
     private func runPDFiumEdit(_ name: String, _ body: (PDFiumEditor) throws -> Void) -> Bool {
         do {
-            guard let data = pdfiumSourceData() else { throw QPDFError.message("Belge hazırlanamadı.") }
+            guard let data = pdfiumSourceData() else { throw QPDFError.message(String(localized: "Belge hazırlanamadı.")) }
             let editor = try PDFiumEditor(data: data, password: password)
             try body(editor)
             let out = try editor.save()
-            guard let newDoc = PDFDocument(data: out) else { throw QPDFError.message("Düzenlenen belge açılamadı.") }
+            guard let newDoc = PDFDocument(data: out) else { throw QPDFError.message(String(localized: "Düzenlenen belge açılamadı.")) }
             if newDoc.isLocked, let pw = password { _ = newDoc.unlock(withPassword: pw) }
             guard newDoc.pageCount == document.pageCount else {
-                throw QPDFError.message("Sayfa sayısı beklenmedik şekilde değişti; işlem iptal edildi.")
+                throw QPDFError.message(String(localized: "Sayfa sayısı beklenmedik şekilde değişti; işlem iptal edildi."))
             }
             replaceDocument(with: newDoc, name: name)
             return true
         } catch {
-            errorMessage = "\(name) yapılamadı: \(error.localizedDescription)"
+            errorMessage = String(localized: "\(name) yapılamadı: \(error.localizedDescription)")
             return false
         }
     }
@@ -1049,7 +1049,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         guard style != nil || newText != item.text else { return }
         let deleting = newText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         var result: TextEditResult?
-        let ok = runPDFiumEdit(deleting ? "Metni sil" : "Metni düzenle") { editor in
+        let ok = runPDFiumEdit(deleting ? String(localized: "Metni sil") : String(localized: "Metni düzenle")) { editor in
             result = try editor.replaceText(item, with: newText, style: style)
         }
         guard ok, let result else { return }
@@ -1063,7 +1063,7 @@ final class DocumentSession: ObservableObject, Identifiable {
             }
         }
         if result.substitutedFont {
-            infoMessage = "Özgün yazı tipi yeni karakterleri içermediği için bu satır benzer bir sistem yazı tipiyle yeniden yazıldı (metin PDF içinde gerçekten değişti)."
+            infoMessage = String(localized: "Özgün yazı tipi yeni karakterleri içermediği için bu satır benzer bir sistem yazı tipiyle yeniden yazıldı (metin PDF içinde gerçekten değişti).")
         }
         refreshOverlay()
     }
@@ -1084,7 +1084,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         let ascent = size * 0.8
         let baseline = CGPoint(x: topLeft.x + sin(angle) * ascent, y: topLeft.y - cos(angle) * ascent)
         var box = CGRect.zero
-        let ok = runPDFiumEdit("Metin ekle") { editor in
+        let ok = runPDFiumEdit(String(localized: "Metin ekle")) { editor in
             box = try editor.insertText(text, pageIndex: idx, baseline: baseline, family: style.family,
                                         bold: style.bold, italic: style.italic, size: size,
                                         color: style.uiColor, rotation: rotation, underline: style.underline)
@@ -1104,14 +1104,14 @@ final class DocumentSession: ObservableObject, Identifiable {
     func applyHeaderFooter(header: String, footer: String, numberFormat: String?,
                            position: PDFiumNumberPosition, size: CGFloat, color: UIColor, margin: CGFloat) {
         let date = Fmt.shortDate()
-        runPDFiumEdit("Üstbilgi ve altbilgi") { editor in
+        runPDFiumEdit(String(localized: "Üstbilgi ve altbilgi")) { editor in
             try editor.addHeaderFooter(header: header, footer: footer, numberFormat: numberFormat,
                                        numberPosition: position, size: size, color: color, margin: margin, date: date)
         }
     }
 
     func applyWatermark(text: String, size: CGFloat, color: UIColor, opacity: CGFloat, angle: CGFloat, bold: Bool) {
-        runPDFiumEdit("Filigran") { editor in
+        runPDFiumEdit(String(localized: "Filigran")) { editor in
             try editor.addWatermark(text, size: size, color: color, opacity: opacity, angle: angle, bold: bold)
         }
     }
@@ -1161,7 +1161,7 @@ final class DocumentSession: ObservableObject, Identifiable {
 
     func write(to target: URL) -> Bool {
         guard let data = currentData() else {
-            errorMessage = "Belge hazırlanamadı."
+            errorMessage = String(localized: "Belge hazırlanamadı.")
             return false
         }
         var coordError: NSError?
@@ -1174,7 +1174,7 @@ final class DocumentSession: ObservableObject, Identifiable {
             }
         }
         if let e = coordError ?? (writeError as NSError?) {
-            errorMessage = "\"\(target.lastPathComponent)\" kaydedilemedi: \(e.localizedDescription)"
+            errorMessage = String(localized: "\"\(target.lastPathComponent)\" kaydedilemedi: \(e.localizedDescription)")
             return false
         }
         url = target

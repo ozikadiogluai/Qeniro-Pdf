@@ -82,6 +82,7 @@ struct ViewerView: View {
                             PageOrganizerView(session: session)
                         } else {
                             PDFKitView(session: session)
+                                .environment(\.layoutDirection, .leftToRight) // PDF sayfası dile göre aynalanmaz
                             QuickToolRail(session: session)
                                 .padding(.leading, 16)
                                 .padding(.top, 16)
@@ -112,7 +113,7 @@ struct ViewerView: View {
             .animation(reduceMotion ? nil : Animation.easeInOut(duration: 0.18), value: session.panel == nil)
         }
         .background(Theme.canvas)
-        .navigationTitle(session.displayName + (session.isDirty ? " — Düzenlendi" : "") + " — Qeniro PDF")
+        .navigationTitle(session.displayName + (session.isDirty ? String(localized: " — Düzenlendi") : "") + " — Qeniro PDF")
         .onDisappear { session.tool = .select }
     }
 

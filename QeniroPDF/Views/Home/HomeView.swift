@@ -101,19 +101,19 @@ struct HomeView: View {
                 .font(.title3.weight(.semibold))
                 .foregroundStyle(Theme.text)
                 .padding(.bottom, 4)
-            OtherToolRow(symbol: "doc.text.viewfinder", title: "Tara ve OCR uygula") {
+            OtherToolRow(symbol: "doc.text.viewfinder", title: String(localized: "Tara ve OCR uygula")) {
                 withDocument { $0.runOCR(force: false) }
             }
-            OtherToolRow(symbol: "eye.slash", title: "PDF'de sansürle") { app.perform(.redact) }
-            OtherToolRow(symbol: "list.bullet.rectangle", title: "Form hazırla") {
+            OtherToolRow(symbol: "eye.slash", title: String(localized: "PDF'de sansürle")) { app.perform(.redact) }
+            OtherToolRow(symbol: "list.bullet.rectangle", title: String(localized: "Form hazırla")) {
                 withDocument { s in
                     s.showOrganizer = false
                     s.panel = .formPrepare
                 }
             }
-            OtherToolRow(symbol: "checkmark.seal", title: "Sertifikayla imzala") { app.perform(.certificateSign) }
-            OtherToolRow(symbol: "trash.slash", title: "Hassas bilgileri kaldır") { app.perform(.sanitize) }
-            OtherToolRow(symbol: "square.grid.2x2", title: "Tüm araçlar") { app.showShell(.tools) }
+            OtherToolRow(symbol: "checkmark.seal", title: String(localized: "Sertifikayla imzala")) { app.perform(.certificateSign) }
+            OtherToolRow(symbol: "trash.slash", title: String(localized: "Hassas bilgileri kaldır")) { app.perform(.sanitize) }
+            OtherToolRow(symbol: "square.grid.2x2", title: String(localized: "Tüm araçlar")) { app.showShell(.tools) }
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 16)
@@ -123,7 +123,7 @@ struct HomeView: View {
 
     private func withDocument(_ configure: (DocumentSession) -> Void) {
         if let s = app.activeSession { configure(s); return }
-        guard let url = Dialogs.openPDFs(title: "Bir PDF seçin").first, let s = app.open(url) else { return }
+        guard let url = Dialogs.openPDFs(title: String(localized: "Bir PDF seçin")).first, let s = app.open(url) else { return }
         configure(s)
     }
 
@@ -290,7 +290,7 @@ struct AllToolsView: View {
                     .padding(.bottom, 4)
                 ForEach(ToolGroup.allCases) { group in
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(group.rawValue)
+                        Text(group.title)
                             .font(.title3.weight(.semibold))
                             .foregroundStyle(Theme.text)
                         LazyVGrid(columns: columns, spacing: 6) {
@@ -418,7 +418,7 @@ struct FileRow: View {
                 }
                 Menu {
                     Button("Aç") { open() }
-                    Button(library.isStarred(entry.url) ? "Yıldızı Kaldır" : "Yıldızla") { library.toggleStar(entry.resolvedURL()) }
+                    Button(library.isStarred(entry.url) ? String(localized: "Yıldızı Kaldır") : String(localized: "Yıldızla")) { library.toggleStar(entry.resolvedURL()) }
                     Button("Finder'da Göster") { Dialogs.revealInFinder([entry.resolvedURL()]) }
                     Divider()
                     Button("Listeden Kaldır") { library.removeRecent(entry) }
@@ -447,7 +447,7 @@ struct FileRow: View {
     private func open() {
         let url = entry.resolvedURL()
         guard FileManager.default.fileExists(atPath: url.path) else {
-            Dialogs.info("Dosya bulunamadı", "\"\(entry.name)\" taşınmış veya silinmiş olabilir.")
+            Dialogs.info(String(localized: "Dosya bulunamadı"), String(localized: "\"\(entry.name)\" taşınmış veya silinmiş olabilir."))
             return
         }
         app.open(url)
@@ -470,7 +470,7 @@ struct FileListPage: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text(kind == .recent ? "Son Dosyalar" : "Yıldızlı")
+                Text(kind == .recent ? String(localized: "Son Dosyalar") : String(localized: "Yıldızlı"))
                     .font(Theme.titleFont)
                     .foregroundStyle(Theme.text)
                 Spacer()
@@ -490,7 +490,7 @@ struct FileListPage: View {
                     Image(systemName: kind == .recent ? "clock" : "star")
                         .font(.system(size: 30))
                         .foregroundStyle(Theme.secondaryText)
-                    Text(kind == .recent ? "Son açılan dosya yok." : "Yıldızlı dosya yok. Bir dosyayı yıldızlamak için görüntüleyicideki yıldız düğmesini veya listedeki ⋮ menüsünü kullanın.")
+                    Text(kind == .recent ? String(localized: "Son açılan dosya yok.") : String(localized: "Yıldızlı dosya yok. Bir dosyayı yıldızlamak için görüntüleyicideki yıldız düğmesini veya listedeki ⋮ menüsünü kullanın."))
                         .foregroundStyle(Theme.secondaryText)
                         .multilineTextAlignment(.center)
                         .frame(maxWidth: 380)

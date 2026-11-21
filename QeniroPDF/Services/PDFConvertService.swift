@@ -29,11 +29,11 @@ enum ConvertTarget: String, CaseIterable, Identifiable, Sendable {
         case .word: return "Word (.docx)"
         case .excel: return "Excel (.xlsx)"
         case .powerpoint: return "PowerPoint (.pptx)"
-        case .image: return "Görsel (PNG / JPEG)"
-        case .text: return "Düz metin (.txt)"
-        case .rtf: return "Zengin metin (.rtf)"
-        case .html: return "Web sayfası (.html)"
-        case .searchable: return "Aranabilir PDF (OCR)"
+        case .image: return String(localized: "Görsel (PNG / JPEG)")
+        case .text: return String(localized: "Düz metin (.txt)")
+        case .rtf: return String(localized: "Zengin metin (.rtf)")
+        case .html: return String(localized: "Web sayfası (.html)")
+        case .searchable: return String(localized: "Aranabilir PDF (OCR)")
         }
     }
     var ext: String {
@@ -96,7 +96,7 @@ enum PDFConvertService {
 
         switch o.target {
         case .image:
-            let sub = folder.appendingPathComponent(base + "_gorseller", isDirectory: true)
+            let sub = folder.appendingPathComponent(base + String(localized: "_gorseller"), isDirectory: true)
             try FileManager.default.createDirectory(at: sub, withIntermediateDirectories: true)
             var urls: [URL] = []
             for i in 0..<doc.pageCount {
@@ -128,7 +128,7 @@ enum PDFConvertService {
                 if i < doc.pageCount - 1 { m.append(NSAttributedString(string: "\n\u{000C}")) }
             }
             guard let rtf = m.rtf(from: NSRange(location: 0, length: m.length), documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf]) else {
-                throw QPDFError.message("RTF oluşturulamadı.")
+                throw QPDFError.message(String(localized: "RTF oluşturulamadı."))
             }
             let out = target("rtf")
             try rtf.write(to: out, options: .atomic)
@@ -145,7 +145,7 @@ enum PDFConvertService {
                                   documentAttributes: [.documentType: NSAttributedString.DocumentType.html,
                                                        .characterEncoding: String.Encoding.utf8.rawValue])
             } catch {
-                throw QPDFError.message("HTML oluşturulamadı.")
+                throw QPDFError.message(String(localized: "HTML oluşturulamadı."))
             }
             let out = target("html")
             try html.write(to: out, options: .atomic)

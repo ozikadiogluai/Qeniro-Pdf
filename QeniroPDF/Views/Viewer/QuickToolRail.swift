@@ -14,16 +14,16 @@ struct QuickToolRail: View {
 
     var body: some View {
         VStack(spacing: 2) {
-            railButton("cursorarrow", "Seç", active: session.tool == .select || session.tool == .editText) {
+            railButton("cursorarrow", String(localized: "Seç"), active: session.tool == .select || session.tool == .editText) {
                 session.tool = session.viewerTab == .edit ? .editText : .select
             }
-            railButton("text.bubble", "Yorum (yapışkan not)", active: session.tool == .note) {
+            railButton("text.bubble", String(localized: "Yorum (yapışkan not)"), active: session.tool == .note) {
                 session.tool = .note
             }
-            railButton("highlighter", "Vurgula: metni sürükleyerek seçin", active: session.tool == .markup(.highlight)) {
+            railButton("highlighter", String(localized: "Vurgula: metni sürükleyerek seçin"), active: session.tool == .markup(.highlight)) {
                 session.tool = .markup(.highlight)
             }
-            railButton("scribble", "Çiz (serbest çizim)", active: session.tool == .ink) {
+            railButton("scribble", String(localized: "Çiz (serbest çizim)"), active: session.tool == .ink) {
                 session.tool = .ink
             }
             Menu {
@@ -34,10 +34,10 @@ struct QuickToolRail: View {
                 Button { session.tool = .shape(.ellipse) } label: { Label("Elips", systemImage: "circle") }
                 Divider()
                 Menu("Çizim rengi") {
-                    colorItem("Kırmızı", NSColor(srgbRed: 0.90, green: 0.20, blue: 0.18, alpha: 1))
-                    colorItem("Mavi", NSColor(srgbRed: 0.18, green: 0.42, blue: 0.89, alpha: 1))
-                    colorItem("Yeşil", NSColor(srgbRed: 0.12, green: 0.56, blue: 0.24, alpha: 1))
-                    colorItem("Siyah", NSColor.black)
+                    colorItem(String(localized: "Kırmızı"), NSColor(srgbRed: 0.90, green: 0.20, blue: 0.18, alpha: 1))
+                    colorItem(String(localized: "Mavi"), NSColor(srgbRed: 0.18, green: 0.42, blue: 0.89, alpha: 1))
+                    colorItem(String(localized: "Yeşil"), NSColor(srgbRed: 0.12, green: 0.56, blue: 0.24, alpha: 1))
+                    colorItem(String(localized: "Siyah"), NSColor.black)
                 }
             } label: {
                 Image(systemName: "ellipsis")

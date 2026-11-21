@@ -80,3 +80,26 @@ bir Linux ortamında yazıldı; **Mac'te derlenmesi gerekiyor.**
 - [ ] `iPhone'a Kur.command` hatasız biter
 - [ ] Açık / koyu / sistem seçimi her iki uygulamada çalışır
 - [ ] Düzenle > Metin: seçili satır lacivert çerçeve + "Düzenleniyor" etiketiyle görünür, kayıt eskisi gibi çalışır
+
+## Diller — durum
+
+Son güncelleme: 2026-11-21. macOS ve iPhone uygulamalarına İngilizce, İspanyolca, Portekizce (pt), İtalyanca, Arapça (RTL),
+Felemenkçe ve Fransızca eklendi (Türkçe geliştirme dili). Kod derleyicisi olmayan bir Linux ortamında yazıldı;
+**Mac'te derlenmesi gerekiyor.**
+
+| Alan | Kapsam | Durum |
+|---|---|---|
+| Metinler | ~870 benzersiz metin × 7 dil; macOS kataloğu 683, iOS kataloğu 372 anahtar | Çevrildi |
+| Kod | Enum başlıkları, hata mesajları, NSAlert/NSSavePanel, ipuçları, bildirimler `String(localized:)` ile | Kod tamamlandı, Mac'te derlenecek |
+| Info.plist | `CFBundleLocalizations`, `InfoPlist.xcstrings` (izin açıklamaları, "PDF Belgesi") | Tamam |
+| Dil seçimi | iOS: Ayarlar > Qeniro PDF > Dil (uygulamada zil menüsü > Dil); Mac: Sistem Ayarları bağlantısı | Kod tamamlandı |
+| RTL | Chevron'lar aynalanır, PDF sayfası LTR kalır | Arapça ile denenecek |
+| Biçimler | Tarih/yüzde/dosya boyutu `Locale.current` | Tamam |
+| OCR | Vision destekli dillerden liste, varsayılan cihaz dili | Tamam |
+
+### Diller kabul kriterleri
+
+- [ ] macOS Release ve iOS cihaz derlemesi hatasız biter
+- [ ] Sistem dili İngilizce/Fransızca iken menüler, paneller ve uyarılar o dilde görünür
+- [ ] iPhone Ayarlar > Qeniro PDF > Dil seçeneği görünür ve değişiklik uygulamaya yansır
+- [ ] Arapça seçildiğinde düzen sağdan sola, PDF sayfası normal görünür

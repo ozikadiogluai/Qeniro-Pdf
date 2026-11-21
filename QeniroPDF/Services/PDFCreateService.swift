@@ -29,9 +29,9 @@ enum PDFCreateService {
                 let attr = try loadAttributed(url)
                 try append(attributed: attr, to: out)
             } else if ["xlsx", "xls", "pptx", "ppt", "pages", "numbers", "key", "ods", "odp"].contains(ext) {
-                throw QPDFError.message("\"\(url.lastPathComponent)\" için LibreOffice gerekir (ücretsiz: libreoffice.org). Alternatif: dosyayı kendi uygulamasında açıp Dosya > PDF Olarak Dışa Aktar'ı kullanın.")
+                throw QPDFError.message(String(localized: "\"\(url.lastPathComponent)\" için LibreOffice gerekir (ücretsiz: libreoffice.org). Alternatif: dosyayı kendi uygulamasında açıp Dosya > PDF Olarak Dışa Aktar'ı kullanın."))
             } else {
-                throw QPDFError.message("\"\(url.lastPathComponent)\" desteklenmeyen bir dosya türü.")
+                throw QPDFError.message(String(localized: "\"\(url.lastPathComponent)\" desteklenmeyen bir dosya türü."))
             }
         }
         guard out.pageCount > 0 else { throw QPDFError.noPages }
@@ -66,7 +66,7 @@ enum PDFCreateService {
             let attr = try NSAttributedString(url: url, options: [:], documentAttributes: nil)
             return forceDarkText(attr)
         } catch {
-            throw QPDFError.message("\"\(url.lastPathComponent)\" okunamadı: \(error.localizedDescription)")
+            throw QPDFError.message(String(localized: "\"\(url.lastPathComponent)\" okunamadı: \(error.localizedDescription)"))
         }
     }
 
@@ -130,7 +130,7 @@ enum PDFCreateService {
 
     static func append(attributed: NSAttributedString, to out: PDFDocument) throws {
         guard let data = pdfData(from: attributed), let doc = PDFDocument(data: data) else {
-            throw QPDFError.message("Metin PDF'e dönüştürülemedi.")
+            throw QPDFError.message(String(localized: "Metin PDF'e dönüştürülemedi."))
         }
         for i in 0..<doc.pageCount { if let p = doc.page(at: i)?.copy() as? PDFPage { out.insert(p, at: out.pageCount) } }
     }
@@ -164,6 +164,6 @@ enum PDFCreateService {
             return out
         }
         if let s = pb.string(forType: .string), !s.isEmpty { return try fromText(s) }
-        throw QPDFError.message("Panoda PDF'e dönüştürülebilecek içerik yok. Bir görsel, metin veya PDF kopyalayın.")
+        throw QPDFError.message(String(localized: "Panoda PDF'e dönüştürülebilecek içerik yok. Bir görsel, metin veya PDF kopyalayın."))
     }
 }

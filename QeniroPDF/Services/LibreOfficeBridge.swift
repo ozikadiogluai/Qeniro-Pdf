@@ -15,7 +15,7 @@ enum LibreOfficeBridge {
 
     /// `input` dosyasını `format` (pdf, docx…) biçimine çevirir; çıktı geçici klasöre yazılır.
     static func convert(_ input: URL, to format: String, inputFilter: String? = nil) throws -> URL {
-        guard let exe = executable else { throw QPDFError.message("LibreOffice bulunamadı.") }
+        guard let exe = executable else { throw QPDFError.message(String(localized: "LibreOffice bulunamadı.")) }
         let outDir = FileManager.default.temporaryDirectory.appendingPathComponent("qeniro-lo-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: outDir, withIntermediateDirectories: true)
         let p = Process()
@@ -33,7 +33,7 @@ enum LibreOfficeBridge {
             .appendingPathExtension(format.components(separatedBy: ":").first ?? format)
         guard p.terminationStatus == 0, FileManager.default.fileExists(atPath: target.path) else {
             let log = String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
-            throw QPDFError.message("LibreOffice dönüştürmesi başarısız oldu. \(log.prefix(300))")
+            throw QPDFError.message(String(localized: "LibreOffice dönüştürmesi başarısız oldu. \(String(log.prefix(300)))"))
         }
         return target
     }

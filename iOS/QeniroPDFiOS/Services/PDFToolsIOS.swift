@@ -44,7 +44,7 @@ enum PDFSplitService {
         switch mode {
         case .ranges(let text):
             groups = DocTools.parseRanges(text, pageCount: n)
-            if groups.isEmpty { throw QPDFError.message("Sayfa aralığı anlaşılamadı. Örnek: 1-3, 5, 8-") }
+            if groups.isEmpty { throw QPDFError.message(String(localized: "Sayfa aralığı anlaşılamadı. Örnek: 1-3, 5, 8-")) }
         case .everyN(let k):
             let step = max(1, k)
             var i = 0
@@ -72,9 +72,9 @@ enum CompressionLevel: String, CaseIterable, Identifiable, Sendable {
     var id: String { rawValue }
     var title: String {
         switch self {
-        case .low: return "Düşük (en iyi kalite)"
-        case .medium: return "Orta (önerilen)"
-        case .high: return "Yüksek (en küçük boyut)"
+        case .low: return String(localized: "Düşük (en iyi kalite)")
+        case .medium: return String(localized: "Orta (önerilen)")
+        case .high: return String(localized: "Yüksek (en küçük boyut)")
         }
     }
     var quality: Double { self == .low ? 0.75 : (self == .medium ? 0.55 : 0.35) }
@@ -95,7 +95,7 @@ enum PDFCompressService {
         var note: String?
         if rasterize {
             try rasterizeAll(doc: doc, level: level, output: output)
-            note = "Sayfalar görüntüye çevrildi; metin seçilebilirliği OCR ile geri eklendi."
+            note = String(localized: "Sayfalar görüntüye çevrildi; metin seçilebilirliği OCR ile geri eklendi.")
         } else {
             // iOS 16.4+: görselleri JPEG olarak yeniden kaydet ve ekran çözünürlüğüne indir.
             var opts: [PDFDocumentWriteOption: Any] = [.saveImagesAsJPEGOption: true]
@@ -106,7 +106,7 @@ enum PDFCompressService {
         }
         let after = Fmt.fileSize(of: output)
         if after >= before && !rasterize {
-            note = "Bu dosya zaten iyi sıkıştırılmış; boyut azaltılamadı. Daha fazla küçültmek için \"Sayfaları görüntüye çevir\" seçeneğini deneyin."
+            note = String(localized: "Bu dosya zaten iyi sıkıştırılmış; boyut azaltılamadı. Daha fazla küçültmek için \"Sayfaları görüntüye çevir\" seçeneğini deneyin.")
             // Daha büyük çıktı yerine özgün veriyi ver.
             try data.write(to: output, options: .atomic)
         }
@@ -196,13 +196,13 @@ enum PDFSanitizeService {
         }
         if o.metadata {
             doc.documentAttributes = [:]
-            report.append("Meta veriler (yazar, başlık, oluşturan uygulama) kaldırıldı")
+            report.append(String(localized: "Meta veriler (yazar, başlık, oluşturan uygulama) kaldırıldı"))
         }
-        if o.scripts { report.append("Belge düzeyindeki komutlar kaldırıldı" + (removedActions > 0 ? " (\(removedActions) eylem)" : "")) }
-        if o.comments { report.append("\(removedAnn) yorum/açıklama kaldırıldı") }
-        if o.attachments { report.append("Gömülü dosyalar kaldırıldı" + (removedFiles > 0 ? " (\(removedFiles) ek)" : "")) }
-        if o.formData { report.append("\(clearedFields) form alanının değeri temizlendi") }
-        if o.links { report.append("\(removedLinks) bağlantı kaldırıldı") }
+        if o.scripts { report.append(String(localized: "Belge düzeyindeki komutlar kaldırıldı") + (removedActions > 0 ? String(localized: " (\(removedActions) eylem)") : "")) }
+        if o.comments { report.append(String(localized: "\(removedAnn) yorum/açıklama kaldırıldı")) }
+        if o.attachments { report.append(String(localized: "Gömülü dosyalar kaldırıldı") + (removedFiles > 0 ? String(localized: " (\(removedFiles) ek)") : "")) }
+        if o.formData { report.append(String(localized: "\(clearedFields) form alanının değeri temizlendi")) }
+        if o.links { report.append(String(localized: "\(removedLinks) bağlantı kaldırıldı")) }
         try DocTools.write(doc, to: output)
         return report
     }
@@ -242,7 +242,7 @@ enum PDFCreateService {
             if ext == "rtfd" { type = .rtfd }
             let data = try SecurityScope.access(url) { try Data(contentsOf: url) }
             if ext == "docx" || ext == "doc" {
-                throw QPDFError.message("Word belgeleri iPhone'da doğrudan PDF'ye çevrilemiyor. Belgeyi Dosyalar'da açıp Paylaş > Yazdır > (iki parmakla büyüt) > Paylaş ile PDF olarak kaydedebilir veya Mac sürümünü kullanabilirsiniz.")
+                throw QPDFError.message(String(localized: "Word belgeleri iPhone'da doğrudan PDF'ye çevrilemiyor. Belgeyi Dosyalar'da açıp Paylaş > Yazdır > (iki parmakla büyüt) > Paylaş ile PDF olarak kaydedebilir veya Mac sürümünü kullanabilirsiniz."))
             }
             attr = try NSAttributedString(data: data, options: [.documentType: type], documentAttributes: nil)
         }
@@ -266,7 +266,7 @@ enum PDFCreateService {
         }
         UIGraphicsEndPDFContext()
         guard let doc = PDFDocument(data: data as Data), doc.pageCount > 0 else {
-            throw QPDFError.message("PDF oluşturulamadı.")
+            throw QPDFError.message(String(localized: "PDF oluşturulamadı."))
         }
         return doc
     }

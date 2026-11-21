@@ -1,7 +1,13 @@
 import Foundation
 
+extension String {
+    /// Çalışma zamanında üretilen bir anahtarı (ör. enum ham değeri) String Catalog'dan çevirir.
+    var loc: String { NSLocalizedString(self, comment: "") }
+}
+
 enum Fmt {
-    static let trLocale = Locale(identifier: "tr_TR")
+    /// Biçimlendirmede kullanılan yerel ayar: kullanıcının dil ve bölge ayarları.
+    static var locale: Locale { Locale.current }
 
     static func fileSize(_ bytes: Int64) -> String {
         let f = ByteCountFormatter()
@@ -15,36 +21,54 @@ enum Fmt {
         return Int64(v?.fileSize ?? 0)
     }
 
-    /// "Bugün 14:20", "Dün 17:45" veya "22 Oca 2025 10:11"
+    /// "Bugün 14:20", "Dün 17:45" veya "22 Oca 2025 14:20" (dile göre: "Today 14:20", "22 Jan 2025 14:20"…)
     static func relativeDate(_ date: Date) -> String {
         let cal = Calendar.current
-        let time = DateFormatter()
-        time.locale = trLocale
-        time.dateFormat = "HH:mm"
-        if cal.isDateInToday(date) { return "Bugün " + time.string(from: date) }
-        if cal.isDateInYesterday(date) { return "Dün " + time.string(from: date) }
+        if cal.isDateInToday(date) || cal.isDateInYesterday(date) {
+            let f = DateFormatter()
+            f.locale = locale
+            f.dateStyle = .medium
+            f.timeStyle = .short
+            f.doesRelativeDateFormatting = true
+            return f.string(from: date)
+        }
         let full = DateFormatter()
-        full.locale = trLocale
-        full.dateFormat = "d MMM yyyy HH:mm"
+        full.locale = locale
+        full.setLocalizedDateFormatFromTemplate("dMMMyyyyjmm")
         return full.string(from: date)
     }
 
+    /// Kısa tarih: tr "21.11.2026", en "11/21/2026", fr "21/11/2026"…
     static func shortDate(_ date: Date = Date()) -> String {
         let f = DateFormatter()
-        f.locale = trLocale
-        f.dateFormat = "dd.MM.yyyy"
+        f.locale = locale
+        f.setLocalizedDateFormatFromTemplate("ddMMyyyy")
         return f.string(from: date)
     }
 
     static func dateTime(_ date: Date = Date()) -> String {
         let f = DateFormatter()
-        f.locale = trLocale
-        f.dateFormat = "dd.MM.yyyy HH:mm"
+        f.locale = locale
+        f.setLocalizedDateFormatFromTemplate("ddMMyyyyjjmm")
         return f.string(from: date)
     }
 
     static func percent(_ value: CGFloat) -> String {
-        "\(Int((value * 100).rounded()))%"
+        let f = NumberFormatter()
+        f.locale = locale
+        f.numberStyle = .percent
+        f.maximumFractionDigits = 0
+        return f.string(from: NSNumber(value: Double(value))) ?? "\(Int((value * 100).rounded()))%"
+    }
+}
+
+extension Fmt {
+    /// Uygulamanın şu an kullandığı arayüz dilinin kendi dilindeki adı: "Türkçe", "English", "العربية"…
+    static var appLanguageName: String {
+        let code = Bundle.main.preferredLocalizations.first ?? "tr"
+        let loc = Locale(identifier: code)
+        let name = loc.localizedString(forLanguageCode: code) ?? code
+        return name.prefix(1).uppercased(with: loc) + name.dropFirst()
     }
 }
 

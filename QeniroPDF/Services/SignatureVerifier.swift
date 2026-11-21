@@ -34,12 +34,12 @@ enum SignatureVerifier {
                                     subFilter: sig.subFilter, status: .unknown, detail: "")
         let der = trimDER(sig.contents)
         guard !der.isEmpty else {
-            info.detail = "İmza verisi boş; imza alanı imzalanmamış olabilir."
+            info.detail = String(localized: "İmza verisi boş; imza alanı imzalanmamış olabilir.")
             return info
         }
         guard sig.byteRange.count >= 2, sig.byteRange.count % 2 == 0 else {
             info.status = .invalid
-            info.detail = "İmzanın bayt aralığı (ByteRange) eksik."
+            info.detail = String(localized: "İmzanın bayt aralığı (ByteRange) eksik.")
             return info
         }
         var signed = Data()
@@ -48,7 +48,7 @@ enum SignatureVerifier {
             let start = sig.byteRange[k], length = sig.byteRange[k + 1]
             guard start >= 0, length >= 0, start + length <= file.count else {
                 info.status = .invalid
-                info.detail = "İmzanın kapsadığı bayt aralığı dosyayla uyuşmuyor; dosya imzadan sonra değiştirilmiş olabilir."
+                info.detail = String(localized: "İmzanın kapsadığı bayt aralığı dosyayla uyuşmuyor; dosya imzadan sonra değiştirilmiş olabilir.")
                 return info
             }
             signed.append(file.subdata(in: start..<(start + length)))
@@ -57,7 +57,7 @@ enum SignatureVerifier {
 
         var decoderRef: CMSDecoder?
         guard CMSDecoderCreate(&decoderRef) == errSecSuccess, let decoder = decoderRef else {
-            info.detail = "İmza çözücüsü oluşturulamadı."
+            info.detail = String(localized: "İmza çözücüsü oluşturulamadı.")
             return info
         }
         var status: OSStatus = der.withUnsafeBytes { buf -> OSStatus in
@@ -67,14 +67,15 @@ enum SignatureVerifier {
         if status == errSecSuccess { status = CMSDecoderSetDetachedContent(decoder, signed as CFData) }
         if status == errSecSuccess { status = CMSDecoderFinalizeMessage(decoder) }
         guard status == errSecSuccess else {
-            info.detail = "İmza biçimi okunamadı (\(sig.subFilter.isEmpty ? "bilinmeyen" : sig.subFilter)). Bu imza türü uygulamada doğrulanamıyor."
+            let format = sig.subFilter.isEmpty ? String(localized: "bilinmeyen") : sig.subFilter
+            info.detail = String(localized: "İmza biçimi okunamadı (\(format)). Bu imza türü uygulamada doğrulanamıyor.")
             return info
         }
         var signerCount = 0
         _ = CMSDecoderGetNumSigners(decoder, &signerCount)
         guard signerCount > 0 else {
             info.status = .invalid
-            info.detail = "İmzada imzalayan bilgisi yok."
+            info.detail = String(localized: "İmzada imzalayan bilgisi yok.")
             return info
         }
         var signerStatus: CMSSignerStatus = .unsigned
@@ -88,17 +89,17 @@ enum SignatureVerifier {
         switch signerStatus {
         case .valid:
             info.status = .valid
-            info.detail = "İmza geçerli; belge imzalandıktan sonra değiştirilmemiş ve sertifika güvenilir."
+            info.detail = String(localized: "İmza geçerli; belge imzalandıktan sonra değiştirilmemiş ve sertifika güvenilir.")
         case .invalidSignature:
             info.status = .invalid
-            info.detail = "İmza geçersiz: belge imzalandıktan sonra değiştirilmiş."
+            info.detail = String(localized: "İmza geçersiz: belge imzalandıktan sonra değiştirilmiş.")
         case .invalidCert:
             info.status = .invalid
-            info.detail = "Belge değiştirilmemiş, ancak imzalayanın sertifikası doğrulanamadı (güvenilir bir kökten değil, süresi dolmuş veya iptal edilmiş olabilir)."
+            info.detail = String(localized: "Belge değiştirilmemiş, ancak imzalayanın sertifikası doğrulanamadı (güvenilir bir kökten değil, süresi dolmuş veya iptal edilmiş olabilir).")
         case .needsDetachedContent:
-            info.detail = "İmzalanan içerik bulunamadı."
+            info.detail = String(localized: "İmzalanan içerik bulunamadı.")
         default:
-            info.detail = "İmza durumu belirlenemedi."
+            info.detail = String(localized: "İmza durumu belirlenemedi.")
         }
         return info
     }

@@ -29,7 +29,7 @@ struct PageOrganizerView: View {
         VStack(spacing: 0) {
             HStack(spacing: 8) {
                 Text("PDF Sayfaları Düzenle").font(.headline)
-                Text("\(session.pageCount) sayfa" + (selection.isEmpty ? "" : " · \(selection.count) seçili"))
+                Text(String(localized: "\(session.pageCount) sayfa") + (selection.isEmpty ? "" : String(localized: " · \(selection.count) seçili")))
                     .foregroundStyle(.secondary)
                 Spacer()
                 Group {
@@ -47,11 +47,11 @@ struct PageOrganizerView: View {
                     Label("Boş sayfa", systemImage: "doc.badge.plus")
                 }
                 Button {
-                    if let u = Dialogs.openPDFs(title: "Eklenecek PDF'yi seçin").first {
+                    if let u = Dialogs.openPDFs(title: String(localized: "Eklenecek PDF'yi seçin")).first {
                         session.insertPDF(from: u, at: (sortedSelection.last.map { $0 + 1 }) ?? session.pageCount)
                     }
                 } label: { Label("PDF'den ekle", systemImage: "plus.rectangle.on.rectangle") }
-                Button(selection.count == session.pageCount ? "Seçimi kaldır" : "Tümünü seç") {
+                Button(selection.count == session.pageCount ? String(localized: "Seçimi kaldır") : String(localized: "Tümünü seç")) {
                     if selection.count == session.pageCount { selection.removeAll() } else { selection = Set(0..<session.pageCount) }
                 }
             }

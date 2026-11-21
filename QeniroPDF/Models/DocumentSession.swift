@@ -7,9 +7,9 @@ enum MarkupKind: String {
     case highlight, underline, strikeOut
     var title: String {
         switch self {
-        case .highlight: return "Vurgula"
-        case .underline: return "Altını çiz"
-        case .strikeOut: return "Üstünü çiz"
+        case .highlight: return String(localized: "Vurgula")
+        case .underline: return String(localized: "Altını çiz")
+        case .strikeOut: return String(localized: "Üstünü çiz")
         }
     }
     var subtype: PDFAnnotationSubtype {
@@ -60,23 +60,23 @@ enum ViewerTool: Equatable {
     var hint: String? {
         switch self {
         case .select, .hand: return nil
-        case .addText, .addFillText: return "Metin eklemek için sayfada bir yere tıklayın."
-        case .addImage: return "Görseli yerleştirmek için sayfada bir yere tıklayın."
-        case .addLink: return "Bağlantı alanını sürükleyerek çizin; web adresi veya sayfa numarası sorulur."
-        case .addSignature: return "İmzayı yerleştirmek için sayfada bir yere tıklayın."
-        case .addCheckbox: return "Onay kutusu için sayfada bir yere tıklayın."
-        case .addRadio: return "Radyo düğmesi için sayfada bir yere tıklayın."
-        case .addDate: return "Tarihi yerleştirmek için sayfada bir yere tıklayın."
-        case .addTextField: return "Form metin alanı için sayfada bir yere tıklayın."
-        case .addDropdown: return "Açılır liste için sayfada bir yere tıklayın."
-        case .addSignatureField: return "İmza alanı için sayfada bir yere tıklayın."
-        case .redact: return "Kaldırılacak alanları sürükleyerek işaretleyin, sonra \"Sansürü Uygula\"ya basın."
-        case .editText: return "Değiştirmek istediğiniz yazıya tıklayıp yazın; boş bir yere tıklayarak yeni metin ekleyin. Enter uygular, Esc vazgeçer."
-        case .note: return "Yapışkan not eklemek için sayfada bir yere tıklayın."
-        case .markup(let k): return "\(k.title): metni sürükleyerek seçin."
-        case .ink: return "Sayfada sürükleyerek serbest çizin. Bitirince Esc'ye basın."
-        case .shape: return "Şekli sürükleyerek çizin."
-        case .crop: return "Sayfada kalmasını istediğiniz alanı sürükleyerek seçin."
+        case .addText, .addFillText: return String(localized: "Metin eklemek için sayfada bir yere tıklayın.")
+        case .addImage: return String(localized: "Görseli yerleştirmek için sayfada bir yere tıklayın.")
+        case .addLink: return String(localized: "Bağlantı alanını sürükleyerek çizin; web adresi veya sayfa numarası sorulur.")
+        case .addSignature: return String(localized: "İmzayı yerleştirmek için sayfada bir yere tıklayın.")
+        case .addCheckbox: return String(localized: "Onay kutusu için sayfada bir yere tıklayın.")
+        case .addRadio: return String(localized: "Radyo düğmesi için sayfada bir yere tıklayın.")
+        case .addDate: return String(localized: "Tarihi yerleştirmek için sayfada bir yere tıklayın.")
+        case .addTextField: return String(localized: "Form metin alanı için sayfada bir yere tıklayın.")
+        case .addDropdown: return String(localized: "Açılır liste için sayfada bir yere tıklayın.")
+        case .addSignatureField: return String(localized: "İmza alanı için sayfada bir yere tıklayın.")
+        case .redact: return String(localized: "Kaldırılacak alanları sürükleyerek işaretleyin, sonra \"Sansürü Uygula\"ya basın.")
+        case .editText: return String(localized: "Değiştirmek istediğiniz yazıya tıklayıp yazın; boş bir yere tıklayarak yeni metin ekleyin. Enter uygular, Esc vazgeçer.")
+        case .note: return String(localized: "Yapışkan not eklemek için sayfada bir yere tıklayın.")
+        case .markup(let k): return String(localized: "\(k.title): metni sürükleyerek seçin.")
+        case .ink: return String(localized: "Sayfada sürükleyerek serbest çizin. Bitirince Esc'ye basın.")
+        case .shape: return String(localized: "Şekli sürükleyerek çizin.")
+        case .crop: return String(localized: "Sayfada kalmasını istediğiniz alanı sürükleyerek seçin.")
         }
     }
 }
@@ -149,7 +149,7 @@ final class DocumentSession: ObservableObject, Identifiable {
     private var underlines: [ObjectIdentifier: PDFAnnotation] = [:]
     private var observers: [NSObjectProtocol] = []
 
-    var untitledName = "Adsız.pdf"
+    var untitledName = String(localized: "Adsız.pdf")
     var displayName: String { url?.lastPathComponent ?? untitledName }
 
     init(document: PDFDocument, url: URL?, password: String? = nil) {
@@ -310,7 +310,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         pdfView.refreshOverlay()
     }
 
-    func add(_ a: PDFAnnotation, to page: PDFPage, tag t: QTag?, name: String = "Ekle") {
+    func add(_ a: PDFAnnotation, to page: PDFPage, tag t: QTag?, name: String = String(localized: "Ekle")) {
         if let t { setTag(a, t) }
         page.addAnnotation(a)
         if let line = underlines[ObjectIdentifier(a)], line.page == nil { page.addAnnotation(line) }
@@ -321,7 +321,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         undoManager.setActionName(name)
     }
 
-    func remove(_ a: PDFAnnotation, name: String = "Sil") {
+    func remove(_ a: PDFAnnotation, name: String = String(localized: "Sil")) {
         guard let page = a.page else { return }
         if let line = underlines[ObjectIdentifier(a)] { line.page?.removeAnnotation(line) }
         page.removeAnnotation(a)
@@ -351,7 +351,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         undoManager.registerUndo(withTarget: self) { s in
             MainActor.assumeIsolated { s.setBounds(a, to: old, from: r) }
         }
-        undoManager.setActionName("Taşı")
+        undoManager.setActionName(String(localized: "Taşı"))
     }
 
     /// Sürükleme bittiğinde yeni konumu geri alınabilir olarak kaydeder.
@@ -418,7 +418,7 @@ final class DocumentSession: ObservableObject, Identifiable {
                 if s.selectedAnnotation === a { s.textStyle = old }
             }
         }
-        undoManager.setActionName("Biçim")
+        undoManager.setActionName(String(localized: "Biçim"))
     }
 
     func setContents(_ text: String, of a: PDFAnnotation) {
@@ -511,26 +511,26 @@ final class DocumentSession: ObservableObject, Identifiable {
         let preparingForm = panel == .formPrepare
         switch current {
         case .addText:
-            let a = makeFreeText("Metin", topLeft: p, on: page, tag: .text, name: "Metin ekle")
+            let a = makeFreeText(String(localized: "Metin"), topLeft: p, on: page, tag: .text, name: String(localized: "Metin ekle"))
             select(a); requestTextFocus()
         case .addFillText:
-            let a = makeFreeText("Metni yazın", topLeft: p, on: page, tag: .text, name: "Metin ekle")
+            let a = makeFreeText(String(localized: "Metni yazın"), topLeft: p, on: page, tag: .text, name: String(localized: "Metin ekle"))
             select(a); requestTextFocus()
         case .addDate:
-            let a = makeFreeText("Tarih: " + Fmt.shortDate(), topLeft: p, on: page, tag: .date, name: "Tarih ekle")
+            let a = makeFreeText(String(localized: "Tarih: \(Fmt.shortDate())"), topLeft: p, on: page, tag: .date, name: String(localized: "Tarih ekle"))
             select(a)
         case .addImage:
             guard let img = pendingImage else { return }
             let r = fitRect(for: img.size, maxSide: 220, center: p)
             let a = ImageAnnotation(bounds: r, image: img, kind: .image)
-            add(a, to: page, tag: .image, name: "Görsel ekle")
+            add(a, to: page, tag: .image, name: String(localized: "Görsel ekle"))
             select(a)
             pendingImage = nil
         case .addSignature(let id):
             guard let img = SignatureStore.shared.image(for: id) else { return }
             let r = fitRect(for: img.size, maxSide: 170, center: p)
             let a = ImageAnnotation(bounds: r, image: img, kind: .signature)
-            add(a, to: page, tag: .signature, name: "İmza ekle")
+            add(a, to: page, tag: .signature, name: String(localized: "İmza ekle"))
             select(a)
         case .addCheckbox:
             let a = PDFAnnotation(bounds: CGRect(x: p.x - 8, y: p.y - 8, width: 16, height: 16), forType: .widget, withProperties: nil)
@@ -542,7 +542,7 @@ final class DocumentSession: ObservableObject, Identifiable {
             let b = PDFBorder(); b.lineWidth = 1
             a.border = b
             a.color = .black
-            add(a, to: page, tag: preparingForm ? .formField : .checkbox, name: "Onay kutusu")
+            add(a, to: page, tag: preparingForm ? .formField : .checkbox, name: String(localized: "Onay kutusu"))
             select(a)
         case .addRadio:
             let a = PDFAnnotation(bounds: CGRect(x: p.x - 8, y: p.y - 8, width: 16, height: 16), forType: .widget, withProperties: nil)
@@ -555,7 +555,7 @@ final class DocumentSession: ObservableObject, Identifiable {
             let b = PDFBorder(); b.lineWidth = 1
             a.border = b
             a.color = .black
-            add(a, to: page, tag: preparingForm ? .formField : .radio, name: "Radyo düğmesi")
+            add(a, to: page, tag: preparingForm ? .formField : .radio, name: String(localized: "Radyo düğmesi"))
             select(a)
         case .addTextField:
             let a = PDFAnnotation(bounds: CGRect(x: p.x, y: p.y - 22, width: 180, height: 22), forType: .widget, withProperties: nil)
@@ -567,11 +567,11 @@ final class DocumentSession: ObservableObject, Identifiable {
             let b = PDFBorder(); b.lineWidth = 0.75
             a.border = b
             a.color = Theme.selectionNS
-            add(a, to: page, tag: preparingForm ? .formField : .field, name: "Metin alanı")
+            add(a, to: page, tag: preparingForm ? .formField : .field, name: String(localized: "Metin alanı"))
             select(a)
         case .addDropdown:
-            guard let raw = Dialogs.askText("Açılır liste", message: "Seçenekleri virgülle ayırarak yazın.",
-                                            placeholder: "Seçenek 1, Seçenek 2", initial: "Seçenek 1, Seçenek 2, Seçenek 3") else { return }
+            guard let raw = Dialogs.askText(String(localized: "Açılır liste"), message: String(localized: "Seçenekleri virgülle ayırarak yazın."),
+                                            placeholder: String(localized: "Seçenek 1, Seçenek 2"), initial: String(localized: "Seçenek 1, Seçenek 2, Seçenek 3")) else { return }
             let options = raw.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
             guard let firstOption = options.first else { return }
             let a = PDFAnnotation(bounds: CGRect(x: p.x, y: p.y - 22, width: 170, height: 22), forType: .widget, withProperties: nil)
@@ -585,7 +585,7 @@ final class DocumentSession: ObservableObject, Identifiable {
             let b = PDFBorder(); b.lineWidth = 0.75
             a.border = b
             a.color = Theme.selectionNS
-            add(a, to: page, tag: .formField, name: "Açılır liste")
+            add(a, to: page, tag: .formField, name: String(localized: "Açılır liste"))
             select(a)
         case .addSignatureField:
             let a = PDFAnnotation(bounds: CGRect(x: p.x, y: p.y - 40, width: 190, height: 40), forType: .widget, withProperties: nil)
@@ -595,17 +595,17 @@ final class DocumentSession: ObservableObject, Identifiable {
             let b = PDFBorder(); b.lineWidth = 1
             a.border = b
             a.color = NSColor.systemOrange
-            add(a, to: page, tag: .sigField, name: "İmza alanı")
+            add(a, to: page, tag: .sigField, name: String(localized: "İmza alanı"))
             select(a)
         case .note:
-            guard let text = Dialogs.askText("Yorum ekle", message: "Yapışkan notun metnini yazın.", placeholder: "Yorum"),
+            guard let text = Dialogs.askText(String(localized: "Yorum ekle"), message: String(localized: "Yapışkan notun metnini yazın."), placeholder: String(localized: "Yorum")),
                   !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
             let a = PDFAnnotation(bounds: CGRect(x: p.x - 10, y: p.y - 10, width: 20, height: 20), forType: .text, withProperties: nil)
             a.contents = text
             a.color = NSColor.systemYellow
             a.iconType = .comment
             a.userName = NSFullUserName().isEmpty ? NSUserName() : NSFullUserName()
-            add(a, to: page, tag: .note, name: "Yorum ekle")
+            add(a, to: page, tag: .note, name: String(localized: "Yorum ekle"))
             select(a)
         default:
             break
@@ -615,7 +615,7 @@ final class DocumentSession: ObservableObject, Identifiable {
     /// Yapışkan notun metnini değiştirir.
     func editNote(_ a: PDFAnnotation) {
         let old = a.contents ?? ""
-        guard let text = Dialogs.askText("Yorumu düzenle", message: "", placeholder: "Yorum", initial: old), text != old else { return }
+        guard let text = Dialogs.askText(String(localized: "Yorumu düzenle"), message: "", placeholder: String(localized: "Yorum"), initial: old), text != old else { return }
         setNoteText(a, text, old: old)
     }
 
@@ -625,7 +625,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         undoManager.registerUndo(withTarget: self) { s in
             MainActor.assumeIsolated { s.setNoteText(a, old, old: text) }
         }
-        undoManager.setActionName("Yorumu düzenle")
+        undoManager.setActionName(String(localized: "Yorumu düzenle"))
     }
 
     private func fitRect(for size: CGSize, maxSide: CGFloat, center p: CGPoint) -> CGRect {
@@ -640,7 +640,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         switch tool {
         case .addLink:
             tool = .select
-            guard var link = Dialogs.askText("Bağlantı ekle", message: "Bağlantının açacağı web adresini veya sayfa numarasını yazın.", placeholder: "https://ornek.com veya 3") else { return }
+            guard var link = Dialogs.askText(String(localized: "Bağlantı ekle"), message: String(localized: "Bağlantının açacağı web adresini veya sayfa numarasını yazın."), placeholder: String(localized: "https://ornek.com veya 3")) else { return }
             link = link.trimmingCharacters(in: .whitespaces)
             guard !link.isEmpty else { return }
             let a = PDFAnnotation(bounds: r, forType: .link, withProperties: nil)
@@ -654,7 +654,7 @@ final class DocumentSession: ObservableObject, Identifiable {
             }
             let b = PDFBorder(); b.lineWidth = 0
             a.border = b
-            add(a, to: page, tag: .link, name: "Bağlantı ekle")
+            add(a, to: page, tag: .link, name: String(localized: "Bağlantı ekle"))
             select(a)
         case .redact:
             addRedaction(r, on: page)
@@ -663,7 +663,7 @@ final class DocumentSession: ObservableObject, Identifiable {
             a.color = inkColor
             let b = PDFBorder(); b.lineWidth = 2
             a.border = b
-            add(a, to: page, tag: .shape, name: "Şekil ekle")
+            add(a, to: page, tag: .shape, name: String(localized: "Şekil ekle"))
         case .crop:
             tool = .select
             cropPages(to: r, from: page)
@@ -678,7 +678,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         a.interiorColor = NSColor.black.withAlphaComponent(0.85)
         let b = PDFBorder(); b.lineWidth = 1
         a.border = b
-        add(a, to: page, tag: .redact, name: "Sansür işareti")
+        add(a, to: page, tag: .redact, name: String(localized: "Sansür işareti"))
     }
 
     /// Verilen metin seçimlerinin satırlarını sansür için işaretler.
@@ -697,7 +697,7 @@ final class DocumentSession: ObservableObject, Identifiable {
             }
         }
         undoManager.endUndoGrouping()
-        undoManager.setActionName("Sansür işareti")
+        undoManager.setActionName(String(localized: "Sansür işareti"))
         return n
     }
 
@@ -705,7 +705,7 @@ final class DocumentSession: ObservableObject, Identifiable {
     func replaceSelectedText() {
         guard let sel = pdfView.currentSelection, let full = sel.string,
               !full.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            Dialogs.info("Önce metin seçin", "Seçim aracıyla değiştirmek istediğiniz metni sürükleyerek seçin, sonra bu düğmeye basın.")
+            Dialogs.info(String(localized: "Önce metin seçin"), String(localized: "Seçim aracıyla değiştirmek istediğiniz metni sürükleyerek seçin, sonra bu düğmeye basın."))
             return
         }
         undoManager.beginUndoGrouping()
@@ -721,7 +721,7 @@ final class DocumentSession: ObservableObject, Identifiable {
             cover.interiorColor = .white
             let b = PDFBorder(); b.lineWidth = 0
             cover.border = b
-            add(cover, to: page, tag: .cover, name: "Metni değiştir")
+            add(cover, to: page, tag: .cover, name: String(localized: "Metni değiştir"))
             let lineCount = CGFloat(max(1, pageLines.count))
             var style = textStyle
             style.size = max(6, min(72, ((r.height / lineCount) * 0.72).rounded()))
@@ -733,11 +733,11 @@ final class DocumentSession: ObservableObject, Identifiable {
                 style.italic = traits.contains(.italicFontMask)
             }
             textStyle = style
-            let a = makeFreeText(text.isEmpty ? full : text, topLeft: CGPoint(x: r.minX, y: r.maxY), on: page, tag: .text, name: "Metni değiştir")
+            let a = makeFreeText(text.isEmpty ? full : text, topLeft: CGPoint(x: r.minX, y: r.maxY), on: page, tag: .text, name: String(localized: "Metni değiştir"))
             last = a
         }
         undoManager.endUndoGrouping()
-        undoManager.setActionName("Metni değiştir")
+        undoManager.setActionName(String(localized: "Metni değiştir"))
         pdfView.clearSelection()
         if let last { select(last); requestTextFocus() }
     }
@@ -774,7 +774,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         undoManager.registerUndo(withTarget: self) { s in
             MainActor.assumeIsolated { s.movePage(from: dest, to: from) }
         }
-        undoManager.setActionName("Sayfa taşı")
+        undoManager.setActionName(String(localized: "Sayfa taşı"))
     }
 
     func rotate(pages indices: [Int], by degrees: Int) {
@@ -786,7 +786,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         undoManager.registerUndo(withTarget: self) { s in
             MainActor.assumeIsolated { s.rotate(pages: indices, by: -degrees) }
         }
-        undoManager.setActionName("Döndür")
+        undoManager.setActionName(String(localized: "Döndür"))
     }
 
     func rotateCurrent(by degrees: Int) { rotate(pages: [currentPageIndex], by: degrees) }
@@ -795,7 +795,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         let sorted = Array(Set(indices)).sorted()
         guard !sorted.isEmpty else { return }
         guard sorted.count < document.pageCount else {
-            Dialogs.info("Tüm sayfalar silinemez", "Belgede en az bir sayfa kalmalıdır.")
+            Dialogs.info(String(localized: "Tüm sayfalar silinemez"), String(localized: "Belgede en az bir sayfa kalmalıdır."))
             return
         }
         var removed: [(Int, PDFPage)] = []
@@ -810,7 +810,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         undoManager.registerUndo(withTarget: self) { s in
             MainActor.assumeIsolated { s.restorePages(removed) }
         }
-        undoManager.setActionName("Sayfa sil")
+        undoManager.setActionName(String(localized: "Sayfa sil"))
     }
 
     private func restorePages(_ items: [(Int, PDFPage)]) {
@@ -822,7 +822,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         undoManager.registerUndo(withTarget: self) { s in
             MainActor.assumeIsolated { s.deletePages(indices) }
         }
-        undoManager.setActionName("Sayfa sil")
+        undoManager.setActionName(String(localized: "Sayfa sil"))
     }
 
     func insertPages(_ pages: [PDFPage], at index: Int) {
@@ -834,7 +834,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         undoManager.registerUndo(withTarget: self) { s in
             MainActor.assumeIsolated { s.deletePages(indices) }
         }
-        undoManager.setActionName("Sayfa ekle")
+        undoManager.setActionName(String(localized: "Sayfa ekle"))
     }
 
     func insertBlankPage(at index: Int) {
@@ -852,16 +852,16 @@ final class DocumentSession: ObservableObject, Identifiable {
             }
             insertPages(pages, at: index)
         } catch {
-            Dialogs.error("Sayfalar eklenemedi", error)
+            Dialogs.error(String(localized: "Sayfalar eklenemedi"), error)
         }
     }
 
     func extractPages(_ indices: [Int]) {
         let out = DocTools.rebuiltCopy(of: documentForWriting(), pages: indices.sorted())
         guard out.pageCount > 0 else { return }
-        let base = url?.baseName ?? "Belge"
-        guard let target = Dialogs.save(suggestedName: "\(base)_sayfalar.pdf", type: .pdf, title: "Sayfaları Çıkar") else { return }
-        do { try DocTools.write(out, to: target) } catch { Dialogs.error("Kaydedilemedi", error) }
+        let base = url?.baseName ?? String(localized: "Belge")
+        guard let target = Dialogs.save(suggestedName: String(localized: "\(base)_sayfalar.pdf"), type: .pdf, title: String(localized: "Sayfaları Çıkar")) else { return }
+        do { try DocTools.write(out, to: target) } catch { Dialogs.error(String(localized: "Kaydedilemedi"), error) }
     }
 
     // MARK: - Uygula / Sansür / OCR
@@ -877,15 +877,15 @@ final class DocumentSession: ObservableObject, Identifiable {
             guard !flat.isEmpty else { continue }
             let keep = anns.filter { a in !flat.contains { $0 === a } }
             if let np = PageRenderer.rebuild(page: page, flatten: flat, keep: keep) {
-                replacePage(at: i, with: np, name: "Uygula")
+                replacePage(at: i, with: np, name: String(localized: "Uygula"))
                 count += 1
             }
         }
         undoManager.endUndoGrouping()
-        undoManager.setActionName("Uygula")
+        undoManager.setActionName(String(localized: "Uygula"))
         selectedAnnotation = nil
         if count == 0 {
-            Dialogs.info("Uygulanacak öğe yok", "Önce imza, metin, onay kutusu veya tarih ekleyin.")
+            Dialogs.info(String(localized: "Uygulanacak öğe yok"), String(localized: "Önce imza, metin, onay kutusu veya tarih ekleyin."))
         }
     }
 
@@ -922,14 +922,14 @@ final class DocumentSession: ObservableObject, Identifiable {
             if let np = PageRenderer.rebuild(page: page, contentImage: img, keep: keep, extra: { ctx in
                 PageRenderer.drawInvisibleText(safeLines, in: ctx)
             }) {
-                replacePage(at: i, with: np, name: "Sansürle")
+                replacePage(at: i, with: np, name: String(localized: "Sansürle"))
                 count += 1
             }
         }
         undoManager.endUndoGrouping()
-        undoManager.setActionName("Sansürle")
+        undoManager.setActionName(String(localized: "Sansürle"))
         if count == 0 {
-            Dialogs.info("Sansür işareti yok", "Önce kaldırılacak alanları sürükleyerek işaretleyin.")
+            Dialogs.info(String(localized: "Sansür işareti yok"), String(localized: "Önce kaldırılacak alanları sürükleyerek işaretleyin."))
         } else {
             tool = .select
         }
@@ -938,7 +938,7 @@ final class DocumentSession: ObservableObject, Identifiable {
     /// Taranmış sayfalara aranabilir metin katmanı ekler.
     func runOCR(force: Bool) {
         guard let data = currentData() else { return }
-        busyMessage = "Metin tanınıyor (OCR)…"
+        busyMessage = String(localized: "Metin tanınıyor (OCR)…")
         Task {
             let result: [[OCRLine]?]
             do {
@@ -947,7 +947,7 @@ final class DocumentSession: ObservableObject, Identifiable {
                 }.value
             } catch {
                 busyMessage = nil
-                Dialogs.error("OCR başarısız", error)
+                Dialogs.error(String(localized: "OCR başarısız"), error)
                 return
             }
             var count = 0
@@ -964,9 +964,9 @@ final class DocumentSession: ObservableObject, Identifiable {
             undoManager.endUndoGrouping()
             undoManager.setActionName("OCR")
             busyMessage = nil
-            Dialogs.info(count > 0 ? "OCR tamamlandı" : "Tanınacak sayfa bulunamadı",
-                         count > 0 ? "\(count) sayfaya aranabilir metin katmanı eklendi. Kaydetmeyi unutmayın." :
-                                     "Tüm sayfalarda zaten seçilebilir metin var. Yine de çalıştırmak için \"OCR (tüm sayfalar)\" seçeneğini kullanın.")
+            Dialogs.info(count > 0 ? String(localized: "OCR tamamlandı") : String(localized: "Tanınacak sayfa bulunamadı"),
+                         count > 0 ? String(localized: "\(count) sayfaya aranabilir metin katmanı eklendi. Kaydetmeyi unutmayın.") :
+                                     String(localized: "Tüm sayfalarda zaten seçilebilir metin var. Yine de çalıştırmak için \"OCR (tüm sayfalar)\" seçeneğini kullanın."))
         }
     }
 
@@ -1032,19 +1032,19 @@ final class DocumentSession: ObservableObject, Identifiable {
     @discardableResult
     private func runPDFiumEdit(_ name: String, _ body: (PDFiumEditor) throws -> Void) -> Bool {
         do {
-            guard let data = pdfiumSourceData() else { throw QPDFError.message("Belge hazırlanamadı.") }
+            guard let data = pdfiumSourceData() else { throw QPDFError.message(String(localized: "Belge hazırlanamadı.")) }
             let editor = try PDFiumEditor(data: data, password: password)
             try body(editor)
             let out = try editor.save()
-            guard let newDoc = PDFDocument(data: out) else { throw QPDFError.message("Düzenlenen belge açılamadı.") }
+            guard let newDoc = PDFDocument(data: out) else { throw QPDFError.message(String(localized: "Düzenlenen belge açılamadı.")) }
             if newDoc.isLocked, let pw = password { _ = newDoc.unlock(withPassword: pw) }
             guard newDoc.pageCount == document.pageCount else {
-                throw QPDFError.message("Sayfa sayısı beklenmedik şekilde değişti; işlem iptal edildi.")
+                throw QPDFError.message(String(localized: "Sayfa sayısı beklenmedik şekilde değişti; işlem iptal edildi."))
             }
             replaceDocument(with: newDoc, name: name)
             return true
         } catch {
-            Dialogs.error("\(name) yapılamadı", error)
+            Dialogs.error(String(localized: "\(name) yapılamadı"), error)
             return false
         }
     }
@@ -1097,7 +1097,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         guard style != nil || newText != item.text else { return }
         let deleting = newText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         var result: TextEditResult?
-        let ok = runPDFiumEdit(deleting ? "Metni sil" : "Metni düzenle") { editor in
+        let ok = runPDFiumEdit(deleting ? String(localized: "Metni sil") : String(localized: "Metni düzenle")) { editor in
             result = try editor.replaceText(item, with: newText, style: style)
         }
         guard ok, let result else { return }
@@ -1111,7 +1111,7 @@ final class DocumentSession: ObservableObject, Identifiable {
             }
         }
         if result.substitutedFont {
-            editNotice = "Özgün yazı tipi yeni karakterleri içermediği için bu satır benzer bir sistem yazı tipiyle yeniden yazıldı (metin PDF içinde gerçekten değişti)."
+            editNotice = String(localized: "Özgün yazı tipi yeni karakterleri içermediği için bu satır benzer bir sistem yazı tipiyle yeniden yazıldı (metin PDF içinde gerçekten değişti).")
         }
         pdfView.refreshOverlay()
     }
@@ -1133,7 +1133,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         let ascent = size * 0.8
         let baseline = CGPoint(x: topLeft.x + sin(angle) * ascent, y: topLeft.y - cos(angle) * ascent)
         var box = CGRect.zero
-        let ok = runPDFiumEdit("Metin ekle") { editor in
+        let ok = runPDFiumEdit(String(localized: "Metin ekle")) { editor in
             box = try editor.insertText(text, pageIndex: idx, baseline: baseline, family: style.family,
                                         bold: style.bold, italic: style.italic, size: size,
                                         color: style.nsColor, rotation: rotation, underline: style.underline)
@@ -1154,14 +1154,14 @@ final class DocumentSession: ObservableObject, Identifiable {
     func applyHeaderFooter(header: String, footer: String, numberFormat: String?,
                            position: PDFiumEditor.NumberPosition, size: CGFloat, color: NSColor, margin: CGFloat) {
         let date = Fmt.shortDate()
-        runPDFiumEdit("Üstbilgi ve altbilgi") { editor in
+        runPDFiumEdit(String(localized: "Üstbilgi ve altbilgi")) { editor in
             try editor.addHeaderFooter(header: header, footer: footer, numberFormat: numberFormat,
                                        numberPosition: position, size: size, color: color, margin: margin, date: date)
         }
     }
 
     func applyWatermark(text: String, size: CGFloat, color: NSColor, opacity: CGFloat, angle: CGFloat, bold: Bool) {
-        runPDFiumEdit("Filigran") { editor in
+        runPDFiumEdit(String(localized: "Filigran")) { editor in
             try editor.addWatermark(text, size: size, color: color, opacity: opacity, angle: angle, bold: bold)
         }
     }
@@ -1218,7 +1218,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         border.lineWidth = lineWidth
         a.border = border
         a.color = inkColor
-        add(a, to: page, tag: .ink, name: "Çiz")
+        add(a, to: page, tag: .ink, name: String(localized: "Çiz"))
     }
 
     /// Sürüklenen alana göre kırpma kutusu ayarlar (yalnızca bu sayfa veya tüm sayfalar).
@@ -1226,11 +1226,11 @@ final class DocumentSession: ObservableObject, Identifiable {
         let idx = document.index(for: page)
         guard idx != NSNotFound else { return }
         let alert = NSAlert()
-        alert.messageText = "Sayfayı kırp"
-        alert.informativeText = "Seçilen alanın dışı gizlenir (kırpma kutusu). Hangi sayfalara uygulansın?"
-        alert.addButton(withTitle: "Yalnızca bu sayfa")
-        alert.addButton(withTitle: "Tüm sayfalar")
-        alert.addButton(withTitle: "Vazgeç")
+        alert.messageText = String(localized: "Sayfayı kırp")
+        alert.informativeText = String(localized: "Seçilen alanın dışı gizlenir (kırpma kutusu). Hangi sayfalara uygulansın?")
+        alert.addButton(withTitle: String(localized: "Yalnızca bu sayfa"))
+        alert.addButton(withTitle: String(localized: "Tüm sayfalar"))
+        alert.addButton(withTitle: String(localized: "Vazgeç"))
         let indices: [Int]
         switch alert.runModal() {
         case .alertFirstButtonReturn: indices = [idx]
@@ -1255,7 +1255,7 @@ final class DocumentSession: ObservableObject, Identifiable {
         undoManager.registerUndo(withTarget: self) { s in
             MainActor.assumeIsolated { s.setCropBoxes(old) }
         }
-        undoManager.setActionName("Kırp")
+        undoManager.setActionName(String(localized: "Kırp"))
     }
 
     // MARK: - Paylaşma ve imzalar
@@ -1263,7 +1263,7 @@ final class DocumentSession: ObservableObject, Identifiable {
     /// "Yorum için gönder": yorumlu PDF'i geçici dosyaya yazıp macOS paylaşım menüsünü açar.
     func shareForReview() {
         guard let data = currentData() else {
-            Dialogs.info("Belge hazırlanamadı")
+            Dialogs.info(String(localized: "Belge hazırlanamadı"))
             return
         }
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("qeniro-share-\(UUID().uuidString)", isDirectory: true)
@@ -1276,7 +1276,7 @@ final class DocumentSession: ObservableObject, Identifiable {
             let anchor = NSRect(x: 60, y: v.isFlipped ? 20 : v.bounds.maxY - 20, width: 1, height: 1)
             picker.show(relativeTo: anchor, of: v, preferredEdge: .minY)
         } catch {
-            Dialogs.error("Paylaşılamadı", error)
+            Dialogs.error(String(localized: "Paylaşılamadı"), error)
         }
     }
 
@@ -1331,7 +1331,7 @@ final class DocumentSession: ObservableObject, Identifiable {
 
     @discardableResult
     func saveAs() -> Bool {
-        guard let target = Dialogs.save(suggestedName: displayName, type: .pdf, title: "Farklı Kaydet",
+        guard let target = Dialogs.save(suggestedName: displayName, type: .pdf, title: String(localized: "Farklı Kaydet"),
                                         directory: url?.deletingLastPathComponent()) else { return false }
         return write(to: target)
     }
@@ -1352,7 +1352,7 @@ final class DocumentSession: ObservableObject, Identifiable {
             }
         } catch {
             try? FileManager.default.removeItem(at: tmp)
-            Dialogs.error("Kaydedilemedi", error)
+            Dialogs.error(String(localized: "Kaydedilemedi"), error)
             return false
         }
         url = target

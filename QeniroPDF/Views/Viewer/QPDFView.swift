@@ -336,7 +336,7 @@ final class QPDFView: PDFView {
         field.lineBreakMode = .byClipping
         field.cell?.isScrollable = true
         field.cell?.wraps = false
-        field.placeholderString = item == nil ? "Metin yazın" : nil
+        field.placeholderString = item == nil ? String(localized: "Metin yazın") : nil
         field.wantsLayer = true
         field.layer?.borderColor = Theme.navyNS.cgColor
         field.layer?.borderWidth = 1.5
@@ -352,7 +352,7 @@ final class QPDFView: PDFView {
         let family = item?.familyName ?? s.textStyle.family
         let pt = item?.visualSize ?? s.textStyle.size
         let ptText = pt == pt.rounded() ? "\(Int(pt))" : String(format: "%.1f", Double(pt))
-        let label = NSTextField(labelWithString: "Düzenleniyor · \(family) \(ptText)")
+        let label = NSTextField(labelWithString: String(localized: "Düzenleniyor · \(family) \(ptText)"))
         label.font = NSFont.systemFont(ofSize: 11, weight: .medium)
         label.textColor = .white
         label.sizeToFit()
@@ -363,7 +363,7 @@ final class QPDFView: PDFView {
         label.frame.origin = NSPoint(x: 9, y: (22 - label.frame.height) / 2)
         badge.addSubview(label)
         badge.setAccessibilityElement(true)
-        badge.setAccessibilityLabel("Düzenleniyor: \(family) \(ptText) punto")
+        badge.setAccessibilityLabel(String(localized: "Düzenleniyor: \(family) \(ptText) punto"))
         addSubview(badge, positioned: .above, relativeTo: nil)
         inlineBadge = badge
         positionInlineField()
@@ -502,7 +502,7 @@ final class QPDFView: PDFView {
             } else {
                 s.selectTextItem(nil)
                 if s.textItems(onPage: idx).isEmpty {
-                    s.editNotice = "Bu sayfada düzenlenebilir metin yok; sayfa taranmış olabilir. Önce Dönüştür > Tara ve OCR Uygula'yı kullanın. Yine de tıkladığınız yere yeni metin ekleyebilirsiniz."
+                    s.editNotice = String(localized: "Bu sayfada düzenlenebilir metin yok; sayfa taranmış olabilir. Önce Dönüştür > Tara ve OCR Uygula'yı kullanın. Yine de tıkladığınız yere yeni metin ekleyebilirsiniz.")
                 } else {
                     s.editNotice = nil
                 }
@@ -637,7 +637,7 @@ final class QPDFView: PDFView {
             var delta: CGPoint?
             switch event.keyCode {
             case 51, 117:
-                s.remove(a, name: "Sil")
+                s.remove(a, name: String(localized: "Sil"))
                 return
             case 53:
                 s.select(nil)

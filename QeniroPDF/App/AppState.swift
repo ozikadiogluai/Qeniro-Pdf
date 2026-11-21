@@ -41,7 +41,7 @@ final class AppState: ObservableObject {
     // MARK: - Açma / kapama
 
     func openPanel() {
-        for url in Dialogs.openPDFs(multiple: true, title: "PDF Aç") { open(url) }
+        for url in Dialogs.openPDFs(multiple: true, title: String(localized: "PDF Aç")) { open(url) }
     }
 
     @discardableResult
@@ -52,20 +52,20 @@ final class AppState: ObservableObject {
             return existing
         }
         guard url.pathExtension.lowercased() == "pdf" || (try? url.resourceValues(forKeys: [.contentTypeKey]).contentType?.conforms(to: .pdf)) == true else {
-            Dialogs.info("PDF değil", "\"\(url.lastPathComponent)\" bir PDF dosyası değil. Başka türdeki dosyaları PDF Oluştur aracıyla dönüştürebilirsiniz.")
+            Dialogs.info(String(localized: "PDF değil"), String(localized: "\"\(url.lastPathComponent)\" bir PDF dosyası değil. Başka türdeki dosyaları PDF Oluştur aracıyla dönüştürebilirsiniz."))
             return nil
         }
         guard let doc = PDFDocument(url: url) else {
-            Dialogs.error("Açılamadı", QPDFError.cannotOpen(url.lastPathComponent))
+            Dialogs.error(String(localized: "Açılamadı"), QPDFError.cannotOpen(url.lastPathComponent))
             return nil
         }
         var password: String?
         if doc.isLocked {
             var unlocked = false
             for attempt in 0..<3 {
-                guard let pw = Dialogs.askText("\"\(url.lastPathComponent)\" şifre korumalı",
-                                               message: attempt == 0 ? "Belgeyi açmak için şifreyi girin." : "Şifre yanlış. Lütfen tekrar deneyin.",
-                                               placeholder: "Şifre", secure: true) else { return nil }
+                guard let pw = Dialogs.askText(String(localized: "\"\(url.lastPathComponent)\" şifre korumalı"),
+                                               message: attempt == 0 ? String(localized: "Belgeyi açmak için şifreyi girin.") : String(localized: "Şifre yanlış. Lütfen tekrar deneyin."),
+                                               placeholder: String(localized: "Şifre"), secure: true) else { return nil }
                 if doc.unlock(withPassword: pw) { password = pw; unlocked = true; break }
             }
             guard unlocked else { return nil }
@@ -168,7 +168,7 @@ final class AppState: ObservableObject {
 
     private func withDocument(_ configure: (DocumentSession) -> Void) {
         if let s = activeSession { configure(s); return }
-        guard let url = Dialogs.openPDFs(title: "Bir PDF seçin").first, let s = open(url) else { return }
+        guard let url = Dialogs.openPDFs(title: String(localized: "Bir PDF seçin")).first, let s = open(url) else { return }
         configure(s)
     }
 

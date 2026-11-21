@@ -35,7 +35,7 @@ struct SignatureCreatorView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Yeni İmza Oluştur").font(.title3.bold())
             Picker("", selection: $mode) {
-                ForEach(Mode.allCases) { Text($0.rawValue).tag($0) }
+                ForEach(Mode.allCases) { Text($0.rawValue.loc).tag($0) }
             }
             .pickerStyle(.segmented)
             .labelsHidden()
@@ -45,7 +45,7 @@ struct SignatureCreatorView: View {
                 switch mode {
                 case .draw: drawCanvas
                 case .type:
-                    Text(typed.isEmpty ? "Adınız" : typed)
+                    Text(typed.isEmpty ? String(localized: "Adınız") : typed)
                         .font(.custom(fontName, size: 44))
                         .foregroundStyle(ink)
                         .lineLimit(1)
@@ -147,7 +147,7 @@ struct SignatureCreatorView: View {
     }
 
     private func pickImage() {
-        if let u = Dialogs.openFiles(types: [.image], multiple: false, title: "İmza görseli seçin").first {
+        if let u = Dialogs.openFiles(types: [.image], multiple: false, title: String(localized: "İmza görseli seçin")).first {
             loaded = NSImage(contentsOf: u)
         }
     }

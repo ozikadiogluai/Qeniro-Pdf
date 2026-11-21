@@ -14,31 +14,31 @@ enum ToolKind: String, Identifiable, CaseIterable {
 
     var title: String {
         switch self {
-        case .editPDF: return "PDF Düzenle"
-        case .createPDF: return "PDF Oluştur"
-        case .merge: return "Dosyaları Birleştir"
-        case .split: return "PDF Böl"
-        case .compress: return "PDF Sıkıştır"
-        case .convert: return "Dönüştür"
-        case .toWord: return "PDF'yi Word'e"
-        case .toExcel: return "PDF'yi Excel'e"
-        case .toPowerPoint: return "PDF'yi PowerPoint'e"
-        case .sign: return "Doldur ve İmzala"
-        case .protect: return "Şifreyle Koru"
-        case .organize: return "Sayfaları Organize Et"
-        case .redact: return "PDF'de Sansürle"
-        case .ocr: return "Tara ve OCR"
+        case .editPDF: return String(localized: "PDF Düzenle")
+        case .createPDF: return String(localized: "PDF Oluştur")
+        case .merge: return String(localized: "Dosyaları Birleştir")
+        case .split: return String(localized: "PDF Böl")
+        case .compress: return String(localized: "PDF Sıkıştır")
+        case .convert: return String(localized: "Dönüştür")
+        case .toWord: return String(localized: "PDF'yi Word'e")
+        case .toExcel: return String(localized: "PDF'yi Excel'e")
+        case .toPowerPoint: return String(localized: "PDF'yi PowerPoint'e")
+        case .sign: return String(localized: "Doldur ve İmzala")
+        case .protect: return String(localized: "Şifreyle Koru")
+        case .organize: return String(localized: "Sayfaları Organize Et")
+        case .redact: return String(localized: "PDF'de Sansürle")
+        case .ocr: return String(localized: "Tara ve OCR")
         }
     }
 
     /// Ana sayfadaki kısa ad.
     var shortTitle: String {
         switch self {
-        case .merge: return "Birleştir"
-        case .split: return "Böl"
-        case .compress: return "Sıkıştır"
-        case .sign: return "İmzala"
-        case .protect: return "Koruma"
+        case .merge: return String(localized: "Birleştir")
+        case .split: return String(localized: "Böl")
+        case .compress: return String(localized: "Sıkıştır")
+        case .sign: return String(localized: "İmzala")
+        case .protect: return String(localized: "Koruma")
         default: return title
         }
     }
@@ -130,7 +130,7 @@ final class AppModel: ObservableObject {
         }
         guard let data, !data.isEmpty else {
             if scoped { url.stopAccessingSecurityScopedResource() }
-            errorMessage = "\"\(url.lastPathComponent)\" okunamadı. Dosya iCloud'da ise önce indirilmesini bekleyin."
+            errorMessage = String(localized: "\"\(url.lastPathComponent)\" okunamadı. Dosya iCloud'da ise önce indirilmesini bekleyin.")
             return
         }
         guard let doc = PDFDocument(data: data) else {
@@ -148,7 +148,7 @@ final class AppModel: ObservableObject {
 
     func unlock(_ request: PasswordRequest, password: String) {
         guard let doc = PDFDocument(data: request.data), doc.unlock(withPassword: password) else {
-            errorMessage = "Şifre yanlış."
+            errorMessage = String(localized: "Şifre yanlış.")
             return
         }
         let scoped = request.url.startAccessingSecurityScopedResource()
@@ -197,7 +197,7 @@ final class AppModel: ObservableObject {
     /// Taranan sayfaları OCR ile aranabilir PDF'ye çevirir, kaydeder ve açar.
     func finishScan(_ images: [UIImage]) {
         guard !images.isEmpty else { return }
-        busyMessage = "Sayfalar hazırlanıyor ve metin tanınıyor (OCR)…"
+        busyMessage = String(localized: "Sayfalar hazırlanıyor ve metin tanınıyor (OCR)…")
         let cgImages = images.compactMap { ImageAnnotation.makeCGImage($0) }
         Task {
             let pagesData: [Data] = await Task.detached(priority: .userInitiated) {
@@ -222,13 +222,13 @@ final class AppModel: ObservableObject {
             }
             busyMessage = nil
             guard doc.pageCount > 0 else {
-                errorMessage = "Taranan sayfalar PDF'ye çevrilemedi."
+                errorMessage = String(localized: "Taranan sayfalar PDF'ye çevrilemedi.")
                 return
             }
             let f = DateFormatter()
-            f.locale = Fmt.trLocale
+            f.locale = Fmt.locale
             f.dateFormat = "dd.MM.yyyy HH.mm"
-            saveAndOpen(doc, name: "Tarama \(f.string(from: Date()))")
+            saveAndOpen(doc, name: String(localized: "Tarama \(f.string(from: Date()))"))
         }
     }
 

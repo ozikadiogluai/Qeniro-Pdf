@@ -14,63 +14,63 @@ struct AllToolsPanel: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-            SheetHeader(title: "Tüm araçlar", cancelTitle: "Kapat", onCancel: close)
+            SheetHeader(title: String(localized: "Tüm araçlar"), cancelTitle: String(localized: "Kapat"), onCancel: close)
                 .padding(.horizontal, 12)
                 .padding(.top, 14)
                 .padding(.bottom, 4)
             List {
                 Section {
-                    row("Kaydet", "square.and.arrow.down", Theme.blue) {
+                    row(String(localized: "Kaydet"), "square.and.arrow.down", Theme.blue) {
                         if session.save() { session.infoMessage = "Kaydedildi." }
                     }
-                    row("Paylaş / kopyasını kaydet", "square.and.arrow.up", Theme.blue) { share() }
-                    row("Yazdır", "printer", Theme.secondary) { printDocument() }
-                    row(library.isStarred(session.url) ? "Yıldızı kaldır" : "Yıldızla", "star", Theme.star) {
+                    row(String(localized: "Paylaş / kopyasını kaydet"), "square.and.arrow.up", Theme.blue) { share() }
+                    row(String(localized: "Yazdır"), "printer", Theme.secondary) { printDocument() }
+                    row(library.isStarred(session.url) ? String(localized: "Yıldızı kaldır") : String(localized: "Yıldızla"), "star", Theme.star) {
                         if let u = session.url { library.toggleStar(u) }
                     }
                 }
                 Section("Düzenle ve organize et") {
-                    row("Sayfaları organize et", "square.grid.2x2", Theme.leaf) { session.openOrganizer() }
-                    row("Dosyaları birleştir", "rectangle.stack.badge.plus", Theme.blue) { showMergeImporter = true }
-                    row("Boş sayfa ekle", "doc.badge.plus", Theme.accent) { session.insertBlankPage(after: session.currentPageIndex) }
-                    link("PDF Böl", "scissors", Theme.purple) {
-                        PanelPage(title: "PDF Böl") {
+                    row(String(localized: "Sayfaları organize et"), "square.grid.2x2", Theme.leaf) { session.openOrganizer() }
+                    row(String(localized: "Dosyaları birleştir"), "rectangle.stack.badge.plus", Theme.blue) { showMergeImporter = true }
+                    row(String(localized: "Boş sayfa ekle"), "doc.badge.plus", Theme.accent) { session.insertBlankPage(after: session.currentPageIndex) }
+                    link(String(localized: "PDF Böl"), "scissors", Theme.purple) {
+                        PanelPage(title: String(localized: "PDF Böl")) {
                             SessionDataView(session: session) { d in SplitForm(data: d, name: session.displayName) }
                         }
                     }
-                    link("Üstbilgi ve altbilgi", "rectangle.topthird.inset.filled", Theme.secondary) { HeaderFooterForm(session: session) }
-                    link("Filigran", "drop", Theme.secondary) { WatermarkForm(session: session) }
+                    link(String(localized: "Üstbilgi ve altbilgi"), "rectangle.topthird.inset.filled", Theme.secondary) { HeaderFooterForm(session: session) }
+                    link(String(localized: "Filigran"), "drop", Theme.secondary) { WatermarkForm(session: session) }
                 }
                 Section("Koruma ve gizlilik") {
-                    link("PDF Sıkıştır", "arrow.down.right.and.arrow.up.left", Theme.accent) {
-                        PanelPage(title: "PDF Sıkıştır") {
+                    link(String(localized: "PDF Sıkıştır"), "arrow.down.right.and.arrow.up.left", Theme.accent) {
+                        PanelPage(title: String(localized: "PDF Sıkıştır")) {
                             SessionDataView(session: session) { d in CompressForm(data: d, name: session.displayName) }
                         }
                     }
-                    link("Şifreyle Koru", "lock.shield", Theme.indigo) {
-                        PanelPage(title: "Şifreyle Koru") {
+                    link(String(localized: "Şifreyle Koru"), "lock.shield", Theme.indigo) {
+                        PanelPage(title: String(localized: "Şifreyle Koru")) {
                             SessionDataView(session: session) { d in ProtectForm(data: d, name: session.displayName) }
                         }
                     }
-                    row("PDF'de Sansürle", "eye.slash", Theme.pink) {
+                    row(String(localized: "PDF'de Sansürle"), "eye.slash", Theme.pink) {
                         session.tool = .redact
                         detent = .height(220)
                     }
                     if session.redactionMarkCount > 0 {
-                        row("Sansürü uygula (\(session.redactionMarkCount) alan)", "checkmark.seal", Theme.pink) { confirmRedact = true }
+                        row(String(localized: "Sansürü uygula (\(session.redactionMarkCount) alan)"), "checkmark.seal", Theme.pink) { confirmRedact = true }
                     }
-                    link("Hassas bilgileri kaldır", "hand.raised", Theme.secondary) {
-                        PanelPage(title: "Hassas bilgileri kaldır") {
+                    link(String(localized: "Hassas bilgileri kaldır"), "hand.raised", Theme.secondary) {
+                        PanelPage(title: String(localized: "Hassas bilgileri kaldır")) {
                             SessionDataView(session: session) { d in SanitizeForm(data: d, name: session.displayName) }
                         }
                     }
                 }
                 Section("Tanıma ve yorum") {
-                    row("Tara ve OCR (aranabilir metin)", "text.viewfinder", Theme.blue) {
+                    row(String(localized: "Tara ve OCR (aranabilir metin)"), "text.viewfinder", Theme.blue) {
                         close()
                         session.runOCR(force: false)
                     }
-                    row("Yorum ekle", "text.bubble", Theme.orange) {
+                    row(String(localized: "Yorum ekle"), "text.bubble", Theme.orange) {
                         session.tool = .comment
                         detent = .height(220)
                     }

@@ -18,10 +18,10 @@ struct EditTabPanel: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
-                ToolPanelHeader(title: "Düzenle", onClose: { session.panel = nil })
+                ToolPanelHeader(title: String(localized: "Düzenle"), onClose: { session.panel = nil })
 
                 if session.tool == .editText || session.selectedTextItem != nil || selectedFreeText != nil {
-                    PanelCard(title: "Metin") {
+                    PanelCard(title: String(localized: "Metin")) {
                         TextPropertiesBox(session: session)
                         if let a = selectedFreeText {
                             Text("Metin kutusu içeriği").font(.callout).foregroundStyle(Theme.secondaryText)
@@ -38,7 +38,7 @@ struct EditTabPanel: View {
                             Button(role: .destructive) {
                                 if session.selectedAnnotation != nil { session.deleteSelected() } else { session.deleteSelectedTextItem() }
                             } label: {
-                                Label(session.selectedTextItem != nil && session.selectedAnnotation == nil ? "Seçili metin satırını sil" : "Seçili öğeyi sil",
+                                Label(session.selectedTextItem != nil && session.selectedAnnotation == nil ? String(localized: "Seçili metin satırını sil") : String(localized: "Seçili öğeyi sil"),
                                       systemImage: "trash")
                             }
                             .buttonStyle(QSecondaryButtonStyle(fullWidth: true, foreground: Theme.red))
@@ -46,43 +46,43 @@ struct EditTabPanel: View {
                     }
                 }
 
-                PanelCard(title: "İçerik ekle", spacing: 0, padding: 6) {
-                    ToolListRow(symbol: "textformat", title: "Metin", active: session.tool == .editText,
-                                trailing: session.tool == .editText ? "seçili" : nil) {
+                PanelCard(title: String(localized: "İçerik ekle"), spacing: 0, padding: 6) {
+                    ToolListRow(symbol: "textformat", title: String(localized: "Metin"), active: session.tool == .editText,
+                                trailing: session.tool == .editText ? String(localized: "seçili") : nil) {
                         session.tool = .editText
                     }
                     PanelDivider()
-                    ToolListRow(symbol: "photo", title: "Görüntü", active: session.tool == .addImage) {
-                        if let u = Dialogs.openFiles(types: [.image], multiple: false, title: "Görsel seçin").first,
+                    ToolListRow(symbol: "photo", title: String(localized: "Görüntü"), active: session.tool == .addImage) {
+                        if let u = Dialogs.openFiles(types: [.image], multiple: false, title: String(localized: "Görsel seçin")).first,
                            let img = NSImage(contentsOf: u) {
                             session.pendingImage = img
                             session.tool = .addImage
                         }
                     }
                     PanelDivider()
-                    ToolListRow(symbol: "menubar.rectangle", title: "Üstbilgi ve altbilgi", trailing: "›") {
+                    ToolListRow(symbol: "menubar.rectangle", title: String(localized: "Üstbilgi ve altbilgi"), trailing: "›") {
                         session.panel = .headerFooter
                     }
                     PanelDivider()
-                    ToolListRow(symbol: "drop", title: "Filigran", trailing: "›") {
+                    ToolListRow(symbol: "drop", title: String(localized: "Filigran"), trailing: "›") {
                         session.panel = .watermark
                     }
                     PanelDivider()
-                    ToolListRow(symbol: "link", title: "Bağlantı", active: session.tool == .addLink, trailing: "›") {
+                    ToolListRow(symbol: "link", title: String(localized: "Bağlantı"), active: session.tool == .addLink, trailing: "›") {
                         session.tool = .addLink
                     }
                     PanelDivider()
-                    ToolListRow(symbol: showMoreContent ? "chevron.up" : "ellipsis", title: showMoreContent ? "Daha az" : "Diğer") {
+                    ToolListRow(symbol: showMoreContent ? "chevron.up" : "ellipsis", title: showMoreContent ? String(localized: "Daha az") : String(localized: "Diğer")) {
                         withAnimation(.easeInOut(duration: 0.15)) { showMoreContent.toggle() }
                     }
                     if showMoreContent {
-                        ToolListRow(symbol: "character.textbox", title: "Serbest metin kutusu (yorum katmanı)", active: session.tool == .addText) {
+                        ToolListRow(symbol: "character.textbox", title: String(localized: "Serbest metin kutusu (yorum katmanı)"), active: session.tool == .addText) {
                             session.tool = .addText
                         }
-                        ToolListRow(symbol: "rectangle.on.rectangle", title: "Seçili metni örtüp yeniden yaz") {
+                        ToolListRow(symbol: "rectangle.on.rectangle", title: String(localized: "Seçili metni örtüp yeniden yaz")) {
                             if session.pdfView.currentSelection == nil {
                                 session.tool = .select
-                                Dialogs.info("Önce metni seçin", "Seçim aracı açıldı. Değiştirmek istediğiniz metni sürükleyerek seçin, sonra bu düğmeye tekrar basın.")
+                                Dialogs.info(String(localized: "Önce metni seçin"), String(localized: "Seçim aracı açıldı. Değiştirmek istediğiniz metni sürükleyerek seçin, sonra bu düğmeye tekrar basın."))
                             } else {
                                 session.replaceSelectedText()
                             }
@@ -95,20 +95,20 @@ struct EditTabPanel: View {
                     }
                 }
 
-                PanelCard(title: "Sayfa") {
+                PanelCard(title: String(localized: "Sayfa")) {
                     HStack(spacing: 6) {
-                        SquareIconButton(symbol: "rotate.right", help: "Sayfayı sağa döndür (90°)") {
+                        SquareIconButton(symbol: "rotate.right", help: String(localized: "Sayfayı sağa döndür (90°)")) {
                             session.rotateCurrent(by: 90)
                         }
-                        SquareIconButton(symbol: "crop", help: "Kırp: sayfada tutulacak alanı sürükleyin", active: session.tool == .crop) {
+                        SquareIconButton(symbol: "crop", help: String(localized: "Kırp: sayfada tutulacak alanı sürükleyin"), active: session.tool == .crop) {
                             session.tool = .crop
                         }
-                        SquareIconButton(symbol: "trash", help: "Geçerli sayfayı sil", destructive: true) {
-                            if Dialogs.confirm("Sayfa \(session.currentPageIndex + 1) silinsin mi?", "Bu işlemi ⌘Z ile geri alabilirsiniz.", ok: "Sil") {
+                        SquareIconButton(symbol: "trash", help: String(localized: "Geçerli sayfayı sil"), destructive: true) {
+                            if Dialogs.confirm(String(localized: "Sayfa \(session.currentPageIndex + 1) silinsin mi?"), String(localized: "Bu işlemi ⌘Z ile geri alabilirsiniz."), ok: String(localized: "Sil")) {
                                 session.deletePages([session.currentPageIndex])
                             }
                         }
-                        SquareIconButton(symbol: "rectangle.portrait.and.arrow.right", help: "Sayfayı çıkar (yeni PDF olarak kaydet)") {
+                        SquareIconButton(symbol: "rectangle.portrait.and.arrow.right", help: String(localized: "Sayfayı çıkar (yeni PDF olarak kaydet)")) {
                             session.extractPages([session.currentPageIndex])
                         }
                     }
@@ -116,10 +116,10 @@ struct EditTabPanel: View {
                         .buttonStyle(QSecondaryButtonStyle(height: 34, fullWidth: true))
                 }
 
-                PanelCard(title: "Diğer seçenekler", spacing: 0, padding: 6) {
-                    ToolListRow(symbol: "square.on.square", title: "Dosyaları birleştir") { app.perform(.merge) }
-                    ToolListRow(symbol: "eye.slash", title: "PDF'ye Redaksiyon Yap") { app.perform(.redact) }
-                    ToolListRow(symbol: "list.bullet.rectangle", title: "Form hazırla") { session.panel = .formPrepare }
+                PanelCard(title: String(localized: "Diğer seçenekler"), spacing: 0, padding: 6) {
+                    ToolListRow(symbol: "square.on.square", title: String(localized: "Dosyaları birleştir")) { app.perform(.merge) }
+                    ToolListRow(symbol: "eye.slash", title: String(localized: "PDF'ye Redaksiyon Yap")) { app.perform(.redact) }
+                    ToolListRow(symbol: "list.bullet.rectangle", title: String(localized: "Form hazırla")) { session.panel = .formPrepare }
                 }
             }
             .padding(12)
@@ -215,8 +215,8 @@ struct TextPropertiesBox: View {
                 }
             }
             Text(session.selectedTextItem != nil && session.selectedAnnotation == nil
-                 ? "Değişiklikler seçili satıra uygulanır. Yazı tipi değişirse satır seçilen sistem yazı tipiyle yeniden yazılır."
-                 : "Seçim yokken bu ayarlar yeni eklenecek metne uygulanır.")
+                 ? String(localized: "Değişiklikler seçili satıra uygulanır. Yazı tipi değişirse satır seçilen sistem yazı tipiyle yeniden yazılır.")
+                 : String(localized: "Seçim yokken bu ayarlar yeni eklenecek metne uygulanır."))
                 .font(.callout)
                 .foregroundStyle(Theme.secondaryText)
                 .fixedSize(horizontal: false, vertical: true)
@@ -255,7 +255,7 @@ struct RedactPanel: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                ToolPanelHeader(title: "PDF'yi redakte et",
+                ToolPanelHeader(title: String(localized: "PDF'yi redakte et"),
                                 onBack: { session.panel = .tab; session.tool = .select },
                                 onClose: { session.panel = nil; session.tool = .select })
                 PanelCard(spacing: 10) {
@@ -263,17 +263,17 @@ struct RedactPanel: View {
                     .font(.callout).foregroundStyle(Theme.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)
 
-                PanelSectionTitle("İşaretle")
-                PanelRow(symbol: "rectangle.dashed", title: "Alan işaretle", active: session.tool == .redact) {
+                PanelSectionTitle(String(localized: "İşaretle"))
+                PanelRow(symbol: "rectangle.dashed", title: String(localized: "Alan işaretle"), active: session.tool == .redact) {
                     session.tool = .redact
                 }
-                PanelRow(symbol: "text.badge.xmark", title: "Seçili metni işaretle") {
+                PanelRow(symbol: "text.badge.xmark", title: String(localized: "Seçili metni işaretle")) {
                     if let sel = session.pdfView.currentSelection {
                         lastMarked = session.markRedactions(for: [sel])
                         session.pdfView.clearSelection()
                     } else {
                         session.tool = .select
-                        Dialogs.info("Metin seçilmedi", "Önce seçim aracıyla metni seçin.")
+                        Dialogs.info(String(localized: "Metin seçilmedi"), String(localized: "Önce seçim aracıyla metni seçin."))
                     }
                 }
                 Text("Ara ve tümünü işaretle").font(.caption).foregroundStyle(.secondary)
@@ -290,7 +290,7 @@ struct RedactPanel: View {
 
                 Rectangle().fill(Theme.divider).frame(height: 1).padding(.vertical, 4)
 
-                PanelSectionTitle("Uygula")
+                PanelSectionTitle(String(localized: "Uygula"))
                 Text("Toplam \(session.redactionMarkCount) işaret").font(.caption).foregroundStyle(.secondary)
                 Toggle("Kalan metni seçilebilir tut (OCR)", isOn: $restoreText)
                     .font(.callout)

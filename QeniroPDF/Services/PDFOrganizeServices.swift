@@ -41,7 +41,7 @@ enum PDFSplitService {
         switch mode {
         case .ranges(let text):
             groups = DocTools.parseRanges(text, pageCount: n)
-            if groups.isEmpty { throw QPDFError.message("Sayfa aralığı anlaşılamadı. Örnek: 1-3, 5, 8-") }
+            if groups.isEmpty { throw QPDFError.message(String(localized: "Sayfa aralığı anlaşılamadı. Örnek: 1-3, 5, 8-")) }
         case .everyN(let k):
             let step = max(1, k)
             var i = 0
@@ -73,9 +73,9 @@ enum CompressionLevel: String, CaseIterable, Identifiable, Sendable {
     var id: String { rawValue }
     var title: String {
         switch self {
-        case .low: return "Düşük (en iyi kalite)"
-        case .medium: return "Orta (önerilen)"
-        case .high: return "Yüksek (en küçük boyut)"
+        case .low: return String(localized: "Düşük (en iyi kalite)")
+        case .medium: return String(localized: "Orta (önerilen)")
+        case .high: return String(localized: "Yüksek (en küçük boyut)")
         }
     }
     var quality: Double { self == .low ? 0.75 : (self == .medium ? 0.55 : 0.35) }
@@ -129,7 +129,7 @@ enum PDFCompressService {
 
         if rasterize {
             try rasterizeAll(doc: doc, level: level, output: output)
-            note = "Sayfalar görüntüye çevrildi; metin seçilebilirliği OCR ile geri eklendi."
+            note = String(localized: "Sayfalar görüntüye çevrildi; metin seçilebilirliği OCR ile geri eklendi.")
         } else {
             var wrote = false
             if let furl = makeFilterURL(level: level) {
@@ -142,7 +142,7 @@ enum PDFCompressService {
         }
         let after = Fmt.fileSize(of: output)
         if after >= before && !rasterize {
-            note = "Bu dosya zaten iyi sıkıştırılmış; boyut azaltılamadı. Daha fazla küçültmek için \"Sayfaları görüntüye çevir\" seçeneğini deneyin."
+            note = String(localized: "Bu dosya zaten iyi sıkıştırılmış; boyut azaltılamadı. Daha fazla küçültmek için \"Sayfaları görüntüye çevir\" seçeneğini deneyin.")
         }
         return CompressResult(before: before, after: after, output: output, note: note)
     }
@@ -194,7 +194,7 @@ enum PDFProtectService {
     static func removePassword(input: URL, password: String, output: URL) throws {
         guard let doc = PDFDocument(url: input) else { throw QPDFError.cannotOpen(input.lastPathComponent) }
         if doc.isLocked || doc.isEncrypted {
-            guard doc.unlock(withPassword: password) else { throw QPDFError.message("Şifre yanlış.") }
+            guard doc.unlock(withPassword: password) else { throw QPDFError.message(String(localized: "Şifre yanlış.")) }
         }
         let out = DocTools.rebuiltCopy(of: doc)
         if let attrs = doc.documentAttributes { out.documentAttributes = attrs }
@@ -243,13 +243,13 @@ enum PDFSanitizeService {
         }
         if o.metadata {
             doc.documentAttributes = [:]
-            report.append("Meta veriler (yazar, başlık, oluşturan uygulama, XMP) kaldırıldı")
+            report.append(String(localized: "Meta veriler (yazar, başlık, oluşturan uygulama, XMP) kaldırıldı"))
         }
-        if o.scripts { report.append("Belge düzeyindeki komutlar ve gömülü JavaScript kaldırıldı" + (removedActions > 0 ? " (\(removedActions) eylem)" : "")) }
-        if o.comments { report.append("\(removedAnn) yorum/açıklama kaldırıldı") }
-        if o.attachments { report.append("Gömülü dosyalar kaldırıldı" + (removedFiles > 0 ? " (\(removedFiles) ek)" : "")) }
-        if o.formData { report.append("\(clearedFields) form alanının değeri temizlendi") }
-        if o.links { report.append("\(removedLinks) bağlantı kaldırıldı") }
+        if o.scripts { report.append(String(localized: "Belge düzeyindeki komutlar ve gömülü JavaScript kaldırıldı") + (removedActions > 0 ? String(localized: " (\(removedActions) eylem)") : "")) }
+        if o.comments { report.append(String(localized: "\(removedAnn) yorum/açıklama kaldırıldı")) }
+        if o.attachments { report.append(String(localized: "Gömülü dosyalar kaldırıldı") + (removedFiles > 0 ? String(localized: " (\(removedFiles) ek)") : "")) }
+        if o.formData { report.append(String(localized: "\(clearedFields) form alanının değeri temizlendi")) }
+        if o.links { report.append(String(localized: "\(removedLinks) bağlantı kaldırıldı")) }
         try DocTools.write(doc, to: output)
         return report
     }

@@ -15,7 +15,7 @@ final class ToolJob: ObservableObject {
     @Published var error: String?
     @Published var output: ToolOutput?
 
-    func run(_ message: String = "İşleniyor…", _ work: @escaping @Sendable () throws -> ToolOutput) {
+    func run(_ message: String = String(localized: "İşleniyor…"), _ work: @escaping @Sendable () throws -> ToolOutput) {
         guard !running else { return }
         running = true
         error = nil
@@ -121,7 +121,7 @@ struct ToolResultView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
                 Image(systemName: "checkmark.circle.fill").foregroundStyle(Theme.green)
-                Text(output.urls.count == 1 ? "Hazır" : "\(output.urls.count) dosya hazır")
+                Text(output.urls.count == 1 ? String(localized: "Hazır") : String(localized: "\(output.urls.count) dosya hazır"))
                     .font(.system(size: 16, weight: .semibold))
             }
             if let note = output.note {
@@ -139,10 +139,10 @@ struct ToolResultView: View {
                     Text("… ve \(output.urls.count - 6) dosya daha").font(.system(size: 13)).foregroundStyle(Theme.secondary)
                 }
             }
-            PrimaryButton(title: "Paylaş veya Dosyalara Kaydet") { share = ShareItem(urls: output.urls) }
+            PrimaryButton(title: String(localized: "Paylaş veya Dosyalara Kaydet")) { share = ShareItem(urls: output.urls) }
             // Görüntüleyici açıkken başka belge açılmaz (kaydedilmemiş değişiklikler kaybolmasın).
             if allowOpen, app.session == nil, output.urls.count == 1, let u = output.urls.first, u.pathExtension.lowercased() == "pdf" {
-                OutlineButton(title: "Qeniro PDF'de aç", icon: "doc") {
+                OutlineButton(title: String(localized: "Qeniro PDF'de aç"), icon: "doc") {
                     let target = DocTools.uniqueDocumentURL(u.deletingPathExtension().lastPathComponent)
                     do {
                         try FileManager.default.copyItem(at: u, to: target)
@@ -189,7 +189,7 @@ struct SplitForm: View {
             } else if mode == 1 {
                 Stepper("Her \(every) sayfada bir dosya", value: $every, in: 1...500)
             }
-            PrimaryButton(title: "Böl", busy: job.running) {
+            PrimaryButton(title: String(localized: "Böl"), busy: job.running) {
                 let m: SplitMode = mode == 0 ? .ranges(ranges) : (mode == 1 ? .everyN(every) : .single)
                 let d = data, base = (name as NSString).deletingPathExtension
                 job.run {
@@ -223,14 +223,14 @@ struct CompressForm: View {
             }
             Toggle("Sayfaları görüntüye çevir (en küçük boyut)", isOn: $rasterize)
                 .font(.system(size: 14.5))
-            PrimaryButton(title: "Sıkıştır", busy: job.running) {
+            PrimaryButton(title: String(localized: "Sıkıştır"), busy: job.running) {
                 let d = data, n = name, lv = level, r = rasterize
                 job.run {
                     let folder = try DocTools.freshOutputFolder()
-                    let out = folder.appendingPathComponent((n as NSString).deletingPathExtension + "_sıkıştırılmış.pdf")
+                    let out = folder.appendingPathComponent((n as NSString).deletingPathExtension + String(localized: "_sıkıştırılmış.pdf"))
                     let res = try PDFCompressService.compress(data: d, name: n, output: out, level: lv, rasterize: r)
                     let saved = res.before > 0 ? Int((1 - Double(res.after) / Double(res.before)) * 100) : 0
-                    var note = "\(Fmt.fileSize(res.before)) → \(Fmt.fileSize(res.after))" + (saved > 0 ? " (%\(saved) daha küçük)" : "")
+                    var note = "\(Fmt.fileSize(res.before)) → \(Fmt.fileSize(res.after))" + (saved > 0 ? String(localized: " (%\(saved) daha küçük)") : "")
                     if let n2 = res.note { note += "\n" + n2 }
                     return ToolOutput(urls: [res.output], note: note)
                 }
@@ -260,17 +260,17 @@ struct ProtectForm: View {
             SecureField("İzin şifresi (isteğe bağlı)", text: $permissionsPassword).textFieldStyle(.roundedBorder)
             Toggle("Yazdırmaya izin ver", isOn: $allowPrinting).font(.system(size: 14.5))
             Toggle("Metin kopyalamaya izin ver", isOn: $allowCopying).font(.system(size: 14.5))
-            PrimaryButton(title: "Şifreyle Koru", busy: job.running) {
-                guard !openPassword.isEmpty else { job.error = "Bir açma şifresi girin."; return }
-                guard openPassword == confirm else { job.error = "Şifreler aynı değil."; return }
+            PrimaryButton(title: String(localized: "Şifreyle Koru"), busy: job.running) {
+                guard !openPassword.isEmpty else { job.error = String(localized: "Bir açma şifresi girin."); return }
+                guard openPassword == confirm else { job.error = String(localized: "Şifreler aynı değil."); return }
                 let o = ProtectOptions(openPassword: openPassword, permissionsPassword: permissionsPassword,
                                        allowPrinting: allowPrinting, allowCopying: allowCopying)
                 let d = data, n = name
                 job.run {
                     let folder = try DocTools.freshOutputFolder()
-                    let out = folder.appendingPathComponent((n as NSString).deletingPathExtension + "_korumalı.pdf")
+                    let out = folder.appendingPathComponent((n as NSString).deletingPathExtension + String(localized: "_korumalı.pdf"))
                     try PDFProtectService.protect(data: d, name: n, output: out, options: o)
-                    return ToolOutput(urls: [out], note: "Dosya 128 bit AES ile şifrelendi. Şifreyi unutmayın; kurtarılamaz.")
+                    return ToolOutput(urls: [out], note: String(localized: "Dosya 128 bit AES ile şifrelendi. Şifreyi unutmayın; kurtarılamaz."))
                 }
             }
             if let e = job.error { Text(e).font(.system(size: 13)).foregroundStyle(Theme.accent) }
@@ -295,11 +295,11 @@ struct SanitizeForm: View {
             Toggle("Komutlar ve JavaScript", isOn: $o.scripts)
             Toggle("Form alanı değerleri", isOn: $o.formData)
             Toggle("Bağlantılar", isOn: $o.links)
-            PrimaryButton(title: "Temizle", busy: job.running) {
+            PrimaryButton(title: String(localized: "Temizle"), busy: job.running) {
                 let d = data, n = name, opts = o
                 job.run {
                     let folder = try DocTools.freshOutputFolder()
-                    let out = folder.appendingPathComponent((n as NSString).deletingPathExtension + "_temiz.pdf")
+                    let out = folder.appendingPathComponent((n as NSString).deletingPathExtension + String(localized: "_temiz.pdf"))
                     let report = try PDFSanitizeService.sanitize(data: d, name: n, output: out, options: opts)
                     return ToolOutput(urls: [out], note: report.joined(separator: "\n"))
                 }

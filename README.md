@@ -127,3 +127,23 @@ Both apps were restyled to the **Lacivert** (navy) palette of the main Qeniro ap
 - **Notes:** iPhone sheets keep a small 220 pt detent next to `.medium/.large` so the page stays visible during inline
   editing. The Mac keeps the standard window title bar. The theme was written without a compiler (Linux); build and
   check it on a Mac.
+
+## Languages
+
+The interface is available in 8 languages: **Turkish** (development language), **English**, **Spanish**,
+**Portuguese** (a neutral `pt` for Brazil and Portugal), **Italian**, **Arabic** (right-to-left), **Dutch** and
+**French**. The app follows the device/app language automatically; for any other language it falls back to Turkish.
+
+- **Changing the language:** iPhone — *Settings > Qeniro PDF > Language*; Mac — *System Settings > General >
+  Language & Region > Applications > + > Qeniro PDF*. In the app: the bell menu > Settings > **Language** on iPhone
+  (opens iOS Settings), and Settings > General > **Language** or the Theme menu > *Open Language & Region Settings…* on Mac.
+- **Strings:** `QeniroPDF/Resources/Localizable.xcstrings` and `iOS/QeniroPDFiOS/Resources/Localizable.xcstrings`
+  (String Catalogs, source language `tr`). Code that returns `String` uses `String(localized:)`; SwiftUI literals are
+  keys; enum raw values are translated with `.loc`. `InfoPlist.xcstrings` localizes permission prompts and the
+  "PDF Document" type name (the app name stays "Qeniro PDF").
+- **Formats:** dates, percentages and file sizes follow `Locale.current`.
+- **Arabic (RTL):** SwiftUI layouts mirror automatically; back/forward chevrons use
+  `flipsForRightToLeftLayoutDirection`; the PDF page itself is never mirrored.
+- **OCR languages:** Turkish, English, German, French, Spanish, Italian, Portuguese, Dutch, Arabic — only those Apple
+  Vision supports on the running OS are listed; the default is the device language.
+- **Header/footer tokens:** `{n}`, `{N}`, and `{date}` (or `{tarih}`).

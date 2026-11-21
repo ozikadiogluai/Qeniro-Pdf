@@ -110,14 +110,14 @@ struct FileListEditor: View {
     let types: [UTType]
     var multiple = true
     var reorderable = false
-    var title = "Dosyalar"
+    var title = String(localized: "Dosyalar")
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title).font(.subheadline.bold())
             List {
                 if files.isEmpty {
-                    Text(multiple ? "Dosyaları buraya sürükleyin veya \"Dosya Ekle\" ile seçin." : "Bir dosyayı buraya sürükleyin veya \"Dosya Seç\" ile seçin.")
+                    Text(multiple ? String(localized: "Dosyaları buraya sürükleyin veya \"Dosya Ekle\" ile seçin.") : String(localized: "Bir dosyayı buraya sürükleyin veya \"Dosya Seç\" ile seçin."))
                         .foregroundStyle(.secondary)
                 }
                 ForEach(files, id: \.self) { u in
@@ -143,8 +143,8 @@ struct FileListEditor: View {
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Theme.divider))
             HStack {
-                Button(multiple ? "Dosya Ekle…" : "Dosya Seç…") {
-                    let picked = Dialogs.openFiles(types: types, multiple: multiple, title: multiple ? "Dosya ekle" : "Dosya seç")
+                Button(multiple ? String(localized: "Dosya Ekle…") : String(localized: "Dosya Seç…")) {
+                    let picked = Dialogs.openFiles(types: types, multiple: multiple, title: multiple ? String(localized: "Dosya ekle") : String(localized: "Dosya seç"))
                     if multiple { files.append(contentsOf: picked.filter { !files.contains($0) }) }
                     else if let f = picked.first { files = [f] }
                 }
@@ -197,6 +197,6 @@ enum ToolIO {
 
     static func sizeChange(_ before: Int64, _ after: Int64) -> String {
         let pct = before > 0 ? Int((1 - Double(after) / Double(before)) * 100) : 0
-        return "\(Fmt.fileSize(before)) → \(Fmt.fileSize(after))" + (pct > 0 ? " (%\(pct) küçüldü)" : "")
+        return "\(Fmt.fileSize(before)) → \(Fmt.fileSize(after))" + (pct > 0 ? String(localized: " (%\(pct) küçüldü)") : "")
     }
 }

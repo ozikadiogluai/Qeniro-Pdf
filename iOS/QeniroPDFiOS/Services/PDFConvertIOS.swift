@@ -21,8 +21,8 @@ enum ConvertTarget: String, CaseIterable, Identifiable, Sendable {
         case .word: return "Microsoft Word"
         case .powerpoint: return "Microsoft PowerPoint"
         case .excel: return "Microsoft Excel"
-        case .image: return "Görüntü (JPEG, PNG)"
-        case .other: return "Diğer (RTF, TXT, HTML)"
+        case .image: return String(localized: "Görüntü (JPEG, PNG)")
+        case .other: return String(localized: "Diğer (RTF, TXT, HTML)")
         }
     }
     var badge: String {
@@ -61,12 +61,11 @@ struct ConvertOptions: Sendable {
 
     /// "DOCX'e Dönüştür", "PNG'ye Dönüştür"… (Türkçe ek uyumu, harf harf okunuşa göre).
     var buttonTitle: String {
-        let suffix: String
-        switch formatName {
-        case "PNG", "TXT": suffix = "'ye"
-        default: suffix = "'e"
+        let name = formatName
+        switch name {
+        case "PNG", "TXT": return String(localized: "\(name)'ye Dönüştür")
+        default: return String(localized: "\(name)'e Dönüştür")
         }
-        return formatName + suffix + " Dönüştür"
     }
 }
 
@@ -126,7 +125,7 @@ enum PDFConvertService {
                     let d = try m.data(from: NSRange(location: 0, length: m.length), documentAttributes: attrs)
                     try d.write(to: out, options: .atomic)
                 } catch {
-                    throw QPDFError.message("\(o.otherFormat.title) oluşturulamadı.")
+                    throw QPDFError.message(String(localized: "\(o.otherFormat.title) oluşturulamadı."))
                 }
                 return [out]
             }
@@ -153,20 +152,5 @@ enum PDFConvertService {
     }
 }
 
-/// Tanınan metin dili (Dönüştür panelindeki seçim).
-enum OCRLanguage: String, CaseIterable, Identifiable {
-    case turkish = "tr-TR", english = "en-US", german = "de-DE", french = "fr-FR", spanish = "es-ES", italian = "it-IT"
-    var id: String { rawValue }
-    var title: String {
-        switch self {
-        case .turkish: return "Türkçe"
-        case .english: return "İngilizce"
-        case .german: return "Almanca"
-        case .french: return "Fransızca"
-        case .spanish: return "İspanyolca"
-        case .italian: return "İtalyanca"
-        }
-    }
-    /// Vision'a verilecek dil listesi (ikinci dil olarak İngilizce eklenir).
-    var visionLanguages: [String] { self == .english ? ["en-US"] : [rawValue, "en-US"] }
-}
+// Tanınan metin dilleri artık PDFOCRService.availableLanguages / defaultLanguage ile
+// (Vision desteğine ve cihaz diline göre) belirlenir; adlar arayüz dilinde gösterilir.

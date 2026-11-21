@@ -24,6 +24,7 @@ struct ViewerView: View {
             ZStack(alignment: .bottom) {
                 Theme.viewerBackground
                 PDFCanvas(session: session)
+                    .environment(\.layoutDirection, .leftToRight) // PDF sayfası dile göre aynalanmaz
                     .ignoresSafeArea(.keyboard)
                 VStack(spacing: 10) {
                     if session.selectedAnnotation != nil && session.tool == .select { selectionBar }
@@ -206,7 +207,7 @@ struct ViewerView: View {
                 share = ShareItem(urls: [u])
             }
         } else {
-            session.errorMessage = "Belge paylaşım için hazırlanamadı."
+            session.errorMessage = String(localized: "Belge paylaşım için hazırlanamadı.")
         }
     }
 
@@ -217,11 +218,11 @@ struct ViewerView: View {
             switch session.mode {
             case .edit?:
                 if session.activeTab == nil {
-                    capsuleButton("Vazgeç") { session.cancelMode() }
+                    capsuleButton(String(localized: "Vazgeç")) { session.cancelMode() }
                 } else {
                     Color.clear.frame(width: 44, height: 44)
                 }
-                titleBlock(title: "Düzenle", subtitle: session.displayName)
+                titleBlock(title: String(localized: "Düzenle"), subtitle: session.displayName)
                 Button { session.undo() } label: {
                     Image(systemName: "arrow.uturn.backward").font(.system(size: 17))
                         .foregroundStyle(session.canUndo ? Theme.text : Theme.chevron)
@@ -231,25 +232,25 @@ struct ViewerView: View {
                 .qGlass(Circle())
                 .accessibilityLabel("Geri al")
                 if session.activeTab == nil {
-                    capsuleButton("Kaydet", primary: true) {
+                    capsuleButton(String(localized: "Kaydet"), primary: true) {
                         if session.save() { session.exitMode() }
                     }
                 }
             case .sign?:
                 if session.activeTab == nil {
-                    capsuleButton("Vazgeç") { session.cancelMode() }
+                    capsuleButton(String(localized: "Vazgeç")) { session.cancelMode() }
                 } else {
                     Color.clear.frame(width: 44, height: 44)
                 }
-                titleBlock(title: "Doldur ve İmzala", subtitle: "Sayfa \(session.currentPageIndex + 1) / \(session.pageCount)")
+                titleBlock(title: String(localized: "Doldur ve İmzala"), subtitle: String(localized: "Sayfa \(session.currentPageIndex + 1) / \(session.pageCount)"))
                 if session.activeTab == nil {
-                    capsuleButton("Uygula", primary: true) { confirmApplySign = true }
+                    capsuleButton(String(localized: "Uygula"), primary: true) { confirmApplySign = true }
                 } else {
                     Color.clear.frame(width: 44, height: 44)
                 }
             default:
                 Button { close() } label: {
-                    Image(systemName: "chevron.left")
+                    Image(systemName: "chevron.left").flipsForRightToLeftLayoutDirection(true)
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(Theme.text)
                         .frame(width: 44, height: 44)
@@ -259,7 +260,7 @@ struct ViewerView: View {
                 .qGlass(Circle())
                 .accessibilityLabel("Geri")
                 titleBlock(title: session.displayName + (session.isDirty ? " •" : ""),
-                           subtitle: "Sayfa \(session.currentPageIndex + 1) / \(session.pageCount)")
+                           subtitle: String(localized: "Sayfa \(session.currentPageIndex + 1) / \(session.pageCount)"))
                 HStack(spacing: 0) {
                     Button {
                         session.isSearching.toggle()
@@ -395,16 +396,16 @@ struct ViewerView: View {
 
     private var floatingToolbar: some View {
         VStack(spacing: 2) {
-            toolButton("cursorarrow", "Seç", selected: session.tool == .select || session.tool == .editText && session.mode == nil) {
+            toolButton("cursorarrow", String(localized: "Seç"), selected: session.tool == .select || session.tool == .editText && session.mode == nil) {
                 session.tool = session.mode == .edit ? .editText : .select
             }
-            toolButton("text.bubble", "Yorum", selected: session.tool == .comment) {
+            toolButton("text.bubble", String(localized: "Yorum"), selected: session.tool == .comment) {
                 session.tool = session.tool == .comment ? .select : .comment
             }
-            toolButton("highlighter", "Vurgula", selected: false, accent: Theme.orange) {
+            toolButton("highlighter", String(localized: "Vurgula"), selected: false, accent: Theme.orange) {
                 session.applyMarkup(.highlight)
             }
-            toolButton("scribble.variable", "Çiz", selected: session.tool == .draw) {
+            toolButton("scribble.variable", String(localized: "Çiz"), selected: session.tool == .draw) {
                 session.tool = session.tool == .draw ? .select : .draw
             }
             Menu {
@@ -427,7 +428,7 @@ struct ViewerView: View {
                 Button {
                     if let u = session.url { library.toggleStar(u) }
                 } label: {
-                    Label(library.isStarred(session.url) ? "Yıldızı kaldır" : "Yıldızla", systemImage: "star")
+                    Label(library.isStarred(session.url) ? String(localized: "Yıldızı kaldır") : String(localized: "Yıldızla"), systemImage: "star")
                 }
                 Button { session.rotateCurrent(by: 90) } label: { Label("Sayfayı döndür", systemImage: "rotate.right") }
             } label: {
@@ -444,8 +445,8 @@ struct ViewerView: View {
     }
 
     let inkColors: [(String, UIColor)] = [
-        ("Kırmızı", UIColor(hex: 0xD23B2B)), ("Lacivert", UIColor(hex: 0x2E4A5E)), ("Siyah", UIColor(hex: 0x111111)),
-        ("Yeşil", UIColor(hex: 0x178A4C)), ("Turuncu", UIColor(hex: 0xE07A1F))
+        (String(localized: "Kırmızı"), UIColor(hex: 0xD23B2B)), (String(localized: "Lacivert"), UIColor(hex: 0x2E4A5E)), (String(localized: "Siyah"), UIColor(hex: 0x111111)),
+        (String(localized: "Yeşil"), UIColor(hex: 0x178A4C)), (String(localized: "Turuncu"), UIColor(hex: 0xE07A1F))
     ]
 
     private func toolButton(_ icon: String, _ label: String, selected: Bool, accent: Color? = nil, action: @escaping () -> Void) -> some View {
@@ -464,13 +465,13 @@ struct ViewerView: View {
     private var selectionBar: some View {
         HStack(spacing: 4) {
             if let a = session.selectedAnnotation, a.isFreeText {
-                smallButton("Düzenle", "character.cursor.ibeam") { session.inlineTarget = .annotation(a) }
+                smallButton(String(localized: "Düzenle"), "character.cursor.ibeam") { session.inlineTarget = .annotation(a) }
             }
             if let a = session.selectedAnnotation, a.subtypeName != "Link" {
-                smallButton("Küçült", "minus.magnifyingglass") { session.scaleSelected(0.85) }
-                smallButton("Büyüt", "plus.magnifyingglass") { session.scaleSelected(1.18) }
+                smallButton(String(localized: "Küçült"), "minus.magnifyingglass") { session.scaleSelected(0.85) }
+                smallButton(String(localized: "Büyüt"), "plus.magnifyingglass") { session.scaleSelected(1.18) }
             }
-            smallButton("Sil", "trash") { session.deleteSelected() }
+            smallButton(String(localized: "Sil"), "trash") { session.deleteSelected() }
         }
         .padding(4)
         .qGlassCapsule()
@@ -510,7 +511,7 @@ struct ViewerView: View {
                     VStack(spacing: 2) {
                         Image(systemName: tab.icon).font(.system(size: 16, weight: .medium))
                             .frame(height: 20)
-                        Text(tab == .allTools ? "Araçlar" : tab.title)
+                        Text(tab == .allTools ? String(localized: "Araçlar") : tab.title)
                             .font(.caption2.weight(.medium))
                             .lineLimit(1)
                     }

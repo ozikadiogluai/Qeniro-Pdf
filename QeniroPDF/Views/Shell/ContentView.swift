@@ -120,10 +120,15 @@ struct SidebarView: View {
                     ForEach(AppearanceChoice.allCases) { Text($0.title).tag($0.rawValue) }
                 }
                 .pickerStyle(.inline)
+                Divider()
+                Section("Dil: \(Fmt.appLanguageName)") {
+                    Text("Sistem Ayarları > Genel > Dil ve Bölge > Uygulamalar")
+                    Button("Dil ve Bölge ayarlarını aç…") { LanguageSettings.open() }
+                }
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Tema").font(.callout.weight(.semibold)).foregroundStyle(Theme.text)
-                    Text("Lacivert · " + (AppearanceChoice(rawValue: appearanceRaw) ?? .system).title)
+                    Text(String(localized: "Lacivert · ") + (AppearanceChoice(rawValue: appearanceRaw) ?? .system).title)
                         .font(.callout)
                         .foregroundStyle(Theme.secondaryText)
                 }
@@ -152,8 +157,8 @@ struct TabBarView: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            tabButton("Ana Sayfa", active: app.tab == .shell && app.sidebar != .tools) { app.showShell(.home) }
-            tabButton("Araçlar", active: app.tab == .shell && app.sidebar == .tools) { app.showShell(.tools) }
+            tabButton(String(localized: "Ana Sayfa"), active: app.tab == .shell && app.sidebar != .tools) { app.showShell(.home) }
+            tabButton(String(localized: "Araçlar"), active: app.tab == .shell && app.sidebar == .tools) { app.showShell(.tools) }
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 4) {
                     ForEach(app.sessions) { s in
@@ -230,15 +235,15 @@ struct TopIconsView: View {
 
     var body: some View {
         HStack(spacing: 6) {
-            iconButton("plus", "PDF aç (⌘O)") { app.openPanel() }
-            iconButton("questionmark", "Yardım") { showHelp.toggle() }
+            iconButton("plus", String(localized: "PDF aç (⌘O)")) { app.openPanel() }
+            iconButton("questionmark", String(localized: "Yardım")) { showHelp.toggle() }
                 .popover(isPresented: $showHelp, arrowEdge: .top) { HelpPopover() }
-            iconButton(app.unreadNotices > 0 ? "bell.badge" : "bell", "Bildirimler") {
+            iconButton(app.unreadNotices > 0 ? "bell.badge" : "bell", String(localized: "Bildirimler")) {
                 showNotices.toggle()
                 app.markNoticesRead()
             }
             .popover(isPresented: $showNotices, arrowEdge: .top) { NoticesPopover() }
-            iconButton("person", "Hesap") { showAccount.toggle() }
+            iconButton("person", String(localized: "Hesap")) { showAccount.toggle() }
                 .popover(isPresented: $showAccount, arrowEdge: .top) { AccountPopover() }
             Spacer(minLength: 0)
         }
@@ -261,10 +266,10 @@ struct TopIconsView: View {
 
 struct HelpPopover: View {
     let shortcuts: [(String, String)] = [
-        ("⌘O", "PDF aç"), ("⌘N", "PDF oluştur"), ("⌘S", "Kaydet"), ("⇧⌘S", "Farklı kaydet"),
-        ("⌘P", "Yazdır"), ("⌘F", "Belgede ara"), ("⌘+ / ⌘−", "Yakınlaştır / uzaklaştır"),
-        ("⌘0", "Gerçek boyut"), ("⌘L / ⌘R", "Sayfayı döndür"), ("⌘Z / ⇧⌘Z", "Geri al / yinele"),
-        ("⌘E", "PDF Düzenle"), ("⇧⌘E", "İmzala ve Doldur"), ("⌫", "Seçili öğeyi sil"), ("Ok tuşları", "Seçili öğeyi kaydır (⇧ ile 10 pt)")
+        ("⌘O", String(localized: "PDF aç")), ("⌘N", String(localized: "PDF oluştur")), ("⌘S", String(localized: "Kaydet")), ("⇧⌘S", String(localized: "Farklı kaydet")),
+        ("⌘P", String(localized: "Yazdır")), ("⌘F", String(localized: "Belgede ara")), ("⌘+ / ⌘−", String(localized: "Yakınlaştır / uzaklaştır")),
+        ("⌘0", String(localized: "Gerçek boyut")), ("⌘L / ⌘R", String(localized: "Sayfayı döndür")), ("⌘Z / ⇧⌘Z", String(localized: "Geri al / yinele")),
+        ("⌘E", String(localized: "PDF Düzenle")), ("⇧⌘E", String(localized: "İmzala ve Doldur")), ("⌫", String(localized: "Seçili öğeyi sil")), (String(localized: "Ok tuşları"), String(localized: "Seçili öğeyi kaydır (⇧ ile 10 pt)"))
     ]
 
     var body: some View {

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Ana Sayfa: lacivert kahraman alan (logo, karşılama, arama, 5 hızlı araç), Belge Tara kartı,
 /// Son Dosyalar kartı ve diğer araçlar kartı. Alttaki hap menü RootView'dadır.
@@ -65,6 +66,14 @@ struct HomeView: View {
                             ForEach(AppearanceChoice.allCases) { Text($0.title).tag($0.rawValue) }
                         }
                         .pickerStyle(.menu)
+                        // Uygulama dili iOS Ayarlar > Qeniro PDF > Dil bölümünden seçilir.
+                        Button {
+                            if let u = URL(string: UIApplication.openSettingsURLString) {
+                                UIApplication.shared.open(u)
+                            }
+                        } label: {
+                            Label("Dil: \(Fmt.appLanguageName)", systemImage: "globe")
+                        }
                     }
                     Section {
                         Text("Qeniro PDF 1.0 (iPhone)")
@@ -155,7 +164,7 @@ struct HomeView: View {
                 if DocumentScannerView.isSupported {
                     app.showScanner = true
                 } else {
-                    app.errorMessage = "Bu cihazda belge tarayıcı kullanılamıyor (simülatörde kamera yoktur)."
+                    app.errorMessage = String(localized: "Bu cihazda belge tarayıcı kullanılamıyor (simülatörde kamera yoktur).")
                 }
             } label: {
                 Text("Tara")
@@ -209,8 +218,8 @@ struct HomeView: View {
     // MARK: Arama
 
     private var matchingTools: [ToolKind] {
-        let q = query.lowercased(with: Fmt.trLocale)
-        return ToolKind.allCases.filter { $0.title.lowercased(with: Fmt.trLocale).contains(q) }
+        let q = query.lowercased(with: Fmt.locale)
+        return ToolKind.allCases.filter { $0.title.lowercased(with: Fmt.locale).contains(q) }
     }
 
     private var searchResults: some View {
@@ -236,8 +245,8 @@ struct HomeView: View {
 
     private var filteredRecents: [FileEntry] {
         guard !query.isEmpty else { return Array(library.recents.prefix(5)) }
-        let q = query.lowercased(with: Fmt.trLocale)
-        return library.recents.filter { $0.name.lowercased(with: Fmt.trLocale).contains(q) }
+        let q = query.lowercased(with: Fmt.locale)
+        return library.recents.filter { $0.name.lowercased(with: Fmt.locale).contains(q) }
     }
 
     // MARK: Son dosyalar
@@ -245,7 +254,7 @@ struct HomeView: View {
     private var recentsSection: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .firstTextBaseline) {
-                Text(query.isEmpty ? "Son Dosyalar" : "Dosyalar")
+                Text(query.isEmpty ? String(localized: "Son Dosyalar") : String(localized: "Dosyalar"))
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Theme.text)
                 Spacer()
@@ -261,7 +270,7 @@ struct HomeView: View {
 
             if filteredRecents.isEmpty {
                 VStack(spacing: 8) {
-                    Text(query.isEmpty ? "Henüz dosya açmadınız. Alttaki + ile bir PDF açın." : "Eşleşen dosya yok.")
+                    Text(query.isEmpty ? String(localized: "Henüz dosya açmadınız. Alttaki + ile bir PDF açın.") : String(localized: "Eşleşen dosya yok."))
                         .font(.subheadline)
                         .foregroundStyle(Theme.secondary)
                         .multilineTextAlignment(.center)
@@ -294,11 +303,11 @@ extension ToolKind {
     /// Kahraman alandaki kısa ad.
     var heroTitle: String {
         switch self {
-        case .editPDF: return "Düzenle"
-        case .sign: return "İmzala"
-        case .convert: return "Dönüştür"
-        case .merge: return "Birleştir"
-        case .compress: return "Sıkıştır"
+        case .editPDF: return String(localized: "Düzenle")
+        case .sign: return String(localized: "İmzala")
+        case .convert: return String(localized: "Dönüştür")
+        case .merge: return String(localized: "Birleştir")
+        case .compress: return String(localized: "Sıkıştır")
         default: return shortTitle
         }
     }
@@ -306,10 +315,10 @@ extension ToolKind {
     /// Ana sayfa ızgara kartındaki ad.
     var gridTitle: String {
         switch self {
-        case .protect: return "Şifreyle koru"
-        case .split: return "Böl"
-        case .redact: return "Sansürle"
-        case .ocr: return "Metni tanı (OCR)"
+        case .protect: return String(localized: "Şifreyle koru")
+        case .split: return String(localized: "Böl")
+        case .redact: return String(localized: "Sansürle")
+        case .ocr: return String(localized: "Metni tanı (OCR)")
         default: return title
         }
     }
@@ -331,7 +340,7 @@ struct RecentRow: View {
             .contextMenu {
                 Button { app.open(entry) } label: { Label("Aç", systemImage: "doc") }
                 Button { library.toggleStar(entry) } label: {
-                    Label(library.isStarred(entry) ? "Yıldızı kaldır" : "Yıldızla", systemImage: library.isStarred(entry) ? "star.slash" : "star")
+                    Label(library.isStarred(entry) ? String(localized: "Yıldızı kaldır") : String(localized: "Yıldızla"), systemImage: library.isStarred(entry) ? "star.slash" : "star")
                 }
                 Button {
                     app.shareItem = ShareItem(urls: [entry.resolvedURL()])
@@ -366,7 +375,7 @@ struct ToolListRow: View {
                         .font(.subheadline)
                         .foregroundStyle(Theme.text)
                     Spacer()
-                    Image(systemName: "chevron.right")
+                    Image(systemName: "chevron.right").flipsForRightToLeftLayoutDirection(true)
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(Theme.chevron)
                 }

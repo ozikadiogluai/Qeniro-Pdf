@@ -5,10 +5,10 @@ struct ToolsView: View {
     var startTool: (ToolKind) -> Void
 
     let sections: [(String, [ToolKind])] = [
-        ("Oluştur ve Dönüştür", [.createPDF, .toWord, .toExcel, .toPowerPoint]),
-        ("Düzenle ve Organize Et", [.editPDF, .merge, .split, .organize, .compress]),
-        ("İmzala ve Koruyun", [.sign, .protect, .redact]),
-        ("Diğer", [.ocr, .convert])
+        (String(localized: "Oluştur ve Dönüştür"), [.createPDF, .toWord, .toExcel, .toPowerPoint]),
+        (String(localized: "Düzenle ve Organize Et"), [.editPDF, .merge, .split, .organize, .compress]),
+        (String(localized: "İmzala ve Koruyun"), [.sign, .protect, .redact]),
+        (String(localized: "Diğer"), [.ocr, .convert])
     ]
 
     var body: some View {
@@ -64,7 +64,7 @@ struct FilesView: View {
                                     Text("iCloud Drive, iPhone'umda, Google Drive…").font(.caption).foregroundStyle(Theme.secondary)
                                 }
                                 Spacer()
-                                Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.chevron)
+                                Image(systemName: "chevron.right").flipsForRightToLeftLayoutDirection(true).font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.chevron)
                             }
                             .padding(.horizontal, 14)
                             .padding(.vertical, 10)
@@ -74,7 +74,7 @@ struct FilesView: View {
 
                         Button {
                             if DocumentScannerView.isSupported { app.showScanner = true }
-                            else { app.errorMessage = "Bu cihazda belge tarayıcı kullanılamıyor." }
+                            else { app.errorMessage = String(localized: "Bu cihazda belge tarayıcı kullanılamıyor.") }
                         } label: {
                             HStack(spacing: 12) {
                                 Image(systemName: "doc.viewfinder")
@@ -84,7 +84,7 @@ struct FilesView: View {
                                     .background(Theme.card2, in: Circle())
                                 Text("Belge Tara").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.text)
                                 Spacer()
-                                Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.chevron)
+                                Image(systemName: "chevron.right").flipsForRightToLeftLayoutDirection(true).font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.chevron)
                             }
                             .padding(.horizontal, 14)
                             .padding(.vertical, 10)
@@ -92,7 +92,7 @@ struct FilesView: View {
                         }
                         .buttonStyle(.plain)
 
-                        SectionLabel(text: "Son açılanlar").padding(.horizontal, 4).padding(.top, 8)
+                        SectionLabel(text: String(localized: "Son açılanlar")).padding(.horizontal, 4).padding(.top, 8)
                         if library.recents.isEmpty {
                             Text("Henüz dosya yok.")
                                 .font(.subheadline)

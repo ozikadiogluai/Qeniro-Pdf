@@ -13,17 +13,17 @@ struct ConvertPanel: View {
 
     @StateObject private var job = ToolJob()
     @State private var options = ConvertOptions()
-    @State private var language: OCRLanguage = .turkish
+    @State private var language = PDFOCRService.defaultLanguage
     @State private var didPreset = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             if let onClose {
-                SheetHeader(title: "Dönüştür", onCancel: onClose)
+                SheetHeader(title: String(localized: "Dönüştür"), onCancel: onClose)
                     .padding(.bottom, 2)
             }
 
-            SectionLabel(text: "PDF'yi dışa aktarma formatı")
+            SectionLabel(text: String(localized: "PDF'yi dışa aktarma formatı"))
 
             ForEach(ConvertTarget.allCases) { t in
                 RadioRow(title: t.label, trailing: badge(for: t), selected: options.target == t) {
@@ -51,11 +51,11 @@ struct ConvertPanel: View {
                 Spacer()
                 Menu {
                     Picker("Tanınan metin dili", selection: $language) {
-                        ForEach(OCRLanguage.allCases) { Text($0.title).tag($0) }
+                        ForEach(PDFOCRService.availableLanguages, id: \.self) { Text(PDFOCRService.displayName($0)).tag($0) }
                     }
                 } label: {
                     HStack(spacing: 6) {
-                        Text(language.title).font(.system(size: 14))
+                        Text(PDFOCRService.displayName(language)).font(.system(size: 14))
                         Image(systemName: "chevron.up.chevron.down").font(.system(size: 11))
                     }
                     .foregroundStyle(Theme.text)
@@ -81,9 +81,9 @@ struct ConvertPanel: View {
 
             if onCreatePDF != nil || onCompress != nil || onOCR != nil {
                 HStack(spacing: 8) {
-                    if let onCreatePDF { OutlineButton(title: "PDF'ye Dönüştür", action: onCreatePDF) }
-                    if let onCompress { OutlineButton(title: "Sıkıştır", action: onCompress) }
-                    if let onOCR { OutlineButton(title: "Tara ve OCR", action: onOCR) }
+                    if let onCreatePDF { OutlineButton(title: String(localized: "PDF'ye Dönüştür"), action: onCreatePDF) }
+                    if let onCompress { OutlineButton(title: String(localized: "Sıkıştır"), action: onCompress) }
+                    if let onOCR { OutlineButton(title: String(localized: "Tara ve OCR"), action: onOCR) }
                 }
                 .padding(.top, 4)
             }
@@ -103,18 +103,18 @@ struct ConvertPanel: View {
 
     private func convert() {
         guard let data = dataProvider() else {
-            job.error = "Belge hazırlanamadı."
+            job.error = String(localized: "Belge hazırlanamadı.")
             return
         }
-        PDFOCRService.preferredLanguages = language.visionLanguages
+        PDFOCRService.preferredLanguages = PDFOCRService.visionLanguages(for: language)
         let o = options
         let base = (name as NSString).deletingPathExtension
         job.run {
             let folder = try DocTools.freshOutputFolder()
             let urls = try PDFConvertService.convert(data: data, baseName: base, folder: folder, options: o)
-            guard !urls.isEmpty else { throw QPDFError.message("Çıktı üretilemedi.") }
+            guard !urls.isEmpty else { throw QPDFError.message(String(localized: "Çıktı üretilemedi.")) }
             return ToolOutput(urls: urls, note: o.target == .word || o.target == .excel || o.target == .powerpoint
-                              ? "Office dönüştürmeleri metni, temel biçimleri ve tabloları aktarır; sayfa düzeni birebir olmayabilir." : nil)
+                              ? String(localized: "Office dönüştürmeleri metni, temel biçimleri ve tabloları aktarır; sayfa düzeni birebir olmayabilir.") : nil)
         }
     }
 }

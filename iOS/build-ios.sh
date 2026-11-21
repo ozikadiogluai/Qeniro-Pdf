@@ -178,6 +178,8 @@ for d in data.get("result", {}).get("devices", []):
         continue
     if cp.get("pairingState") != "paired":
         continue
+    if cp.get("transportType") == "sameMachine":
+        continue  # simülatör; gerçek cihaz değil
     score = 0
     if cp.get("transportType") == "wired": score += 4
     if cp.get("tunnelState") == "connected": score += 2

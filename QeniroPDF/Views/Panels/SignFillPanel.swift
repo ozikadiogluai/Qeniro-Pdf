@@ -18,16 +18,16 @@ struct SignTabPanel: View {
 
     static func userInitials() -> String {
         let name = NSFullUserName().isEmpty ? NSUserName() : NSFullUserName()
-        let letters = name.split(separator: " ").compactMap { $0.first }.map { String($0).uppercased(with: Locale(identifier: "tr_TR")) }
+        let letters = name.split(separator: " ").compactMap { $0.first }.map { String($0).uppercased(with: Locale.current) }
         return letters.isEmpty ? "AB" : letters.joined(separator: ".") + "."
     }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
-                ToolPanelHeader(title: "E-imza", onClose: { session.panel = nil; session.tool = .select })
+                ToolPanelHeader(title: String(localized: "E-imza"), onClose: { session.panel = nil; session.tool = .select })
 
-                PanelCard(title: "Kendin doldur ve imzala", spacing: 2, padding: 8) {
+                PanelCard(title: String(localized: "Kendin doldur ve imzala"), spacing: 2, padding: 8) {
                 if !signatures.signatures.isEmpty {
                     VStack(spacing: 6) {
                         ForEach(signatures.signatures) { sig in
@@ -37,7 +37,7 @@ struct SignTabPanel: View {
                     .padding(.horizontal, 6)
                     .padding(.bottom, 4)
                 }
-                ToolListRow(symbol: "signature", title: "İmza ekle") {
+                ToolListRow(symbol: "signature", title: String(localized: "İmza ekle")) {
                     if let first = signatures.signatures.first {
                         session.tool = .addSignature(first.id)
                     } else {
@@ -45,18 +45,18 @@ struct SignTabPanel: View {
                         showCreator = true
                     }
                 }
-                ToolListRow(symbol: "plus", title: "Yeni imza oluştur") {
+                ToolListRow(symbol: "plus", title: String(localized: "Yeni imza oluştur")) {
                     creatorText = nil
                     showCreator = true
                 }
-                ToolListRow(symbol: "textformat.abc", title: "Baş harfleri ekle") {
+                ToolListRow(symbol: "textformat.abc", title: String(localized: "Baş harfleri ekle")) {
                     creatorText = Self.userInitials()
                     showCreator = true
                 }
-                ToolListRow(symbol: "textformat", title: "Metin ekle", active: session.tool == .addFillText) { session.tool = .addFillText }
-                ToolListRow(symbol: "checkmark.square", title: "Onay kutusu", active: session.tool == .addCheckbox) { session.tool = .addCheckbox }
-                ToolListRow(symbol: "smallcircle.filled.circle", title: "Radyo düğmesi", active: session.tool == .addRadio) { session.tool = .addRadio }
-                ToolListRow(symbol: "calendar", title: "Tarih ekle", active: session.tool == .addDate) { session.tool = .addDate }
+                ToolListRow(symbol: "textformat", title: String(localized: "Metin ekle"), active: session.tool == .addFillText) { session.tool = .addFillText }
+                ToolListRow(symbol: "checkmark.square", title: String(localized: "Onay kutusu"), active: session.tool == .addCheckbox) { session.tool = .addCheckbox }
+                ToolListRow(symbol: "smallcircle.filled.circle", title: String(localized: "Radyo düğmesi"), active: session.tool == .addRadio) { session.tool = .addRadio }
+                ToolListRow(symbol: "calendar", title: String(localized: "Tarih ekle"), active: session.tool == .addDate) { session.tool = .addDate }
 
                 if let a = selectedFreeText {
                     Text("Metin").font(.caption).foregroundStyle(.secondary).padding(.horizontal, 8).padding(.top, 6)
@@ -91,8 +91,8 @@ struct SignTabPanel: View {
                 .padding(.top, 6)
 
                 }
-                PanelCard(title: "E-imza iste", spacing: 2, padding: 8) {
-                ToolListRow(symbol: "rectangle.and.pencil.and.ellipsis", title: "İmza alanı ekle", active: session.tool == .addSignatureField) {
+                PanelCard(title: String(localized: "E-imza iste"), spacing: 2, padding: 8) {
+                ToolListRow(symbol: "rectangle.and.pencil.and.ellipsis", title: String(localized: "İmza alanı ekle"), active: session.tool == .addSignatureField) {
                     session.tool = .addSignatureField
                 }
                 Text("Karşı tarafın imzalayacağı boş bir imza alanı ekler. Belgeyi kaydedip paylaşın.")
@@ -101,9 +101,9 @@ struct SignTabPanel: View {
                     .padding(.horizontal, 8)
 
                 }
-                PanelCard(title: "Sertifika", spacing: 2, padding: 8) {
-                ToolListRow(symbol: "checkmark.seal", title: "Sertifika ile İmzala") { app.perform(.certificateSign) }
-                ToolListRow(symbol: "checkmark.shield", title: "İmzaları doğrula",
+                PanelCard(title: String(localized: "Sertifika"), spacing: 2, padding: 8) {
+                ToolListRow(symbol: "checkmark.seal", title: String(localized: "Sertifika ile İmzala")) { app.perform(.certificateSign) }
+                ToolListRow(symbol: "checkmark.shield", title: String(localized: "İmzaları doğrula"),
                             trailing: session.signatureInfos.isEmpty ? nil : "\(session.signatureInfos.count)") {
                     session.panel = .verifySignatures
                 }
@@ -158,7 +158,7 @@ struct VerifySignaturesPanel: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
-                ToolPanelHeader(title: "İmzaları doğrula",
+                ToolPanelHeader(title: String(localized: "İmzaları doğrula"),
                                 onBack: { session.panel = .tab },
                                 onClose: { session.panel = nil })
                 PanelCard(spacing: 10) {
@@ -173,7 +173,7 @@ struct VerifySignaturesPanel: View {
                     }
                 } else {
                     let problems = session.signatureInfos.filter { $0.status != .valid }.count
-                    Text(problems == 0 ? "Tüm imzalar geçerli." : "\(session.signatureInfos.count) imzadan \(problems) tanesinde sorun var.")
+                    Text(problems == 0 ? String(localized: "Tüm imzalar geçerli.") : String(localized: "\(session.signatureInfos.count) imzadan \(problems) tanesinde sorun var."))
                         .font(.callout.weight(.semibold))
                     ForEach(session.signatureInfos) { info in
                         signatureCard(info)
@@ -212,7 +212,7 @@ struct VerifySignaturesPanel: View {
         return VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 8) {
                 Image(systemName: symbol).foregroundStyle(color).font(.system(size: 18))
-                Text(info.signer.isEmpty ? "İmza \(info.id + 1)" : info.signer)
+                Text(info.signer.isEmpty ? String(localized: "İmza \(info.id + 1)") : info.signer)
                     .font(.system(size: 13, weight: .semibold))
                     .lineLimit(2)
             }

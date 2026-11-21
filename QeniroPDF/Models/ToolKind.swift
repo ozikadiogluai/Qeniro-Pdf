@@ -5,6 +5,8 @@ enum ToolGroup: String, CaseIterable, Identifiable {
     case editOrganize = "Düzenle ve Organize Et"
     case signProtect = "İmzala ve Koruyun"
     var id: String { rawValue }
+    /// Ekranda görünen (çevrilmiş) ad; ham değer String Catalog anahtarıdır.
+    var title: String { rawValue.loc }
     var tools: [ToolKind] { ToolKind.allCases.filter { $0.group == self } }
 }
 
@@ -18,53 +20,53 @@ enum ToolKind: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .create: return "PDF Oluştur"
-        case .convert: return "PDF Dönüştür"
-        case .toWord: return "PDF'yi Word'e"
-        case .toExcel: return "PDF'yi Excel'e"
-        case .toPowerPoint: return "PDF'yi PowerPoint'e"
-        case .edit: return "PDF Düzenle"
-        case .merge: return "PDF Birleştir"
-        case .split: return "PDF Böl"
-        case .organize: return "PDF Sayfaları Düzenle"
-        case .compress: return "PDF Sıkıştır"
-        case .signFill: return "İmzala ve Doldur"
-        case .certificateSign: return "Sertifika ile İmzala"
-        case .protect: return "Koruma"
-        case .redact: return "PDF'de Sansürle"
-        case .sanitize: return "Hassas Bilgileri Kaldır"
+        case .create: return String(localized: "PDF Oluştur")
+        case .convert: return String(localized: "PDF Dönüştür")
+        case .toWord: return String(localized: "PDF'yi Word'e")
+        case .toExcel: return String(localized: "PDF'yi Excel'e")
+        case .toPowerPoint: return String(localized: "PDF'yi PowerPoint'e")
+        case .edit: return String(localized: "PDF Düzenle")
+        case .merge: return String(localized: "PDF Birleştir")
+        case .split: return String(localized: "PDF Böl")
+        case .organize: return String(localized: "PDF Sayfaları Düzenle")
+        case .compress: return String(localized: "PDF Sıkıştır")
+        case .signFill: return String(localized: "İmzala ve Doldur")
+        case .certificateSign: return String(localized: "Sertifika ile İmzala")
+        case .protect: return String(localized: "Koruma")
+        case .redact: return String(localized: "PDF'de Sansürle")
+        case .sanitize: return String(localized: "Hassas Bilgileri Kaldır")
         }
     }
 
     /// Ana sayfadaki daire düğmelerin kısa adı.
     var shortTitle: String {
         switch self {
-        case .merge: return "Birleştir"
-        case .split: return "Böl"
-        case .compress: return "Sıkıştır"
-        case .convert: return "Dönüştür"
-        case .signFill: return "İmzala"
+        case .merge: return String(localized: "Birleştir")
+        case .split: return String(localized: "Böl")
+        case .compress: return String(localized: "Sıkıştır")
+        case .convert: return String(localized: "Dönüştür")
+        case .signFill: return String(localized: "İmzala")
         default: return title
         }
     }
 
     var subtitle: String {
         switch self {
-        case .create: return "Dosyalardan PDF oluşturun"
-        case .convert: return "PDF'yi Word, Excel, PowerPoint'e dönüştürün"
-        case .toWord: return "Düzenlenebilir Word belgesi (.docx) oluşturun"
-        case .toExcel: return "Tabloları Excel çalışma kitabına (.xlsx) aktarın"
-        case .toPowerPoint: return "Her sayfayı bir slayta (.pptx) dönüştürün"
-        case .edit: return "Metin ve görselleri düzenleyin"
-        case .merge: return "Birden fazla PDF'yi tek dosyada toplayın"
-        case .split: return "PDF'yi birden fazla dosyaya ayırın"
-        case .organize: return "Sayfaları sıralayın, döndürün, silin"
-        case .compress: return "Dosya boyutunu küçültün"
-        case .signFill: return "Formları doldurun ve e-imza ekleyin"
-        case .certificateSign: return "Dijital sertifika ile imzalayın"
-        case .protect: return "Şifre ile koruyun ve izinleri yönetin"
-        case .redact: return "Hassas içeriği kalıcı olarak kaldırın"
-        case .sanitize: return "Meta verileri ve gizli içeriği temizleyin"
+        case .create: return String(localized: "Dosyalardan PDF oluşturun")
+        case .convert: return String(localized: "PDF'yi Word, Excel, PowerPoint'e dönüştürün")
+        case .toWord: return String(localized: "Düzenlenebilir Word belgesi (.docx) oluşturun")
+        case .toExcel: return String(localized: "Tabloları Excel çalışma kitabına (.xlsx) aktarın")
+        case .toPowerPoint: return String(localized: "Her sayfayı bir slayta (.pptx) dönüştürün")
+        case .edit: return String(localized: "Metin ve görselleri düzenleyin")
+        case .merge: return String(localized: "Birden fazla PDF'yi tek dosyada toplayın")
+        case .split: return String(localized: "PDF'yi birden fazla dosyaya ayırın")
+        case .organize: return String(localized: "Sayfaları sıralayın, döndürün, silin")
+        case .compress: return String(localized: "Dosya boyutunu küçültün")
+        case .signFill: return String(localized: "Formları doldurun ve e-imza ekleyin")
+        case .certificateSign: return String(localized: "Dijital sertifika ile imzalayın")
+        case .protect: return String(localized: "Şifre ile koruyun ve izinleri yönetin")
+        case .redact: return String(localized: "Hassas içeriği kalıcı olarak kaldırın")
+        case .sanitize: return String(localized: "Meta verileri ve gizli içeriği temizleyin")
         }
     }
 
@@ -117,10 +119,10 @@ enum ViewerTab: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var title: String {
         switch self {
-        case .allTools: return "Tüm araçlar"
-        case .edit: return "Düzenle"
-        case .convert: return "Dönüştür"
-        case .sign: return "E-imza"
+        case .allTools: return String(localized: "Tüm araçlar")
+        case .edit: return String(localized: "Düzenle")
+        case .convert: return String(localized: "Dönüştür")
+        case .sign: return String(localized: "E-imza")
         }
     }
 }
@@ -132,11 +134,11 @@ enum SidePanel: String, Identifiable {
     var title: String {
         switch self {
         case .tab: return ""
-        case .redact: return "PDF'yi redakte et"
-        case .headerFooter: return "Üstbilgi ve altbilgi"
-        case .watermark: return "Filigran"
-        case .formPrepare: return "Form hazırla"
-        case .verifySignatures: return "İmzaları doğrula"
+        case .redact: return String(localized: "PDF'yi redakte et")
+        case .headerFooter: return String(localized: "Üstbilgi ve altbilgi")
+        case .watermark: return String(localized: "Filigran")
+        case .formPrepare: return String(localized: "Form hazırla")
+        case .verifySignatures: return String(localized: "İmzaları doğrula")
         }
     }
 }
@@ -146,11 +148,11 @@ enum SidebarItem: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var title: String {
         switch self {
-        case .home: return "Ana Sayfa"
-        case .tools: return "Araçlar"
-        case .recent: return "Son Dosyalar"
-        case .starred: return "Yıldızlı"
-        case .cloud: return "Bulut Depolama"
+        case .home: return String(localized: "Ana Sayfa")
+        case .tools: return String(localized: "Araçlar")
+        case .recent: return String(localized: "Son Dosyalar")
+        case .starred: return String(localized: "Yıldızlı")
+        case .cloud: return String(localized: "Bulut Depolama")
         }
     }
     var symbol: String {

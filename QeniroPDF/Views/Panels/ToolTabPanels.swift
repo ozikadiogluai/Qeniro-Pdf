@@ -13,14 +13,14 @@ struct ToolPanelHeader: View {
     var body: some View {
         HStack(spacing: 8) {
             if let onBack {
-                circleButton("chevron.left", "Geri", action: onBack)
+                circleButton("chevron.left", String(localized: "Geri"), action: onBack)
             }
             Text(title)
                 .font(.title2.weight(.semibold))
                 .foregroundStyle(Theme.text)
                 .lineLimit(1)
             Spacer()
-            circleButton("xmark", "Paneli kapat", action: onClose)
+            circleButton("xmark", String(localized: "Paneli kapat"), action: onClose)
         }
         .padding(.horizontal, 4)
         .padding(.bottom, 4)
@@ -29,6 +29,7 @@ struct ToolPanelHeader: View {
     private func circleButton(_ symbol: String, _ label: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: symbol)
+                .flipsForRightToLeftLayoutDirection(symbol.hasPrefix("chevron."))
                 .font(.system(size: 10, weight: .bold))
                 .foregroundStyle(Theme.text)
                 .frame(width: 28, height: 28)
@@ -46,7 +47,7 @@ struct PanelCapsTitle: View {
     let text: String
     init(_ text: String) { self.text = text }
     var body: some View {
-        Text(text.lowercased(with: Locale(identifier: "tr_TR")).capitalizedFirst)
+        Text(text.lowercased(with: Locale.current).capitalizedFirst)
             .font(.callout)
             .foregroundStyle(Theme.secondaryText)
             .padding(.top, 10)
@@ -59,7 +60,7 @@ extension String {
     /// Yalnızca ilk harfi büyütür (Türkçe kurallarıyla).
     var capitalizedFirst: String {
         guard let f = first else { return self }
-        return String(f).uppercased(with: Locale(identifier: "tr_TR")) + dropFirst()
+        return String(f).uppercased(with: Locale.current) + dropFirst()
     }
 }
 
@@ -88,7 +89,7 @@ struct ToolListRow: View {
                 Spacer(minLength: 4)
                 if let trailing {
                     if trailing == "›" {
-                        Image(systemName: "chevron.right")
+                        Image(systemName: "chevron.right").flipsForRightToLeftLayoutDirection(true)
                             .font(.system(size: 10, weight: .bold))
                             .foregroundStyle(Theme.secondaryText)
                     } else {
@@ -149,52 +150,52 @@ struct AllToolsPanel: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
-                ToolPanelHeader(title: "Tüm araçlar", onClose: { session.panel = nil })
+                ToolPanelHeader(title: String(localized: "Tüm araçlar"), onClose: { session.panel = nil })
                 PanelCard(spacing: 0, padding: 6) {
-                    row("arrow.up.doc", "PDF olarak dışa aktar") { session.viewerTab = .convert }
-                    row("square.and.pencil", "PDF Düzenle") { app.perform(.edit) }
-                    row("signature", "E-imza iste") {
+                    row("arrow.up.doc", String(localized: "PDF olarak dışa aktar")) { session.viewerTab = .convert }
+                    row("square.and.pencil", String(localized: "PDF Düzenle")) { app.perform(.edit) }
+                    row("signature", String(localized: "E-imza iste")) {
                         session.viewerTab = .sign
                         session.panel = .tab
                         session.tool = .addSignatureField
                     }
-                    row("pencil.and.outline", "Doldur ve İmzala") { app.perform(.signFill) }
-                    row("doc.badge.plus", "PDF oluştur") { app.perform(.create) }
-                    row("square.on.square", "Dosyaları birleştir") { app.perform(.merge) }
-                    row("square.grid.2x2", "Sayfaları organize et") { app.perform(.organize) }
-                    row("square.and.arrow.up", "Yorum için gönder") { session.shareForReview() }
+                    row("pencil.and.outline", String(localized: "Doldur ve İmzala")) { app.perform(.signFill) }
+                    row("doc.badge.plus", String(localized: "PDF oluştur")) { app.perform(.create) }
+                    row("square.on.square", String(localized: "Dosyaları birleştir")) { app.perform(.merge) }
+                    row("square.grid.2x2", String(localized: "Sayfaları organize et")) { app.perform(.organize) }
+                    row("square.and.arrow.up", String(localized: "Yorum için gönder")) { session.shareForReview() }
                 }
                 PanelCard(spacing: 0, padding: 6) {
-                    row("doc.text.viewfinder", "Tarama ve OCR") { session.runOCR(force: false) }
-                    row("lock.shield", "PDF koru") { app.perform(.protect) }
-                    row("eye.slash", "PDF'yi redakte et") { app.perform(.redact) }
-                    row("arrow.down.right.and.arrow.up.left", "PDF sıkıştır") { app.perform(.compress) }
-                    row("list.bullet.rectangle", "Form hazırla") { session.panel = .formPrepare }
-                    row("text.bubble", "Yorum ekleyin") { session.tool = .note }
+                    row("doc.text.viewfinder", String(localized: "Tarama ve OCR")) { session.runOCR(force: false) }
+                    row("lock.shield", String(localized: "PDF koru")) { app.perform(.protect) }
+                    row("eye.slash", String(localized: "PDF'yi redakte et")) { app.perform(.redact) }
+                    row("arrow.down.right.and.arrow.up.left", String(localized: "PDF sıkıştır")) { app.perform(.compress) }
+                    row("list.bullet.rectangle", String(localized: "Form hazırla")) { session.panel = .formPrepare }
+                    row("text.bubble", String(localized: "Yorum ekleyin")) { session.tool = .note }
                 }
                 if showMore {
                     PanelCard(spacing: 0, padding: 6) {
-                        row("scissors", "PDF böl") { app.perform(.split) }
-                        row("doc.richtext", "PDF'yi Word'e") { app.perform(.toWord) }
-                        row("tablecells", "PDF'yi Excel'e") { app.perform(.toExcel) }
-                        row("rectangle.on.rectangle.angled", "PDF'yi PowerPoint'e") { app.perform(.toPowerPoint) }
-                        row("checkmark.seal", "Sertifika ile İmzala") { app.perform(.certificateSign) }
-                        row("checkmark.shield", "İmzaları doğrula") {
+                        row("scissors", String(localized: "PDF böl")) { app.perform(.split) }
+                        row("doc.richtext", String(localized: "PDF'yi Word'e")) { app.perform(.toWord) }
+                        row("tablecells", String(localized: "PDF'yi Excel'e")) { app.perform(.toExcel) }
+                        row("rectangle.on.rectangle.angled", String(localized: "PDF'yi PowerPoint'e")) { app.perform(.toPowerPoint) }
+                        row("checkmark.seal", String(localized: "Sertifika ile İmzala")) { app.perform(.certificateSign) }
+                        row("checkmark.shield", String(localized: "İmzaları doğrula")) {
                             session.viewerTab = .sign
                             session.panel = .verifySignatures
                         }
-                        row("trash.slash", "Hassas bilgileri kaldır") { app.perform(.sanitize) }
-                        row("menubar.rectangle", "Üstbilgi ve altbilgi") {
+                        row("trash.slash", String(localized: "Hassas bilgileri kaldır")) { app.perform(.sanitize) }
+                        row("menubar.rectangle", String(localized: "Üstbilgi ve altbilgi")) {
                             session.viewerTab = .edit
                             session.panel = .headerFooter
                         }
-                        row("drop", "Filigran") {
+                        row("drop", String(localized: "Filigran")) {
                             session.viewerTab = .edit
                             session.panel = .watermark
                         }
                     }
                 }
-                Button(showMore ? "Daha az göster" : "Daha fazla göster") {
+                Button(showMore ? String(localized: "Daha az göster") : String(localized: "Daha fazla göster")) {
                     withAnimation(.easeInOut(duration: 0.15)) { showMore.toggle() }
                 }
                 .buttonStyle(QSecondaryButtonStyle(fullWidth: true, filled: Theme.card))
@@ -222,21 +223,21 @@ struct ConvertTabPanel: View {
             case .word: return "Microsoft Word"
             case .powerpoint: return "Microsoft PowerPoint"
             case .excel: return "Microsoft Excel"
-            case .image: return "Görüntü formatı"
-            case .other: return "Diğer format"
+            case .image: return String(localized: "Görüntü formatı")
+            case .other: return String(localized: "Diğer format")
             }
         }
     }
 
-    static let languages: [(code: String, name: String)] = [
-        ("tr-TR", "Türkçe"), ("en-US", "İngilizce"), ("de-DE", "Almanca"), ("fr-FR", "Fransızca"),
-        ("es-ES", "İspanyolca"), ("it-IT", "İtalyanca"), ("pt-BR", "Portekizce")
-    ]
+    /// Tanınan metin dilleri (Vision destekliyorsa), adları arayüz dilinde.
+    static var languages: [(code: String, name: String)] {
+        PDFOCRService.availableLanguages.map { (code: $0, name: PDFOCRService.displayName($0)) }
+    }
 
     @State private var format: Format = .word
     @State private var imageFormat: ImageFormat = .jpeg
     @State private var otherTarget: ConvertTarget = .rtf
-    @State private var language = "tr-TR"
+    @State private var language = PDFOCRService.defaultLanguage
     @State private var running = false
 
     private func extLabel(_ f: Format) -> String {
@@ -256,16 +257,16 @@ struct ConvertTabPanel: View {
 
     private var buttonTitle: String {
         let ext = extLabel(format)
-        // Türkçe ünlü uyumu: "DOCX'e", "RTF'ye".
+        // Türkçe ünlü uyumu: "DOCX'e", "RTF'ye". Diğer dillerde iki anahtar da "… biçimine dönüştür" olur.
         let yeSuffix: Set<String> = ["PNG", "RTF", "TXT", "HTML"]
-        return ext + (yeSuffix.contains(ext) ? "'ye" : "'e") + " Dönüştür"
+        return yeSuffix.contains(ext) ? String(localized: "\(ext)'ye Dönüştür") : String(localized: "\(ext)'e Dönüştür")
     }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
-                ToolPanelHeader(title: "Dönüştür", onClose: { session.panel = nil })
-                PanelCard(title: "PDF'yi dışa aktarma formatı", spacing: 4) {
+                ToolPanelHeader(title: String(localized: "Dönüştür"), onClose: { session.panel = nil })
+                PanelCard(title: String(localized: "PDF'yi dışa aktarma formatı"), spacing: 4) {
                     formatRow(.word) { Text("DOCX").formatTag() }
                     formatRow(.powerpoint) { Text("PPTX").formatTag() }
                     formatRow(.excel) { Text("XLSX").formatTag() }
@@ -287,7 +288,7 @@ struct ConvertTabPanel: View {
                     }
                 }
 
-                PanelCard(title: "Tanınan metin dili") {
+                PanelCard(title: String(localized: "Tanınan metin dili")) {
                     Picker("", selection: $language) {
                         ForEach(Self.languages, id: \.code) { Text($0.name).tag($0.code) }
                     }
@@ -303,10 +304,10 @@ struct ConvertTabPanel: View {
                 .buttonStyle(QPrimaryButtonStyle(height: 36, fullWidth: true))
                 .disabled(running)
 
-                PanelCard(title: "Diğer seçenekler", spacing: 0, padding: 6) {
-                    ToolListRow(symbol: "doc.badge.plus", title: "PDF'ye Dönüştür") { app.perform(.create) }
-                    ToolListRow(symbol: "arrow.down.right.and.arrow.up.left", title: "PDF sıkıştır") { app.perform(.compress) }
-                    ToolListRow(symbol: "doc.text.viewfinder", title: "Tara ve OCR Uygula") {
+                PanelCard(title: String(localized: "Diğer seçenekler"), spacing: 0, padding: 6) {
+                    ToolListRow(symbol: "doc.badge.plus", title: String(localized: "PDF'ye Dönüştür")) { app.perform(.create) }
+                    ToolListRow(symbol: "arrow.down.right.and.arrow.up.left", title: String(localized: "PDF sıkıştır")) { app.perform(.compress) }
+                    ToolListRow(symbol: "doc.text.viewfinder", title: String(localized: "Tara ve OCR Uygula")) {
                         applyLanguage()
                         session.runOCR(force: false)
                     }
@@ -335,15 +336,15 @@ struct ConvertTabPanel: View {
     }
 
     private func applyLanguage() {
-        PDFOCRService.preferredLanguages = language == "en-US" ? ["en-US"] : [language, "en-US"]
+        PDFOCRService.preferredLanguages = PDFOCRService.visionLanguages(for: language)
     }
 
     private func run() {
         guard let data = session.currentData() else {
-            Dialogs.info("Belge hazırlanamadı")
+            Dialogs.info(String(localized: "Belge hazırlanamadı"))
             return
         }
-        guard let folder = Dialogs.chooseFolder(title: "Dönüştürülen dosyanın kaydedileceği klasörü seçin") else { return }
+        guard let folder = Dialogs.chooseFolder(title: String(localized: "Dönüştürülen dosyanın kaydedileceği klasörü seçin")) else { return }
         var o = ConvertOptions()
         switch format {
         case .word: o.target = .word
@@ -362,7 +363,7 @@ struct ConvertTabPanel: View {
         let opts = o
         let label = extLabel(format)
         running = true
-        session.busyMessage = "\(label) biçimine dönüştürülüyor…"
+        session.busyMessage = String(localized: "\(label) biçimine dönüştürülüyor…")
         Task { @MainActor in
             do {
                 let urls = try await Task.detached(priority: .userInitiated) {
@@ -370,12 +371,12 @@ struct ConvertTabPanel: View {
                 }.value
                 session.busyMessage = nil
                 running = false
-                app.notice("Dönüştür (\(label)): \(urls.count) dosya oluşturuldu.", urls: urls)
+                app.notice(String(localized: "Dönüştür (\(label)): \(urls.count) dosya oluşturuldu."), urls: urls)
                 Dialogs.revealInFinder(urls)
             } catch {
                 session.busyMessage = nil
                 running = false
-                Dialogs.error("Dönüştürülemedi", error)
+                Dialogs.error(String(localized: "Dönüştürülemedi"), error)
             }
         }
     }
@@ -396,20 +397,20 @@ struct HeaderFooterPanel: View {
     @State private var header = ""
     @State private var footer = ""
     @State private var addNumbers = true
-    @State private var numberFormat = "Sayfa {n} / {N}"
+    @State private var numberFormat = String(localized: "Sayfa {n} / {N}")
     @State private var position: PDFiumEditor.NumberPosition = .bottomRight
     @State private var size: Double = 10
     @State private var color: Color = .black
     @State private var margin: Double = 24
 
     static let formats: [(String, String)] = [
-        ("Sayfa {n} / {N}", "Sayfa 1 / 5"), ("{n} / {N}", "1 / 5"), ("{n}", "1"), ("- {n} -", "- 1 -")
+        (String(localized: "Sayfa {n} / {N}"), String(localized: "Sayfa 1 / 5")), ("{n} / {N}", "1 / 5"), ("{n}", "1"), ("- {n} -", "- 1 -")
     ]
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
-                ToolPanelHeader(title: "Üstbilgi ve altbilgi",
+                ToolPanelHeader(title: String(localized: "Üstbilgi ve altbilgi"),
                                 onBack: { session.panel = .tab },
                                 onClose: { session.panel = nil })
                 PanelCard(spacing: 10) {
@@ -426,7 +427,7 @@ struct HeaderFooterPanel: View {
                         ForEach(Self.formats, id: \.0) { Text($0.1).tag($0.0) }
                     }
                     Picker("Konum", selection: $position) {
-                        ForEach(PDFiumEditor.NumberPosition.allCases) { Text($0.rawValue).tag($0) }
+                        ForEach(PDFiumEditor.NumberPosition.allCases) { Text($0.rawValue.loc).tag($0) }
                     }
                 }
                 HStack {
@@ -464,7 +465,7 @@ struct HeaderFooterPanel: View {
 
 struct WatermarkPanel: View {
     @ObservedObject var session: DocumentSession
-    @State private var text = "GİZLİ"
+    @State private var text = String(localized: "GİZLİ")
     @State private var size: Double = 72
     @State private var opacity: Double = 0.25
     @State private var angle: Double = 45
@@ -474,7 +475,7 @@ struct WatermarkPanel: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
-                ToolPanelHeader(title: "Filigran",
+                ToolPanelHeader(title: String(localized: "Filigran"),
                                 onBack: { session.panel = .tab },
                                 onClose: { session.panel = nil })
                 PanelCard(spacing: 10) {
@@ -537,7 +538,7 @@ struct FormPreparePanel: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 2) {
-                ToolPanelHeader(title: "Form hazırla",
+                ToolPanelHeader(title: String(localized: "Form hazırla"),
                                 onBack: { session.panel = .tab; session.tool = .select },
                                 onClose: { session.panel = nil; session.tool = .select })
                 PanelCard(spacing: 2, padding: 8) {
@@ -545,11 +546,11 @@ struct FormPreparePanel: View {
                     .font(.caption).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.bottom, 8)
-                ToolListRow(symbol: "character.textbox", title: "Metin alanı", active: session.tool == .addTextField) { session.tool = .addTextField }
-                ToolListRow(symbol: "checkmark.square", title: "Onay kutusu", active: session.tool == .addCheckbox) { session.tool = .addCheckbox }
-                ToolListRow(symbol: "smallcircle.filled.circle", title: "Radyo düğmesi", active: session.tool == .addRadio) { session.tool = .addRadio }
-                ToolListRow(symbol: "chevron.down.square", title: "Açılır liste", active: session.tool == .addDropdown) { session.tool = .addDropdown }
-                ToolListRow(symbol: "signature", title: "İmza alanı", active: session.tool == .addSignatureField) { session.tool = .addSignatureField }
+                ToolListRow(symbol: "character.textbox", title: String(localized: "Metin alanı"), active: session.tool == .addTextField) { session.tool = .addTextField }
+                ToolListRow(symbol: "checkmark.square", title: String(localized: "Onay kutusu"), active: session.tool == .addCheckbox) { session.tool = .addCheckbox }
+                ToolListRow(symbol: "smallcircle.filled.circle", title: String(localized: "Radyo düğmesi"), active: session.tool == .addRadio) { session.tool = .addRadio }
+                ToolListRow(symbol: "chevron.down.square", title: String(localized: "Açılır liste"), active: session.tool == .addDropdown) { session.tool = .addDropdown }
+                ToolListRow(symbol: "signature", title: String(localized: "İmza alanı"), active: session.tool == .addSignatureField) { session.tool = .addSignatureField }
                 if session.selectedAnnotation != nil {
                     Button(role: .destructive) { session.deleteSelected() } label: {
                         Label("Seçili alanı sil", systemImage: "trash")

@@ -57,8 +57,8 @@ struct MergeToolView: View {
     @State private var state: ToolRunState = .idle
 
     var body: some View {
-        ToolScaffold(kind: .merge, runTitle: "Birleştir", canRun: files.count >= 2, state: state, run: run) {
-            FileListEditor(files: $files, types: [.pdf], multiple: true, reorderable: true, title: "Birleştirilecek PDF'ler (yukarıdan aşağıya sırayla)")
+        ToolScaffold(kind: .merge, runTitle: String(localized: "Birleştir"), canRun: files.count >= 2, state: state, run: run) {
+            FileListEditor(files: $files, types: [.pdf], multiple: true, reorderable: true, title: String(localized: "Birleştirilecek PDF'ler (yukarıdan aşağıya sırayla)"))
             if files.count == 1 {
                 Text("En az iki PDF ekleyin.").font(.caption).foregroundStyle(.secondary)
             }
@@ -66,15 +66,15 @@ struct MergeToolView: View {
     }
 
     private func run() {
-        guard let out = Dialogs.save(suggestedName: "Birlesik.pdf", type: .pdf, title: "Birleştirilmiş PDF'yi kaydet",
+        guard let out = Dialogs.save(suggestedName: String(localized: "Birlesik.pdf"), type: .pdf, title: String(localized: "Birleştirilmiş PDF'yi kaydet"),
                                      directory: ToolIO.directory(for: files.first)) else { return }
         let inputs = files
-        state = .running("Birleştiriliyor…")
+        state = .running(String(localized: "Birleştiriliyor…"))
         Task { @MainActor in
             do {
                 let pages = try await Task.detached(priority: .userInitiated) { try PDFMergeService.merge(inputs, to: out) }.value
-                state = .done("\(inputs.count) dosya birleştirildi (\(pages) sayfa).", [out])
-                app.notice("PDF Birleştir: \(out.lastPathComponent) oluşturuldu.", urls: [out])
+                state = .done(String(localized: "\(inputs.count) dosya birleştirildi (\(pages) sayfa)."), [out])
+                app.notice(String(localized: "PDF Birleştir: \(out.lastPathComponent) oluşturuldu."), urls: [out])
             } catch {
                 state = .failed(error.localizedDescription)
             }
@@ -98,8 +98,8 @@ struct SplitToolView: View {
     }
 
     var body: some View {
-        ToolScaffold(kind: .split, runTitle: "Böl", canRun: !files.isEmpty, state: state, run: run) {
-            FileListEditor(files: $files, types: [.pdf], multiple: false, title: "Bölünecek PDF")
+        ToolScaffold(kind: .split, runTitle: String(localized: "Böl"), canRun: !files.isEmpty, state: state, run: run) {
+            FileListEditor(files: $files, types: [.pdf], multiple: false, title: String(localized: "Bölünecek PDF"))
             if !files.isEmpty { Text("Toplam \(pageCount) sayfa").font(.caption).foregroundStyle(.secondary) }
             Picker("Bölme şekli", selection: $mode) {
                 Text("Sayfa aralıkları").tag(0)
@@ -119,16 +119,16 @@ struct SplitToolView: View {
     }
 
     private func run() {
-        guard let input = files.first, let folder = Dialogs.chooseFolder(title: "Parçaların kaydedileceği klasörü seçin") else { return }
+        guard let input = files.first, let folder = Dialogs.chooseFolder(title: String(localized: "Parçaların kaydedileceği klasörü seçin")) else { return }
         let splitMode: SplitMode = mode == 0 ? .ranges(ranges) : (mode == 1 ? .everyN(everyN) : .single)
-        state = .running("Bölünüyor…")
+        state = .running(String(localized: "Bölünüyor…"))
         Task { @MainActor in
             do {
                 let urls = try await Task.detached(priority: .userInitiated) {
                     try PDFSplitService.split(input: input, data: nil, mode: splitMode, folder: folder, baseName: input.baseName)
                 }.value
-                state = .done("\(urls.count) dosya oluşturuldu.", urls)
-                app.notice("PDF Böl: \(input.lastPathComponent) → \(urls.count) dosya.", urls: urls)
+                state = .done(String(localized: "\(urls.count) dosya oluşturuldu."), urls)
+                app.notice(String(localized: "PDF Böl: \(input.lastPathComponent) → \(urls.count) dosya."), urls: urls)
             } catch {
                 state = .failed(error.localizedDescription)
             }
@@ -146,8 +146,8 @@ struct CompressToolView: View {
     @State private var state: ToolRunState = .idle
 
     var body: some View {
-        ToolScaffold(kind: .compress, runTitle: "Sıkıştır", canRun: !files.isEmpty, state: state, run: run) {
-            FileListEditor(files: $files, types: [.pdf], multiple: true, title: "Sıkıştırılacak PDF'ler")
+        ToolScaffold(kind: .compress, runTitle: String(localized: "Sıkıştır"), canRun: !files.isEmpty, state: state, run: run) {
+            FileListEditor(files: $files, types: [.pdf], multiple: true, title: String(localized: "Sıkıştırılacak PDF'ler"))
             Picker("Sıkıştırma düzeyi", selection: $level) {
                 ForEach(CompressionLevel.allCases) { Text($0.title).tag($0) }
             }
@@ -167,15 +167,15 @@ struct CompressToolView: View {
         }
         let lvl = level, raster = rasterize
         let outFolder = folder
-        state = .running("Sıkıştırılıyor…")
+        state = .running(String(localized: "Sıkıştırılıyor…"))
         Task { @MainActor in
             var lines: [String] = []
             var outs: [URL] = []
             for input in inputs {
                 let out: URL
-                if let outFolder { out = outFolder.appendingPathComponent(input.baseName + "_sıkıştırılmış.pdf") }
-                else { out = input.uniqueSibling(suffix: "_sıkıştırılmış", ext: "pdf") }
-                state = .running("Sıkıştırılıyor: \(input.lastPathComponent)")
+                if let outFolder { out = outFolder.appendingPathComponent(input.baseName + String(localized: "_sıkıştırılmış.pdf")) }
+                else { out = input.uniqueSibling(suffix: String(localized: "_sıkıştırılmış"), ext: "pdf") }
+                state = .running(String(localized: "Sıkıştırılıyor: \(input.lastPathComponent)"))
                 do {
                     let r = try await Task.detached(priority: .userInitiated) {
                         try PDFCompressService.compress(input: input, data: nil, output: out, level: lvl, rasterize: raster)
@@ -189,7 +189,7 @@ struct CompressToolView: View {
                 }
             }
             state = outs.isEmpty ? .failed(lines.joined(separator: "\n")) : .done(lines.joined(separator: "\n"), outs)
-            if !outs.isEmpty { app.notice("PDF Sıkıştır: \(outs.count) dosya tamamlandı.", urls: outs) }
+            if !outs.isEmpty { app.notice(String(localized: "PDF Sıkıştır: \(outs.count) dosya tamamlandı."), urls: outs) }
         }
     }
 }
@@ -216,7 +216,7 @@ struct ProtectToolView: View {
     }
 
     var body: some View {
-        ToolScaffold(kind: .protect, runTitle: mode == 0 ? "Koru" : "Şifreyi Kaldır", canRun: canRun, state: state, run: run) {
+        ToolScaffold(kind: .protect, runTitle: mode == 0 ? String(localized: "Koru") : String(localized: "Şifreyi Kaldır"), canRun: canRun, state: state, run: run) {
             FileListEditor(files: $files, types: [.pdf], multiple: false, title: "PDF")
             Picker("", selection: $mode) {
                 Text("Şifre ekle").tag(0)
@@ -248,13 +248,13 @@ struct ProtectToolView: View {
 
     private func run() {
         guard let input = files.first else { return }
-        let suffix = mode == 0 ? "_korumalı" : "_şifresiz"
-        guard let out = Dialogs.save(suggestedName: input.baseName + suffix + ".pdf", type: .pdf, title: "Kaydet",
+        let suffix = mode == 0 ? String(localized: "_korumalı") : String(localized: "_şifresiz")
+        guard let out = Dialogs.save(suggestedName: input.baseName + suffix + ".pdf", type: .pdf, title: String(localized: "Kaydet"),
                                      directory: ToolIO.directory(for: input)) else { return }
         let opts = ProtectOptions(openPassword: openPassword, permissionsPassword: permPassword,
                                   allowPrinting: allowPrinting, allowCopying: allowCopying)
         let m = mode, pw = currentPassword
-        state = .running(m == 0 ? "Şifreleniyor…" : "Şifre kaldırılıyor…")
+        state = .running(m == 0 ? String(localized: "Şifreleniyor…") : String(localized: "Şifre kaldırılıyor…"))
         Task { @MainActor in
             do {
                 try await Task.detached(priority: .userInitiated) {
@@ -264,8 +264,8 @@ struct ProtectToolView: View {
                         try PDFProtectService.removePassword(input: input, password: pw, output: out)
                     }
                 }.value
-                state = .done(m == 0 ? "Belge şifre ile korundu." : "Şifre kaldırıldı.", [out])
-                app.notice("Koruma: \(out.lastPathComponent) kaydedildi.", urls: [out])
+                state = .done(m == 0 ? String(localized: "Belge şifre ile korundu.") : String(localized: "Şifre kaldırıldı."), [out])
+                app.notice(String(localized: "Koruma: \(out.lastPathComponent) kaydedildi."), urls: [out])
             } catch {
                 state = .failed(error.localizedDescription)
             }
@@ -295,8 +295,8 @@ struct ConvertToolView: View {
     }
 
     var body: some View {
-        ToolScaffold(kind: kind, runTitle: "Dönüştür", canRun: !files.isEmpty, state: state, run: run) {
-            FileListEditor(files: $files, types: [.pdf], multiple: true, title: "PDF'ler (toplu dönüştürme desteklenir)")
+        ToolScaffold(kind: kind, runTitle: String(localized: "Dönüştür"), canRun: !files.isEmpty, state: state, run: run) {
+            FileListEditor(files: $files, types: [.pdf], multiple: true, title: String(localized: "PDF'ler (toplu dönüştürme desteklenir)"))
             Picker("Hedef biçim", selection: $target) {
                 ForEach(ConvertTarget.allCases) { Text($0.title).tag($0) }
             }
@@ -336,7 +336,7 @@ struct ConvertToolView: View {
             case .rtf, .html:
                 EmptyView()
             case .searchable:
-                Text("Yalnızca seçilebilir metni olmayan (taranmış) sayfalar işlenir. Türkçe ve İngilizce tanınır.")
+                Text("Yalnızca seçilebilir metni olmayan (taranmış) sayfalar işlenir. Tanıma dili cihazınızın diline göre seçilir.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             Text("Office dönüştürmeleri metni, temel biçimi, tabloları ve görselleri aktarır; karmaşık sayfa düzenleri birebir korunmayabilir.")
@@ -346,16 +346,16 @@ struct ConvertToolView: View {
     }
 
     private func run() {
-        guard let folder = Dialogs.chooseFolder(title: "Çıktıların kaydedileceği klasörü seçin") else { return }
+        guard let folder = Dialogs.chooseFolder(title: String(localized: "Çıktıların kaydedileceği klasörü seçin")) else { return }
         let inputs = files
         let opts = ConvertOptions(target: target, imageFormat: imageFormat, dpi: CGFloat(dpi), useOCR: useOCR,
                                   preserveLayout: preserveLayout, useLibreOffice: useLibreOffice)
-        state = .running("Dönüştürülüyor…")
+        state = .running(String(localized: "Dönüştürülüyor…"))
         Task { @MainActor in
             var outs: [URL] = []
             var errors: [String] = []
             for input in inputs {
-                state = .running("Dönüştürülüyor: \(input.lastPathComponent)")
+                state = .running(String(localized: "Dönüştürülüyor: \(input.lastPathComponent)"))
                 do {
                     let urls = try await Task.detached(priority: .userInitiated) {
                         try PDFConvertService.convert(input: input, data: nil, folder: folder, options: opts)
@@ -368,10 +368,10 @@ struct ConvertToolView: View {
             if outs.isEmpty {
                 state = .failed(errors.joined(separator: "\n"))
             } else {
-                var msg = "\(outs.count) dosya oluşturuldu (\(opts.target.title))."
+                var msg = String(localized: "\(outs.count) dosya oluşturuldu (\(opts.target.title)).")
                 if !errors.isEmpty { msg += "\nHatalar:\n" + errors.joined(separator: "\n") }
                 state = .done(msg, outs)
-                app.notice("PDF Dönüştür: \(outs.count) dosya oluşturuldu.", urls: outs)
+                app.notice(String(localized: "PDF Dönüştür: \(outs.count) dosya oluşturuldu."), urls: outs)
             }
         }
     }
@@ -403,7 +403,7 @@ struct CreateToolView: View {
     }
 
     var body: some View {
-        ToolScaffold(kind: .create, runTitle: "Oluştur", canRun: canRun, state: state, run: run) {
+        ToolScaffold(kind: .create, runTitle: String(localized: "Oluştur"), canRun: canRun, state: state, run: run) {
             Picker("", selection: $source) {
                 Text("Dosyalardan").tag(0)
                 Text("Boş sayfa").tag(1)
@@ -415,11 +415,11 @@ struct CreateToolView: View {
             switch source {
             case 0:
                 FileListEditor(files: $files, types: [UTType.image, .pdf, .text, .rtf, .html] + UTType.officeInputs, multiple: true, reorderable: true,
-                               title: "Görseller, Word/Metin dosyaları, PDF'ler")
+                               title: String(localized: "Görseller, Word/Metin dosyaları, PDF'ler"))
                 Toggle("Görselleri A4 sayfaya sığdır", isOn: $fitToA4)
                 Text(LibreOfficeBridge.isAvailable
-                     ? "LibreOffice bulundu: Word, Excel ve PowerPoint dosyaları yüksek sadakatle dönüştürülür."
-                     : "Word (.docx/.doc/.rtf/.odt) ve metin dosyaları yerleşik motorla dönüştürülür. Excel, PowerPoint, Pages, Numbers, Keynote için ücretsiz LibreOffice'i kurun.")
+                     ? String(localized: "LibreOffice bulundu: Word, Excel ve PowerPoint dosyaları yüksek sadakatle dönüştürülür.")
+                     : String(localized: "Word (.docx/.doc/.rtf/.odt) ve metin dosyaları yerleşik motorla dönüştürülür. Excel, PowerPoint, Pages, Numbers, Keynote için ücretsiz LibreOffice'i kurun."))
                     .font(.caption).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             case 1:
@@ -445,7 +445,7 @@ struct CreateToolView: View {
     }
 
     private func run() {
-        state = .running("Oluşturuluyor…")
+        state = .running(String(localized: "Oluşturuluyor…"))
         Task { @MainActor in
             do {
                 let doc: PDFDocument
@@ -453,20 +453,20 @@ struct CreateToolView: View {
                 switch source {
                 case 0:
                     doc = try PDFCreateService.create(from: files, fitToA4: fitToA4)
-                    name = files.count == 1 ? files[0].baseName : "Yeni Belge"
+                    name = files.count == 1 ? files[0].baseName : String(localized: "Yeni Belge")
                 case 1:
                     let size: CGSize = blankSize == 0 ? PageRenderer.a4 : (blankSize == 1 ? CGSize(width: PageRenderer.a4.height, height: PageRenderer.a4.width) : PageRenderer.letter)
                     doc = PDFCreateService.blank(count: blankCount, size: size)
-                    name = "Boş Belge"
+                    name = String(localized: "Boş Belge")
                 case 2:
                     doc = try PDFCreateService.fromText(text)
-                    name = "Metin Belgesi"
+                    name = String(localized: "Metin Belgesi")
                 default:
                     doc = try PDFCreateService.fromClipboard()
-                    name = "Panodan"
+                    name = String(localized: "Panodan")
                 }
                 app.openUnsaved(doc, name: name)
-                app.notice("PDF Oluştur: \(name) (\(doc.pageCount) sayfa) yeni sekmede açıldı.")
+                app.notice(String(localized: "PDF Oluştur: \(name) (\(doc.pageCount) sayfa) yeni sekmede açıldı."))
                 dismiss()
             } catch {
                 state = .failed(error.localizedDescription)
@@ -484,8 +484,8 @@ struct SanitizeToolView: View {
     @State private var state: ToolRunState = .idle
 
     var body: some View {
-        ToolScaffold(kind: .sanitize, runTitle: "Temizle", canRun: !files.isEmpty, state: state, run: run) {
-            FileListEditor(files: $files, types: [.pdf], multiple: true, title: "PDF'ler")
+        ToolScaffold(kind: .sanitize, runTitle: String(localized: "Temizle"), canRun: !files.isEmpty, state: state, run: run) {
+            FileListEditor(files: $files, types: [.pdf], multiple: true, title: String(localized: "PDF'ler"))
             VStack(alignment: .leading, spacing: 6) {
                 Toggle("Meta veriler (yazar, başlık, oluşturan uygulama, XMP)", isOn: $opts.metadata)
                 Toggle("Yorumlar ve açıklamalar", isOn: $opts.comments)
@@ -508,12 +508,12 @@ struct SanitizeToolView: View {
         }
         let o = opts
         let outFolder = folder
-        state = .running("Temizleniyor…")
+        state = .running(String(localized: "Temizleniyor…"))
         Task { @MainActor in
             var outs: [URL] = []
             var report: [String] = []
             for input in inputs {
-                let out = outFolder.map { $0.appendingPathComponent(input.baseName + "_temiz.pdf") } ?? input.uniqueSibling(suffix: "_temiz", ext: "pdf")
+                let out = outFolder.map { $0.appendingPathComponent(input.baseName + String(localized: "_temiz.pdf")) } ?? input.uniqueSibling(suffix: String(localized: "_temiz"), ext: "pdf")
                 do {
                     let lines = try await Task.detached(priority: .userInitiated) {
                         try PDFSanitizeService.sanitize(input: input, data: nil, output: out, options: o)
@@ -525,7 +525,7 @@ struct SanitizeToolView: View {
                 }
             }
             state = outs.isEmpty ? .failed(report.joined(separator: "\n")) : .done(report.joined(separator: "\n"), outs)
-            if !outs.isEmpty { app.notice("Hassas Bilgileri Kaldır: \(outs.count) dosya temizlendi.", urls: outs) }
+            if !outs.isEmpty { app.notice(String(localized: "Hassas Bilgileri Kaldır: \(outs.count) dosya temizlendi."), urls: outs) }
         }
     }
 }
@@ -539,7 +539,7 @@ struct CertificateSignView: View {
     @State private var selectedID: UUID?
     @State private var pageIndex = 0
     @State private var corner: CertificateSignService.Corner = .bottomRight
-    @State private var reason = "Belgeyi onaylıyorum"
+    @State private var reason = String(localized: "Belgeyi onaylıyorum")
     @State private var location = ""
     @State private var visible = true
     @State private var state: ToolRunState = .idle
@@ -548,7 +548,7 @@ struct CertificateSignView: View {
     private var session: DocumentSession? { app.session(id: sessionID) }
 
     var body: some View {
-        ToolScaffold(kind: .certificateSign, runTitle: "İmzala ve Kaydet", canRun: selectedID != nil && session != nil, state: state, run: run) {
+        ToolScaffold(kind: .certificateSign, runTitle: String(localized: "İmzala ve Kaydet"), canRun: selectedID != nil && session != nil, state: state, run: run) {
             if let s = session {
                 Text("Belge: \(s.displayName)").font(.callout)
             }
@@ -570,7 +570,7 @@ struct CertificateSignView: View {
                     }
                 }
                 if let i = identities.first(where: { $0.id == selectedID }), let exp = i.expires {
-                    Text("Geçerlilik sonu: \(Fmt.shortDate(exp))" + (exp < Date() ? " (SÜRESİ DOLMUŞ)" : ""))
+                    Text(String(localized: "Geçerlilik sonu: \(Fmt.shortDate(exp))") + (exp < Date() ? String(localized: " (SÜRESİ DOLMUŞ)") : ""))
                         .font(.caption).foregroundStyle(exp < Date() ? Color.red : Color.secondary)
                 }
                 TextField("Neden", text: $reason).textFieldStyle(.roundedBorder)
@@ -580,7 +580,7 @@ struct CertificateSignView: View {
                     HStack {
                         Stepper("Sayfa: \(pageIndex + 1) / \(s.pageCount)", value: $pageIndex, in: 0...max(0, s.pageCount - 1))
                         Picker("Konum", selection: $corner) {
-                            ForEach(CertificateSignService.Corner.allCases) { Text($0.rawValue).tag($0) }
+                            ForEach(CertificateSignService.Corner.allCases) { Text($0.rawValue.loc).tag($0) }
                         }
                         .frame(width: 180)
                     }
@@ -605,24 +605,24 @@ struct CertificateSignView: View {
     private func run() {
         guard let s = session, let ident = identities.first(where: { $0.id == selectedID }) else { return }
         let base = s.url?.baseName ?? s.displayName.replacingOccurrences(of: ".pdf", with: "")
-        guard let out = Dialogs.save(suggestedName: base + "_imzalı.pdf", type: .pdf, title: "İmzalı PDF'yi kaydet",
+        guard let out = Dialogs.save(suggestedName: base + String(localized: "_imzalı.pdf"), type: .pdf, title: String(localized: "İmzalı PDF'yi kaydet"),
                                      directory: s.url?.deletingLastPathComponent()) else { return }
-        state = .running("İmzalanıyor…")
+        state = .running(String(localized: "İmzalanıyor…"))
         Task { @MainActor in
             do {
                 guard let data = s.currentData(), let doc = PDFDocument(data: data) else {
-                    throw QPDFError.message("Belge hazırlanamadı.")
+                    throw QPDFError.message(String(localized: "Belge hazırlanamadı."))
                 }
                 if visible {
                     CertificateSignService.stampAppearance(doc: doc, pageIndex: pageIndex, corner: corner,
                                                            signer: ident.name, reason: reason, location: location)
                 }
-                guard let prepared = doc.dataRepresentation() else { throw QPDFError.message("Belge hazırlanamadı.") }
+                guard let prepared = doc.dataRepresentation() else { throw QPDFError.message(String(localized: "Belge hazırlanamadı.")) }
                 let signed = try CertificateSignService.sign(pdf: prepared, identity: ident.identity, name: ident.name,
                                                              reason: reason, location: location)
                 try signed.write(to: out, options: .atomic)
-                state = .done("Belge \"\(ident.name)\" sertifikasıyla imzalandı. İmzayı doğrulamak için dosyayı Adobe Acrobat Reader'da açabilirsiniz.", [out])
-                app.notice("Sertifika ile İmzala: \(out.lastPathComponent)", urls: [out])
+                state = .done(String(localized: "Belge \"\(ident.name)\" sertifikasıyla imzalandı. İmzayı doğrulamak için dosyayı Adobe Acrobat Reader'da açabilirsiniz."), [out])
+                app.notice(String(localized: "Sertifika ile İmzala: \(out.lastPathComponent)"), urls: [out])
             } catch {
                 state = .failed(error.localizedDescription)
             }

@@ -30,7 +30,7 @@ enum CertificateSignService {
             let identity = item as! SecIdentity
             var cert: SecCertificate?
             guard SecIdentityCopyCertificate(identity, &cert) == errSecSuccess, let cert else { continue }
-            let name = (SecCertificateCopySubjectSummary(cert) as String?) ?? "Adsız sertifika"
+            let name = (SecCertificateCopySubjectSummary(cert) as String?) ?? String(localized: "Adsız sertifika")
             var issuer = ""
             var expires: Date?
             if let values = SecCertificateCopyValues(cert, [kSecOIDX509V1IssuerName, kSecOIDX509V1ValidityNotAfter] as CFArray, nil) as? [String: Any] {
@@ -68,9 +68,9 @@ enum CertificateSignService {
         case .topLeft: r.origin = CGPoint(x: crop.minX + m, y: crop.maxY - h - m)
         }
         let local = r.offsetBy(dx: -media.minX, dy: -media.minY)
-        var text = "Dijital olarak imzalayan:\n\(signer)\nTarih: \(Fmt.dateTime())"
-        if !reason.isEmpty { text += "\nNeden: \(reason)" }
-        if !location.isEmpty { text += " · Yer: \(location)" }
+        var text = String(localized: "Dijital olarak imzalayan:\n\(signer)\nTarih: \(Fmt.dateTime())")
+        if !reason.isEmpty { text += String(localized: "\nNeden: \(reason)") }
+        if !location.isEmpty { text += String(localized: " · Yer: \(location)") }
         let para = NSMutableParagraphStyle()
         para.lineSpacing = 1
         let attr = NSAttributedString(string: text, attributes: [
@@ -95,42 +95,42 @@ enum CertificateSignService {
     private static let contentsPlaceholderBytes = 8192
 
     static func sign(pdf original: Data, identity: SecIdentity, name: String, reason: String, location: String) throws -> Data {
-        guard let text = String(data: original, encoding: .isoLatin1) else { throw QPDFError.message("PDF okunamadı.") }
+        guard let text = String(data: original, encoding: .isoLatin1) else { throw QPDFError.message(String(localized: "PDF okunamadı.")) }
         let ns = text as NSString
 
         // 1) Son xref ve trailer bilgileri
         let sx = ns.range(of: "startxref", options: .backwards)
-        guard sx.location != NSNotFound else { throw QPDFError.message("PDF yapısı tanınamadı (startxref yok).") }
+        guard sx.location != NSNotFound else { throw QPDFError.message(String(localized: "PDF yapısı tanınamadı (startxref yok).")) }
         let afterSX = ns.substring(from: sx.location + sx.length)
         guard let prevXref = Int(afterSX.trimmingCharacters(in: .whitespacesAndNewlines).components(separatedBy: .whitespacesAndNewlines).first ?? "") else {
-            throw QPDFError.message("PDF yapısı tanınamadı (xref konumu).")
+            throw QPDFError.message(String(localized: "PDF yapısı tanınamadı (xref konumu)."))
         }
         if prevXref < ns.length {
             let probe = ns.substring(with: NSRange(location: prevXref, length: min(4, ns.length - prevXref)))
             guard probe == "xref" else {
-                throw QPDFError.message("Bu PDF sıkıştırılmış çapraz başvuru akışı kullanıyor; sertifika imzası için desteklenmiyor.")
+                throw QPDFError.message(String(localized: "Bu PDF sıkıştırılmış çapraz başvuru akışı kullanıyor; sertifika imzası için desteklenmiyor."))
             }
         }
         guard let root = lastMatch(in: text, pattern: "/Root\\s+(\\d+)\\s+(\\d+)\\s+R"),
               let rootNum = Int(root[1]), let rootGen = Int(root[2]) else {
-            throw QPDFError.message("Belge kataloğu bulunamadı.")
+            throw QPDFError.message(String(localized: "Belge kataloğu bulunamadı."))
         }
         guard let sizeMatch = lastMatch(in: text, pattern: "/Size\\s+(\\d+)"), let size = Int(sizeMatch[1]) else {
-            throw QPDFError.message("Belge nesne sayısı bulunamadı.")
+            throw QPDFError.message(String(localized: "Belge nesne sayısı bulunamadı."))
         }
         let info = lastMatch(in: text, pattern: "/Info\\s+(\\d+\\s+\\d+\\s+R)")?[1]
 
         // 2) Katalog sözlüğünü bul
         guard let objStart = lastRange(in: text, pattern: "(?<![0-9])\(rootNum)\\s+\(rootGen)\\s+obj") else {
-            throw QPDFError.message("Katalog nesnesi bulunamadı.")
+            throw QPDFError.message(String(localized: "Katalog nesnesi bulunamadı."))
         }
         let dictOpen = ns.range(of: "<<", options: [], range: NSRange(location: objStart.location, length: ns.length - objStart.location))
         guard dictOpen.location != NSNotFound, let dictEnd = matchingDictEnd(ns, from: dictOpen.location) else {
-            throw QPDFError.message("Katalog sözlüğü okunamadı.")
+            throw QPDFError.message(String(localized: "Katalog sözlüğü okunamadı."))
         }
         let catalogDict = ns.substring(with: NSRange(location: dictOpen.location, length: dictEnd - dictOpen.location))
         if catalogDict.contains("/AcroForm") {
-            throw QPDFError.message("Bu belge form alanları içeriyor. Önce \"İmzala ve Doldur > Uygula\" ile formu düzleştirip kaydedin, sonra sertifika ile imzalayın.")
+            throw QPDFError.message(String(localized: "Bu belge form alanları içeriyor. Önce \"İmzala ve Doldur > Uygula\" ile formu düzleştirip kaydedin, sonra sertifika ile imzalayın."))
         }
 
         // 3) Yeni nesneler
@@ -175,14 +175,14 @@ enum CertificateSignService {
 
         // 5) ByteRange'i doldur
         guard let contentsTag = data.range(of: Data("/Contents <".utf8), options: .backwards, in: original.count..<data.count) else {
-            throw QPDFError.message("İmza alanı oluşturulamadı.")
+            throw QPDFError.message(String(localized: "İmza alanı oluşturulamadı."))
         }
         let start = contentsTag.upperBound - 1               // '<' konumu
         let end = start + 1 + placeholderHex.count + 1        // '>' sonrası
         let byteRange = "/ByteRange [0 \(pad(start)) \(pad(end)) \(pad(data.count - end))]"
         guard byteRange.utf8.count == byteRangePlaceholder.utf8.count,
               let brRange = data.range(of: Data(byteRangePlaceholder.utf8), options: [], in: original.count..<data.count) else {
-            throw QPDFError.message("Bayt aralığı yazılamadı.")
+            throw QPDFError.message(String(localized: "Bayt aralığı yazılamadı."))
         }
         data.replaceSubrange(brRange, with: Data(byteRange.utf8))
 
@@ -191,7 +191,7 @@ enum CertificateSignService {
         signed.append(data.subdata(in: 0..<start))
         signed.append(data.subdata(in: end..<data.count))
         let cms = try cmsSignature(of: signed, identity: identity)
-        guard cms.count <= contentsPlaceholderBytes else { throw QPDFError.message("İmza beklenenden büyük.") }
+        guard cms.count <= contentsPlaceholderBytes else { throw QPDFError.message(String(localized: "İmza beklenenden büyük.")) }
         var hex = cms.map { String(format: "%02X", $0) }.joined()
         hex += String(repeating: "0", count: placeholderHex.count - hex.count)
         data.replaceSubrange((start + 1)..<(start + 1 + placeholderHex.count), with: Data(hex.utf8))
@@ -201,20 +201,20 @@ enum CertificateSignService {
     private static func cmsSignature(of content: Data, identity: SecIdentity) throws -> Data {
         var encoderRef: CMSEncoder?
         guard CMSEncoderCreate(&encoderRef) == errSecSuccess, let encoder = encoderRef else {
-            throw QPDFError.message("CMS kodlayıcı oluşturulamadı.")
+            throw QPDFError.message(String(localized: "CMS kodlayıcı oluşturulamadı."))
         }
         var status = CMSEncoderAddSigners(encoder, identity)
-        guard status == errSecSuccess else { throw QPDFError.message("Sertifika imzalayan olarak eklenemedi (\(status)).") }
+        guard status == errSecSuccess else { throw QPDFError.message(String(localized: "Sertifika imzalayan olarak eklenemedi (\(Int(status))).")) }
         _ = CMSEncoderSetSignerAlgorithm(encoder, kCMSEncoderDigestAlgorithmSHA256)
         _ = CMSEncoderSetHasDetachedContent(encoder, true)
         status = content.withUnsafeBytes { buf in
             CMSEncoderUpdateContent(encoder, buf.baseAddress!, content.count)
         }
-        guard status == errSecSuccess else { throw QPDFError.message("İmzalanacak içerik eklenemedi (\(status)).") }
+        guard status == errSecSuccess else { throw QPDFError.message(String(localized: "İmzalanacak içerik eklenemedi (\(Int(status))).")) }
         var out: CFData?
         status = CMSEncoderCopyEncodedContent(encoder, &out)
         guard status == errSecSuccess, let result = out else {
-            throw QPDFError.message("İmza oluşturulamadı. Anahtar Zinciri erişimine izin verdiğinizden emin olun (\(status)).")
+            throw QPDFError.message(String(localized: "İmza oluşturulamadı. Anahtar Zinciri erişimine izin verdiğinizden emin olun (\(Int(status)))."))
         }
         return result as Data
     }

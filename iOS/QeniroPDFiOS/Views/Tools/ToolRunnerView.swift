@@ -97,15 +97,15 @@ struct MergeForm: View {
                 }
             }
             .card()
-            OutlineButton(title: "Dosya ekle", icon: "plus") { showImporter = true }
-            PrimaryButton(title: "\(urls.count) dosyayı birleştir", busy: job.running) {
-                guard urls.count >= 2 else { job.error = "Birleştirmek için en az iki PDF seçin."; return }
+            OutlineButton(title: String(localized: "Dosya ekle"), icon: "plus") { showImporter = true }
+            PrimaryButton(title: String(localized: "\(urls.count) dosyayı birleştir"), busy: job.running) {
+                guard urls.count >= 2 else { job.error = String(localized: "Birleştirmek için en az iki PDF seçin."); return }
                 let list = urls
                 job.run {
                     let folder = try DocTools.freshOutputFolder()
-                    let out = folder.appendingPathComponent("Birleştirilmiş.pdf")
+                    let out = folder.appendingPathComponent(String(localized: "Birleştirilmiş.pdf"))
                     let n = try PDFMergeService.merge(list, to: out)
-                    return ToolOutput(urls: [out], note: "\(list.count) dosya, toplam \(n) sayfa.")
+                    return ToolOutput(urls: [out], note: String(localized: "\(list.count) dosya, toplam \(n) sayfa."))
                 }
             }
             if let e = job.error { Text(e).font(.system(size: 13)).foregroundStyle(Theme.accent) }
@@ -141,7 +141,7 @@ struct CreatePDFView: View {
                         Task { @MainActor in
                             try? await Task.sleep(nanoseconds: 400_000_000)
                             if DocumentScannerView.isSupported { app.showScanner = true }
-                            else { app.errorMessage = "Bu cihazda belge tarayıcı kullanılamıyor." }
+                            else { app.errorMessage = String(localized: "Bu cihazda belge tarayıcı kullanılamıyor.") }
                         }
                     } label: { Label("Kamerayla belge tara", systemImage: "doc.viewfinder") }
                     PhotosPicker(selection: $photoItems, maxSelectionCount: 50, matching: .images) {
@@ -154,7 +154,7 @@ struct CreatePDFView: View {
                         Label("Metin, RTF veya HTML dosyasından", systemImage: "doc.richtext")
                     }
                     Button {
-                        finish(PDFCreateService.blank(), name: "Yeni belge")
+                        finish(PDFCreateService.blank(), name: String(localized: "Yeni belge"))
                     } label: { Label("Boş sayfa", systemImage: "doc") }
                 } footer: {
                     Text("Oluşturulan PDF'ler Dosyalar uygulamasında \"iPhone'umda > Qeniro PDF\" klasörüne kaydedilir.")
@@ -178,8 +178,8 @@ struct CreatePDFView: View {
                 photoItems = []
                 let doc = PDFCreateService.fromImages(images, ocr: useOCR)
                 working = false
-                guard doc.pageCount > 0 else { app.errorMessage = "Seçilen fotoğraflar okunamadı."; return }
-                finish(doc, name: "Fotoğraflar")
+                guard doc.pageCount > 0 else { app.errorMessage = String(localized: "Seçilen fotoğraflar okunamadı."); return }
+                finish(doc, name: String(localized: "Fotoğraflar"))
             }
         }
         .fileImporter(isPresented: $showFileImporter,

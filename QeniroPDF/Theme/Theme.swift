@@ -108,9 +108,9 @@ enum AppearanceChoice: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var title: String {
         switch self {
-        case .system: return "Sistemle aynı"
-        case .light: return "Açık"
-        case .dark: return "Koyu"
+        case .system: return String(localized: "Sistemle aynı")
+        case .light: return String(localized: "Açık")
+        case .dark: return String(localized: "Koyu")
         }
     }
 

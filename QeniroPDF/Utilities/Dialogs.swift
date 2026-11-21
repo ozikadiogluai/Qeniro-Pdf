@@ -4,7 +4,7 @@ import UniformTypeIdentifiers
 /// NSOpenPanel / NSSavePanel / NSAlert sarmalayıcıları (Türkçe).
 @MainActor
 enum Dialogs {
-    static func openPDFs(multiple: Bool = false, title: String = "PDF Seçin") -> [URL] {
+    static func openPDFs(multiple: Bool = false, title: String = String(localized: "PDF Seçin")) -> [URL] {
         openFiles(types: [.pdf], multiple: multiple, title: title)
     }
 
@@ -12,7 +12,7 @@ enum Dialogs {
         let panel = NSOpenPanel()
         panel.title = title
         panel.message = title
-        panel.prompt = "Seç"
+        panel.prompt = String(localized: "Seç")
         panel.allowsMultipleSelection = multiple
         panel.canChooseDirectories = false
         panel.canChooseFiles = true
@@ -20,11 +20,11 @@ enum Dialogs {
         return panel.runModal() == .OK ? panel.urls : []
     }
 
-    static func chooseFolder(title: String = "Çıktı klasörünü seçin") -> URL? {
+    static func chooseFolder(title: String = String(localized: "Çıktı klasörünü seçin")) -> URL? {
         let panel = NSOpenPanel()
         panel.title = title
         panel.message = title
-        panel.prompt = "Seç"
+        panel.prompt = String(localized: "Seç")
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.canCreateDirectories = true
@@ -32,10 +32,10 @@ enum Dialogs {
         return panel.runModal() == .OK ? panel.url : nil
     }
 
-    static func save(suggestedName: String, type: UTType?, title: String = "Kaydet", directory: URL? = nil) -> URL? {
+    static func save(suggestedName: String, type: UTType?, title: String = String(localized: "Kaydet"), directory: URL? = nil) -> URL? {
         let panel = NSSavePanel()
         panel.title = title
-        panel.prompt = "Kaydet"
+        panel.prompt = String(localized: "Kaydet")
         panel.nameFieldStringValue = suggestedName
         panel.canCreateDirectories = true
         if let type { panel.allowedContentTypes = [type] }
@@ -48,7 +48,7 @@ enum Dialogs {
         a.messageText = title
         a.informativeText = message
         a.alertStyle = .informational
-        a.addButton(withTitle: "Tamam")
+        a.addButton(withTitle: String(localized: "Tamam"))
         a.runModal()
     }
 
@@ -57,11 +57,11 @@ enum Dialogs {
         a.messageText = title
         a.informativeText = error.localizedDescription
         a.alertStyle = .warning
-        a.addButton(withTitle: "Tamam")
+        a.addButton(withTitle: String(localized: "Tamam"))
         a.runModal()
     }
 
-    static func confirm(_ title: String, _ message: String, ok: String = "Devam", cancel: String = "Vazgeç") -> Bool {
+    static func confirm(_ title: String, _ message: String, ok: String = String(localized: "Devam"), cancel: String = String(localized: "Vazgeç")) -> Bool {
         let a = NSAlert()
         a.messageText = title
         a.informativeText = message
@@ -75,8 +75,8 @@ enum Dialogs {
         let a = NSAlert()
         a.messageText = title
         a.informativeText = message
-        a.addButton(withTitle: "Tamam")
-        a.addButton(withTitle: "Vazgeç")
+        a.addButton(withTitle: String(localized: "Tamam"))
+        a.addButton(withTitle: String(localized: "Vazgeç"))
         let field: NSTextField = secure ? NSSecureTextField(frame: NSRect(x: 0, y: 0, width: 280, height: 24))
                                         : NSTextField(frame: NSRect(x: 0, y: 0, width: 280, height: 24))
         field.placeholderString = placeholder
@@ -91,11 +91,11 @@ enum Dialogs {
 
     static func askSaveChanges(name: String) -> SaveChoice {
         let a = NSAlert()
-        a.messageText = "\"\(name)\" belgesindeki değişiklikler kaydedilsin mi?"
-        a.informativeText = "Kaydetmezseniz değişiklikleriniz kaybolur."
-        a.addButton(withTitle: "Kaydet")
-        a.addButton(withTitle: "Kaydetme")
-        a.addButton(withTitle: "Vazgeç")
+        a.messageText = String(localized: "\"\(name)\" belgesindeki değişiklikler kaydedilsin mi?")
+        a.informativeText = String(localized: "Kaydetmezseniz değişiklikleriniz kaybolur.")
+        a.addButton(withTitle: String(localized: "Kaydet"))
+        a.addButton(withTitle: String(localized: "Kaydetme"))
+        a.addButton(withTitle: String(localized: "Vazgeç"))
         switch a.runModal() {
         case .alertFirstButtonReturn: return .save
         case .alertSecondButtonReturn: return .discard

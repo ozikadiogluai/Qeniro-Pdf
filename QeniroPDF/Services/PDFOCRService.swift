@@ -6,10 +6,45 @@ import CoreGraphics
 import AppKit
 #endif
 
-/// Vision ile metin tanıma (Türkçe + İngilizce).
+/// Vision ile metin tanıma (varsayılan: cihaz dili + İngilizce).
 enum PDFOCRService {
     private static let languageLock = NSLock()
-    private static var storedLanguages = ["tr-TR", "en-US"]
+    private static var storedLanguages = visionLanguages(for: defaultLanguage)
+
+    /// Arayüzde sunulan tanıma dilleri. Vision'ın bu sistemde desteklemedikleri listeden çıkarılır
+    /// (ör. Arapça, Felemenkçe ve Türkçe macOS 15 / iOS 18 ile geldi).
+    static let candidateLanguages = ["tr-TR", "en-US", "de-DE", "fr-FR", "es-ES", "it-IT", "pt-BR", "nl-NL", "ar-SA"]
+
+    /// Bu sistemde Vision'ın tanıyabildiği adaylar (hiçbiri bilinmiyorsa Arapça hariç tüm liste).
+    static let availableLanguages: [String] = {
+        let supported = Set((try? VNRecognizeTextRequest().supportedRecognitionLanguages()) ?? [])
+        let list = candidateLanguages.filter { supported.contains($0) }
+        return list.isEmpty ? candidateLanguages.filter { $0 != "ar-SA" } : list
+    }()
+
+    /// Cihaz/uygulama diline uyan tanıma dili (Türkçe kullanıcıda "tr-TR"), yoksa İngilizce.
+    static var defaultLanguage: String {
+        let available = availableLanguages
+        let prefs = Bundle.main.preferredLocalizations + Locale.preferredLanguages
+        for pref in prefs {
+            let lang = pref.split(separator: "-").first.map(String.init)?.lowercased() ?? pref
+            if let match = available.first(where: { $0.lowercased().hasPrefix(lang + "-") }) { return match }
+        }
+        return available.contains("en-US") ? "en-US" : (available.first ?? "en-US")
+    }
+
+    /// Vision'a verilecek liste: seçilen dil + ikinci dil olarak İngilizce.
+    static func visionLanguages(for code: String) -> [String] {
+        code == "en-US" ? ["en-US"] : [code, "en-US"]
+    }
+
+    /// Dil adını arayüz dilinde verir ("tr-TR" -> "Türkçe" / "Turkish" / "Turc"…).
+    static func displayName(_ code: String) -> String {
+        let ui = Locale(identifier: Bundle.main.preferredLocalizations.first ?? "tr")
+        let lang = code.split(separator: "-").first.map(String.init) ?? code
+        guard let name = ui.localizedString(forLanguageCode: lang) else { return code }
+        return name.prefix(1).uppercased(with: ui) + name.dropFirst()
+    }
 
     /// Tanınan metin dili (Dönüştür panelinden seçilir). İş parçacığı güvenli.
     static var preferredLanguages: [String] {
@@ -20,7 +55,7 @@ enum PDFOCRService {
         }
         set {
             languageLock.lock()
-            storedLanguages = newValue.isEmpty ? ["tr-TR", "en-US"] : newValue
+            storedLanguages = newValue.isEmpty ? visionLanguages(for: defaultLanguage) : newValue
             languageLock.unlock()
         }
     }
@@ -62,7 +97,7 @@ enum PDFOCRService {
 
     /// Her sayfa için OCR satırları; atlanan sayfalar nil.
     static func recognizeAll(data: Data, skipPagesWithText: Bool, progress: (@Sendable (Double) -> Void)? = nil) throws -> [[OCRLine]?] {
-        let doc = try DocTools.open(data: data, name: "Belge")
+        let doc = try DocTools.open(data: data, name: String(localized: "Belge"))
         var out: [[OCRLine]?] = []
         for i in 0..<doc.pageCount {
             guard let page = doc.page(at: i) else { out.append(nil); continue }

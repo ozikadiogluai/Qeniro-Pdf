@@ -159,8 +159,8 @@ struct HapTabBar: View {
 
     var body: some View {
         HStack(spacing: 3) {
-            item(.home, "house.fill", "Ana Sayfa")
-            item(.tools, "square.grid.2x2.fill", "Araçlar")
+            item(.home, "house.fill", String(localized: "Ana Sayfa"))
+            item(.tools, "square.grid.2x2.fill", String(localized: "Araçlar"))
             Button(action: onPlus) {
                 Image(systemName: "plus")
                     .font(.system(size: 19, weight: .bold))
@@ -170,8 +170,8 @@ struct HapTabBar: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("PDF aç")
-            item(.files, "folder.fill", "Dosyalar")
-            item(.starred, "star.fill", "Yıldızlı")
+            item(.files, "folder.fill", String(localized: "Dosyalar"))
+            item(.starred, "star.fill", String(localized: "Yıldızlı"))
         }
         .padding(4)
         .background(Theme.pill, in: Capsule())

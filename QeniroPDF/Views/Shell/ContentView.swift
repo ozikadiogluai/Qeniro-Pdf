@@ -76,11 +76,12 @@ struct SidebarView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: 10) {
-                Text("Q")
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(Theme.onInk)
+                Image("QeniroLogo")
+                    .resizable()
+                    .interpolation(.high)
+                    .aspectRatio(contentMode: .fill)
                     .frame(width: 30, height: 30)
-                    .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(Theme.ink))
+                    .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
                     .accessibilityHidden(true)
                 Text("Qeniro PDF")
                     .font(.title3.weight(.semibold))

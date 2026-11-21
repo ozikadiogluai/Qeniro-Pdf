@@ -42,11 +42,12 @@ struct HomeView: View {
     private var hero: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 8) {
-                Text("Q")
-                    .font(.system(size: 19, weight: .bold))
-                    .foregroundStyle(Color(hex: 0x121A21))
+                Image("QeniroLogo")
+                    .resizable()
+                    .interpolation(.high)
+                    .aspectRatio(contentMode: .fill)
                     .frame(width: 40, height: 40)
-                    .background(Color.white, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 0) {
                     Text("Qeniro PDF")
